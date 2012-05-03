@@ -1,4 +1,6 @@
 
+;\\ Bin in 2 dimensions
+
 pro bin2d, x, y, z, widths, outx, outy, outz, $
 	grid_x=grid_x, grid_y=grid_y, extrap=extrap
 
