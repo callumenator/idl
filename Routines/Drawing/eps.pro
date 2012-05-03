@@ -1,3 +1,4 @@
+;\\ Wrapper for EPS creation
 
 pro eps, filename=filename, $
 		 xsize=xsize, $
