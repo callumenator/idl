@@ -1,0 +1,42 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage{anysize}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath, amsthm, amssymb}
+\usepackage{setspace}
+\usepackage{units}
+\usepackage[small,bf]{caption}
+\usepackage{fancyhdr}
+\usepackage{color}
+\usepackage{hyperref}
+
+\onehalfspacing
+
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdfborder={0 0 0 0}
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=false,     % window fit to page when opened
+    pdfstartview={FitH},    % fits the width of the page to the window
+    pdftitle={My title},    % title
+    pdfauthor={Author},     % author
+    pdfsubject={Subject},   % subject of the document
+    pdfcreator={Creator},   % creator of the document
+    pdfproducer={Producer}, % producer of the document
+    pdfkeywords={keywords}, % list of keywords
+    pdfnewwindow=true,      % links in new window
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,          % color of internal links
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=blue           % color of external links
+}
+\pagestyle{fancy} \fancyhead{} \fancyfoot{} \fancyhead[LO] {\leftmark} \fancyhead[RO]{\thepage}
+
+
+\begin{document}
+
+
+\tableofcontents

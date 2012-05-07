@@ -1,0 +1,51 @@
+                                                       12-Aug-1995
+
+The following are suggested guidelines for IDL procedures to be submitted
+to the IDL Astronomy Library
+
+(1) Each procedure should include documentation in a format similar
+    to that described in the file $IDL_DIR/examples/general/template.pro (Unix)
+    or IDL_DIR:[EXAMPLES.GENERAL]TEMPLATE.PRO (VMS) and used in the standard
+    IDL Users Library.    The documentation must be bracketed by ;+ and ;- 
+    symbols so that it may be extracted by the help software.   The NAME and 
+    CALLING SEQUENCE fields must be used and the purpose and types of all 
+    parameters and keywords should be explained.
+
+(2) The use of function calls is discouraged.    If a function call is
+    used it should have name that is not likely to be used as an array in 
+    another unrelated program, e.g. DAO_VALUE is probably O.K, but VALUE is 
+    not. 
+
+(3) The procedures should be as platform independent as possible.  This 
+    generally means having IF statements when spawning to the operating 
+     system, e.g.
+
+  if !VERSION.OS EQ "vms" then spawn,'TYPE FILE.DAT' else spawn,'more file.dat'
+
+    For Windows-IDL compatibility the procedure names should be unique in the 
+    first 8 characters.    The Library currently violates this rule for the 
+    following pairs of procedures
+
+    dfitsread,dfitsread_large         minf_parabol_d, minf_parabolic
+    tab_null, tab_nullrow             copy_struct,copy_struct_inx
+
+(4) The procedure should display the calling sequence if insufficient
+   parameters are supplied.   Keyword parameters should always be optional.
+
+(5) The use of non-standard system variables is discouraged.
+
+  The IDL Users Library currently uses four extra system variables that are 
+  added with the DEFSYSV procedure.   They are
+
+  !DEBUG - Used to determine if additional debugging information should be 
+           set
+  !PRIV - Used in a couple of the database programs.   Needs to be set when
+          modifying a database.
+  !TEXTOUT - Used in the program TEXTOPEN which is called by the database and
+        several other programs.   Programs which use this non-standard system
+        variable also allow a keyword TEXTOUT to be used instead of the 
+       system variable
+  !TEXTUNIT - Logical output unit number used by TEXTOPEN
+
+   These 4 additional system variables can be added to one's session using the
+   procedure ASTROLIB.

@@ -1,0 +1,333 @@
+24 Apr 1998
+  EQV2: Upgraded by adding a number of new options and help text.  RES
+  EQV2_LOAD_HELP: Uses text_block to load help text into variables.  RES
+17 Apr 1998
+  TVBOX: Fixed to be backward compatible with IDL 4.  RES
+16 Apr 1998
+  PLOTP: Added /CLIP keyword to clip to plot window for /DATA.  RES
+  SUNALTAZI: Modified to handle arrays of times.  RES
+15 Apr 1998
+  SUNJS: Converted several if statements to calls to where so arrays
+    of times can be used.  RES
+  DT_TM_FROMJS: Just returned NUMBERS structure.  RES
+  DT_TM_MAK: Added a returned structure with numeric values, NUMBERS.  RES
+14 Apr 1998
+  DT_TM_MAK: Added new format item, sam$ = seconds after midnight.  RES
+10 Apr 1998
+  MAGCRS: Added WINDOW keyword to allow use in a draw widget.
+    Also added /NOCURSOR keyword to indicate that incoming coordinates
+    are to be used as device coordinates instead of calling the CURSOR
+    routine.  Use both WINDOW=win and /NOCURSOR for draw widgets.  RES
+9 Apr 1998
+  WHOCALLEDME: Generalized to look back farther then parent.  Added
+    new keyword BACK=b.  Default is parent as before.  BACK=0 gives
+    self, BACK=2 gives grandparent, BACK=3 gives great grandparent,
+    and so on.  Going back too far gives null string results.  RES
+8 Apr 1998
+  MAGCRS: Fixed to show first mag window on /INIT.  Also cleaned up
+    the help text some.  RES
+7 Apr 1998
+  IMGPOLREC: Upgraded to allow non-centered pixels.  The specified ranges
+    in angle and radius used to apply to the centers of the first and last
+    pixels in angle and radius.  Added new keywords, /A_EDGE and /R_EDGE, so
+    the given ranges can apply to the pixel edges to get the full pixels
+    instead of cutting the first and last in half as before.  If new
+    keywords not used should give same results as before.  RES
+1 Apr 1998
+  WORDARRAY: Now allows the ignore characters to be given as a simple
+    string of characters to drop before processing.  Also allows
+    a string of delimiter characters to be given in the same way.  RES
+  EQV2: Added /NO_BLOCK to xmanager call to free up command line.  RES
+31 Mar 1998
+  EQV2: Added SNAP button to make a snapshot of the current equation
+    and settings.  RES
+30 Mar 1998
+  EQV2: Fixed an undefined variable problem.  RES
+27 Mar 1998
+  EQV2: Fixed a minor glitch that occured when entering a new equation
+    file.  Also generalized to allow parametric equations.  This is
+    done by specifying a trange instead of xrange, and giving
+    x=fx(t) & y=fy(t) instead of just y=f(x).  Can now do circles
+    very easily.  RES
+20 Mar 1998
+  DT_TM_FULL: Upgraded a bit to deal with dashes, slashes, and commas
+    in date.  RES
+18 Mar 1998
+  TVBOX: Made 24 bit color compatible.  RES
+  GETENV2: New more portable version of getenv.  You may set up files
+    with values instead of using unix environmental variables.  Should
+    work on any operating system.  On unix may use either files or
+    environmental variables.  RES
+10 Mar 1998
+  RADON: Cleaned up a bit (fixed so fractional angle steps work) and
+    removed the byte only restriction.  RES
+9 Mar 1998
+  EQV2: Added an optional int as 5th item for a parameter line in the eqv
+    file.  This forces that value to be an integer, the slider value is
+    truncated to an integer using the IDL fix function.  This is useful for
+    setting flags if the equation is a user defined function, or for easily
+    dealing with harmonics and so on.  A possible use is where the function
+    has multiple variations based on an integer flag.  An example could be a 
+    circle function that returns either the top or bottom half og the circle
+    depending on whether a flag value is even or odd.  RES
+6 Mar 1998
+  EQV2: Added x scaling which gets applied after the equation gets
+    executed but before plotting.  If the same integer scale factor
+    is applied to the equation to scale y then harmonics may be
+    easily plotted.  RES
+3 Mar 1998
+  TEXT_BLOCK: New routine to make it easy to print blocks of text.
+    It will print all commented lines following its call in a routine,
+    until the next uncommented line is found.  Also returns the text.  RES
+2 Mar 1998
+  EQV2: New routine to allow interactive function plotting on current window.
+    Function parameters may be varied using widget sliders.  RES
+24 Feb 1998
+  EXDIFF: New routine to return difference between array extremes.
+    Makes range array differences much more convenient.  RES
+12 Feb 1998
+  IMGUNDER: Made a conversion factor double.  RES
+6 Feb 1998
+  JSPLOT: Set defaults for the new keywords added yesterday.  RES
+5 Feb 1998
+  XVIEW: Fixed the save image problem in IDL 5.  RES
+  BOX2B: Attempt to fix problem with last box erase on entry.  Better
+    but still has some problems.  Also sometimes get a box of size 0.  RES
+  JSPLOT: Fixed XTHICK, YTHICK, CHARTHICK to work correctly.  RES
+  POINTS: Added new keyword /NORMALIZED to convert size in points
+    to a size in normalized coordinates.  Returns a 2 element array
+    since for non-square windows the size will be different in x and y.
+    Intended to allow positioning using points.  RES
+4 Feb 1998
+  LINT: New routine to find the intersection of two lines in the XY plane.
+    The two lines are each defined by giving two points on the line.  RES
+3 Feb 1998
+  DMS2D: New function to convert a string with degrees, minutes, and
+    seconds to degrees as a double.  Inverse of d2dms.  Only works
+    for scalar values.  May leave out sec or min and sec.  RES
+23 Jan 1998
+  CHECK5: New routine to check if running IDL version 5 or later.  RES
+  CBAR: Added CHARTHICK keyword so that now works right.  RES
+  SETCOLOR: Added new keyword BRIGHTNESS=fact to allow easy change in
+    brightness of color.  Works with decimal or hex colors.  RES
+19 Jan 1998
+  SUNALTAZI: Renamed from sunpos to avoid a conflict with a routine of
+    the same name in the IDLASTRO IDL library from GSFC.  The name is
+    now better than it was but may be slightly confusing since the results
+    are returned in the order azi, alt but the name has altazi.  Just
+    be careful.  The conflict was pointed out by James Theiler of LANL.  RES
+  SUN_ZD: Renamed a routine called internally from sunpos to sunaltazi.  RES
+16 Jan 1998
+  FILENAME: Changed to use !version.os_family instead of
+    !version.os.  Was not working for Windows because !version.os
+    was win32.  RES
+15 Jan 1998
+  MORE: Modified to be more portable.  It was using filepath(/terminal)
+    which worked ok on unix but is not portable.  It now works pretty
+    well for unix and not so well for Windows.  Can't seem to print a
+    backspace in Windows.  RES
+  COLOR: Modified to return as text color the darkest or brightest
+    value, depending on what gives best contrast.  RES
+14 Jan 1998
+  Following routines modified to drop the use of !d.n_colors:
+    chinit, color, color_quanj, colorwarn, crossi, crossi2, ctool, eqv,
+    fill_cont, hline, hori, imgline, imgscale, jsplot, ls, makevlt,
+    paint, pickcolor, pltcrv, rotvlt, shade_surf2, slowplot, sprint,
+    sun_colors, testcolor, topc, veri, vimgseq, ,vline webshadow,
+    xced1, xmerge, xtextimg, xview.  RES
+9 Jan 1998
+  IMGSQZ: New routine to squeeze out colors not used greatly to make
+    room for custom colors.  Moves image and color table values around
+    to put the freed colors at the bottom of the color table.  RES
+8 Jan 1998
+  SET_SCALE: Fixed a bug where of one of the requested floating values
+    (x1,x2,y1,y2) was an int it was returned as an int.  Now forces floats. RES
+31 Dec 1997
+  JS2WEEKDAY: New routine to return week day given Julian Second.
+    May return number or name.  RES
+  JD2JS: Emphasized the fact that JD starts at noon.  RES
+  JS2JD: Emphasized the fact that JD starts at noon.  RES
+  DATE2JD: Minor help text fix.  RES
+30 Dec 1997
+  SUN_COLORS: Converted color table file to a text file to be more
+    portable.  RES
+  COLOR: Dropped the use of getenv to find the colors file.  Now uses
+    whoami to look in the source directory for colors.txt.  Also converted
+    colors file to a simple text file for easier use.  Should rewrite
+    someday.  RES
+18 Dec 1997
+  DT_TM_FROMJS: Just passed new keyword DDECIMAL=ddec on to dt_tm_mak.  RES
+18 Dec 1997
+  DT_TM_MAK: Added new keyword DDECIMAL=ddec to set number of decimal
+    places in day of year (if given in format).  Def=none.  RES
+3 Dec 1997
+  TARCLR: Upgraded to work with high color (> 256 colors).  Also added
+    new keyword SET to set specified color index (for 8 bit color).  RES
+14 Nov 1997
+  BOX2B: New routine, a simple two mouse button interactive box.  Easier
+    to use, more portable.  RES
+12 Nov 1997
+  OUTBOX: New routine to test if a given point is outside a given box.  RES
+  INBOX: New routine to test if a given point is inside a given box.  RES
+  XBB: Improved help text.  RES
+  SWAP: New routine to swap two values.  Very simple but cleans up code.  RES
+  TVBOX: Modified to keep box size GE 1.  RES
+3 Nov 1997
+  IMGNEG: Simple image processing routine that converts a color image
+    to its negative.  Used as an example for the new custom PROCESS
+    pull-down in XVIEW.  RES
+  XHOTLIST: Added browse option to this routine.  Should now allow
+    system independent directory browsing.  RES
+  XVIEW: Three upgrades: (1) Added browse option to directory hotlist,
+    (2) Added user defined PRINT and PROCESS pull-down menus,
+    (3) Added help to the HELP button.  RES
+13 Oct 1997
+  WEB_BACK: A primitive but effective routine to generate a background
+    image for tiling a web page.  RES
+25 Sep 1997
+  FILEBREAK: Fixed to work for Windows IDL.  Still no support for the Mac
+    since I don't have access to one.  RES
+24 Sep 1997
+  SWINDOW: Handled Win95 IDL bug for draw widget Y scroll bars.  RES
+22 Sep 1997
+  JD2YMD: Theo Brauers made loop index long to handle long arrays of JD.  RES
+16 Jul 1997
+  BEST_FFT: Added new keyword /DOWN to restrict search to sizes
+    no greater than proposed size.  RES
+11 Jul 1997
+  VER: Added new keyword /OUT to plot pointers outside axes.  RES
+  HOR: Added new keyword /OUT to plot pointers outside axes.  RES
+10 Jul 1997
+  DT_TM_FULL: New function to take a partial date/time string and
+    expand it to a full date time string.  Useful to allow users to
+    enter only times if they wish but still allow full date/times
+    to be entered.  RES
+8 Jul 1997
+  BEST_FFT: Minor fix to avoid changing input value.  RES
+1 Jul 1997
+  CREATED: New routine to return a standard host, user, time stamp string.
+    Ex: Created on tesla by Sterner on Tue Jul  1 14:22:15 1997
+    Gives name of computer, the user name, and the time.  Intended to be
+    added to file headers for reference.  RES
+30 Jun 1997
+  PRWINDOW: Added FACTOR=fct keyword.  RES
+  PSIMG: Added new keyword, FACTOR=fct, to allow image size to be adjusted. RES
+4 Jun 1997
+  ROUND2: A version of round that works for big double precision numbers.
+    For example, print,round2(9000000001.49999d0),form='(f20.5)' gives
+    9000000001.00000, but round gives an error message and a wild value. RES
+20 May 1997
+  EVENT_LOG: Added new keyword ,/ADD, to add additional lines to last
+    time tag in file.  This allows any number of lines under a given
+    time tag.  Added /SCREEN to display text to screen too.
+    Also slightly upgraded the help text.  This routine is
+    really useful for logging events during processing.  For example
+    errors and significant steps can be documented easily this way.  RES
+15 May 1997
+  PMATCH: Added new keyword, /ALL, to return indices of matches found.  RES
+30 Apr 1997
+  PMATCH: New routine to find a specified sequence of values in an array
+    of numbers.  Does a pattern match using the where function.  RES
+28 Apr 1997
+  DT_TM_MAK: Very minor fix to help text.  RES
+21 Apr 1997
+  MAKEMS: New routine that makes an array from a starting point to
+    an ending point using a maximum step size.  It steps by this size
+    until within the step size and then steps the rest of the way to
+    the end point.  This is useful for moving from one point to another
+    but without going over a certain step size.  RES
+14 Apr 1997
+  POLY_FIT2: Added new keyword XFIT=xfit to allow fitted Y to be
+    returned for all Xs even though only some are used to compute
+    the fit.  RES
+3 Apr 1997
+  SELECT_INTERVALS: New routine.  From a list of short time intervals
+    can select the ones that fall within a given lower and upper cutoff
+    value.  Keywords to control if any or some of interval may extend
+    outside range.  RES
+18 Mar 1997
+  RADII: Added new keyword THICKNESS=thk.  RES
+17 Mar 1997
+  PSTERM: Just capitalized user name.  RES
+14 Mar 1997
+  XVIEW: Changed 24-bit TIFF display to use color_quanj instead of
+    color_quan.  color_quanj uses the JPEG image coloring algorithm
+    and gives a greatly improved result over the previous method for
+    some cases.  This is most noticeable where small areas are important
+    but do not have enough pixels to make themselves known to the previous
+    algorithm.  RES
+  STATE_NAME: New function to return list of 2 letter abbreviations
+    for U.S. states, or full state name given abbreviation.  Has several
+    variants of the returned name.  RES
+7 Mar 1997
+  DIST_SCALE2: New routine, 2nd version of a distance scale.  RES
+5 Mar 1997
+  IMGUNDER: For PS was using pixels of size 1 point (1/72 inch).
+    These looked too blocky so they were reduced to 1/2 point.  RES
+27 Feb 1997
+  XVIEW: Added vivid color print option.  RES
+  XOPTION: Added a second submenu to allow unrelated options.  RES
+24 Feb 1997
+  ARCS: Added new keyword THICKNESS.  RES
+21 Feb 1997
+  SET_ISOXY:  Added new keyword charsize=csz.  RES
+  PLOTWIN: Added new keyword charsize=csz.  RES
+18 Feb 1997
+  NAXES: Added new keyword /NO25 to disallow steps that are multiples
+    of 2.5.  IDL does not appear to use such steps so this option
+    better matches the selected IDL tick mark spacing.  RES
+17 Feb 1997
+  XVIEW: Added sharpening to Tools menu.  BW only.  RES
+  TVSHARP: New routine to do a simple sharpening on currently displayed
+    image.  BW only for now.  RES
+  CONCOORD: Generalized to more than 4 points.  RES
+13 Feb 1997
+  SETCOLOR: New routine to allow a single color table entry to be
+    set.  Input color specification may be in decimal or hex
+    (web format).  RES
+12 Feb 1997
+  ARCS: Made default be clip to plot window.  Added new keyword
+    /NOCLIP to override this.  RES
+6 Feb 1997
+  DT_TM_MAK: Bug fixed by Matthew Savoie, Systems Technology Associates.
+    Bug showed up for the following call:
+	print, dt_tm_mak(2451545L, -9.16488e+07) which gave
+	1997 Feb  5 **:00:00 Wed.  Should now work.  RES
+5 Feb 1997
+  JSPLOT: Fixed to allow /SUN suncolors to work on color PS printer.  RES
+4 Feb 1997
+  SCREENTIFF: New routine to display a given TIFF image in a screen window. RES
+3 Feb 1997
+  DT_TM_MAK: Added two new format items: now can output month as a number
+    and also day of the year.  Do help,dt_tm_mak(/help) for details.
+    This gives dt_tm_fromjs the same new format items.  RES
+  YMD2DN: updated to work with arrays.  RES
+28 Jan 1997
+  LINI: Added new keyword MAG=mag to allow mag value to be set.
+    Also set default mag to 4 instead of 10.  Made active endpoint
+    marker be unfilled by default.  RES
+23 Jan 1997
+  TNAXES: Removed the stop statement for tick spacings < 1 sec and
+    changed the error message to a warning.  So now plots will still
+    run.  RES
+22 Jan 1997
+  SUBIMG: Added exit code.  RES
+17 Jan 1997
+  D2DMS: New function to convert degrees to deg, min, sec text string.
+    Intended for use with crossi as the x and y formatting function
+    for working with lat/long.  RES
+13 Jan 1997
+  DT_TM_FROMCR: Added new keyword, /JS, to return date/time as JS.  RES
+31 Dec 1996
+  IZOOM: Corrected to handle small arrays.  The problem was this:
+    Let a 4x4 array have x coordinates [0,1,2,3].  Izoom used to
+    label the x axis 0 to 3 while displaying 4 pixels across.  This
+    is not correct, it should label it 0 to 4.  This should now
+    be fixed.  RES
+  IMGUNDER: Corrected to handle small arrays.  Added new keywords
+    XFRAC=xfr, YFRAC=yfr to give fraction into image to zoom.  RES
+26 Dec 1996
+  EVENT_LOG: Fixed a problem with the /DIFF command.  Also add new keyword
+    /LOG to add time diff to log file.  RES
+  GETKEY: Old routine that was dropped.  Had to bring it back since
+    it's used in my librarian program.  RES

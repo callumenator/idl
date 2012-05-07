@@ -1,0 +1,121 @@
+Fri Mar 02 15:05:47 2012>> Camera acknowledge...True
+Fri Mar 02 15:05:47 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 15:05:51 2012>> 
+Fri Mar 02 15:05:51 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetPreAmpGain(index): 1 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetTemperature: -40 - DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uCoolerOn: DRV_SUCCESS
+Fri Mar 02 15:05:51 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 15:07:40 2012>> Driver updated camera settings.
+Fri Mar 02 15:08:50 2012>> Driver updated camera settings.
+Fri Mar 02 15:09:47 2012>> Driver updated camera settings.
+Fri Mar 02 15:12:03 2012>> Camera acknowledge...True
+Fri Mar 02 15:12:03 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 15:12:07 2012>> 
+Fri Mar 02 15:12:07 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetAcquisitionMode: 5 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetTemperature: -40 - DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uCoolerOn: DRV_SUCCESS
+Fri Mar 02 15:12:07 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 15:20:14 2012>> Driver updated camera settings.
+Fri Mar 02 15:20:35 2012>> Driver updated camera settings.
+Fri Mar 02 15:23:43 2012>> Driver updated camera settings.
+Fri Mar 02 15:24:24 2012>> Driver updated camera settings.
+Fri Mar 02 15:24:52 2012>> Driver updated camera settings.
+Fri Mar 02 15:25:07 2012>> Driver updated camera settings.
+Fri Mar 02 15:25:33 2012>> Camera acknowledge...True
+Fri Mar 02 15:25:33 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 15:25:37 2012>> 
+Fri Mar 02 15:25:37 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 15:25:37 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Fri Mar 02 15:25:37 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 15:25:37 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uCoolerOn: DRV_ACQUIRING
+Fri Mar 02 15:25:37 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 15:26:24 2012>> Driver updated camera settings.
+Fri Mar 02 15:27:16 2012>> Driver updated camera settings.
+Fri Mar 02 15:32:18 2012>> Driver updated camera settings.
+Fri Mar 02 15:50:46 2012>> Driver updated camera settings.
+Fri Mar 02 15:50:54 2012>> Driver updated camera settings.
+Fri Mar 02 15:51:15 2012>> Camera acknowledge...True
+Fri Mar 02 15:51:15 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 15:51:19 2012>> 
+Fri Mar 02 15:51:19 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 15:51:19 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Fri Mar 02 15:51:19 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 15:51:19 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uCoolerOn: DRV_ACQUIRING
+Fri Mar 02 15:51:19 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 15:59:29 2012>> Driver updated camera settings.
+Fri Mar 02 16:30:46 2012>> Driver updated camera settings.
+Fri Mar 02 16:41:41 2012>> Camera acknowledge...True
+Fri Mar 02 16:41:41 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 16:41:45 2012>> 
+Fri Mar 02 16:41:45 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 16:41:45 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Fri Mar 02 16:41:45 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 16:41:45 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uCoolerOn: DRV_ACQUIRING
+Fri Mar 02 16:41:45 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 16:44:08 2012>> Driver updated camera settings.
+Fri Mar 02 16:58:18 2012>> Camera acknowledge...True
+Fri Mar 02 16:58:18 2012>> Cam Init: DRV_IDLE
+Fri Mar 02 16:58:23 2012>> 
+Fri Mar 02 16:58:23 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Fri Mar 02 16:58:23 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Fri Mar 02 16:58:23 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Fri Mar 02 16:58:23 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uCoolerOn: DRV_ACQUIRING
+Fri Mar 02 16:58:23 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Fri Mar 02 17:01:31 2012>> Driver updated camera settings.
+Fri Mar 02 17:34:02 2012>> Driver updated camera settings.

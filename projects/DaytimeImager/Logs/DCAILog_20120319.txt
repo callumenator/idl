@@ -1,0 +1,455 @@
+Mon Mar 19 11:06:51 2012>> Camera acknowledge...True
+Mon Mar 19 11:06:51 2012>> Cam Init: DRV_IDLE
+Mon Mar 19 11:06:56 2012>> 
+Mon Mar 19 11:06:56 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetAcquisitionMode: 5 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetExposureTime: 0.1000 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetTemperature: -10 - DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uCoolerOn: DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Mon Mar 19 11:06:56 2012>> Initialising Etalons
+Mon Mar 19 11:06:56 2012>> Open Port: 4 -5
+Mon Mar 19 11:06:57 2012>> Open Port: 5 -5
+Mon Mar 19 11:06:57 2012>> 
+Mon Mar 19 11:06:57 2012>> 
+Mon Mar 19 11:06:58 2012>> 
+Mon Mar 19 11:06:58 2012>> 
+Mon Mar 19 11:06:58 2012>> 
+Mon Mar 19 11:06:58 2012>> 
+Mon Mar 19 11:06:58 2012>> 
+Mon Mar 19 11:06:59 2012>> 
+Mon Mar 19 11:06:59 2012>> 
+Mon Mar 19 11:06:59 2012>> 
+Mon Mar 19 11:06:59 2012>> 
+Mon Mar 19 11:06:59 2012>> 
+Mon Mar 19 11:07:00 2012>> 
+Mon Mar 19 11:07:00 2012>> 
+Mon Mar 19 11:07:00 2012>> 
+Mon Mar 19 11:07:00 2012>> 
+Mon Mar 19 11:07:01 2012>> 
+Mon Mar 19 11:07:01 2012>> 
+Mon Mar 19 11:07:01 2012>> 
+Mon Mar 19 11:07:02 2012>> 
+Mon Mar 19 11:07:02 2012>> 
+Mon Mar 19 11:07:02 2012>> 
+Mon Mar 19 11:07:03 2012>> 
+Mon Mar 19 11:07:03 2012>> 
+Mon Mar 19 11:07:03 2012>> 
+Mon Mar 19 11:07:03 2012>> 
+Mon Mar 19 11:07:03 2012>> 
+Mon Mar 19 11:07:04 2012>> 
+Mon Mar 19 11:07:04 2012>> 
+Mon Mar 19 11:07:04 2012>> 
+Mon Mar 19 11:07:05 2012>> 
+Mon Mar 19 11:07:05 2012>> 
+Mon Mar 19 11:07:05 2012>> 
+Mon Mar 19 11:07:05 2012>> 
+Mon Mar 19 11:07:05 2012>> 
+Mon Mar 19 11:07:06 2012>> 
+Mon Mar 19 11:07:06 2012>> 
+Mon Mar 19 11:07:06 2012>> 
+Mon Mar 19 11:07:06 2012>> 
+Mon Mar 19 11:07:06 2012>> 
+Mon Mar 19 11:07:07 2012>> 
+Mon Mar 19 11:07:07 2012>> 
+Mon Mar 19 11:07:07 2012>> 
+Mon Mar 19 11:07:07 2012>> 
+Mon Mar 19 11:07:07 2012>> 
+Mon Mar 19 11:07:08 2012>> 
+Mon Mar 19 11:07:08 2012>> 
+Mon Mar 19 11:07:08 2012>> 
+Mon Mar 19 11:07:08 2012>> 
+Mon Mar 19 11:07:08 2012>> 
+Mon Mar 19 11:07:09 2012>> 
+Mon Mar 19 11:07:09 2012>> 
+Mon Mar 19 11:07:09 2012>> 
+Mon Mar 19 11:07:09 2012>> 
+Mon Mar 19 11:07:09 2012>> 
+Mon Mar 19 11:07:10 2012>> 
+Mon Mar 19 11:07:10 2012>> 
+Mon Mar 19 11:07:10 2012>> 
+Mon Mar 19 11:07:10 2012>> 
+Mon Mar 19 11:07:10 2012>> 
+Mon Mar 19 11:08:39 2012>> Driver updated camera settings.
+Mon Mar 19 11:11:05 2012>> Camera acknowledge...True
+Mon Mar 19 11:11:05 2012>> Cam Init: DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> 
+Mon Mar 19 11:11:09 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetAcquisitionMode: 5 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetExposureTime: 0.1000 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetTemperature: -10 - DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uCoolerOn: DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Mon Mar 19 11:11:09 2012>> Initialising Etalons
+Mon Mar 19 11:11:10 2012>> Open Port: 4 -5
+Mon Mar 19 11:11:10 2012>> Open Port: 5 -5
+Mon Mar 19 11:11:10 2012>> 
+Mon Mar 19 11:11:11 2012>> 
+Mon Mar 19 11:11:11 2012>> 
+Mon Mar 19 11:11:11 2012>> 
+Mon Mar 19 11:11:11 2012>> 
+Mon Mar 19 11:11:11 2012>> 
+Mon Mar 19 11:11:12 2012>> 
+Mon Mar 19 11:11:12 2012>> 
+Mon Mar 19 11:11:12 2012>> 
+Mon Mar 19 11:11:12 2012>> 
+Mon Mar 19 11:11:12 2012>> 
+Mon Mar 19 11:11:13 2012>> 
+Mon Mar 19 11:11:13 2012>> 
+Mon Mar 19 11:11:13 2012>> 
+Mon Mar 19 11:11:13 2012>> 
+Mon Mar 19 11:11:13 2012>> 
+Mon Mar 19 11:11:14 2012>> 
+Mon Mar 19 11:11:14 2012>> 
+Mon Mar 19 11:11:14 2012>> 
+Mon Mar 19 11:11:14 2012>> 
+Mon Mar 19 11:11:14 2012>> 
+Mon Mar 19 11:11:15 2012>> 
+Mon Mar 19 11:11:15 2012>> 
+Mon Mar 19 11:11:15 2012>> 
+Mon Mar 19 11:11:15 2012>> 
+Mon Mar 19 11:11:15 2012>> 
+Mon Mar 19 11:11:16 2012>> 
+Mon Mar 19 11:11:16 2012>> 
+Mon Mar 19 11:11:16 2012>> 
+Mon Mar 19 11:11:16 2012>> 
+Mon Mar 19 11:11:17 2012>> 
+Mon Mar 19 11:11:17 2012>> 
+Mon Mar 19 11:11:17 2012>> 
+Mon Mar 19 11:11:17 2012>> 
+Mon Mar 19 11:11:18 2012>> 
+Mon Mar 19 11:11:18 2012>> 
+Mon Mar 19 11:11:18 2012>> 
+Mon Mar 19 11:11:18 2012>> 
+Mon Mar 19 11:11:18 2012>> 
+Mon Mar 19 11:11:19 2012>> 
+Mon Mar 19 11:11:19 2012>> 
+Mon Mar 19 11:11:19 2012>> 
+Mon Mar 19 11:11:19 2012>> 
+Mon Mar 19 11:11:19 2012>> 
+Mon Mar 19 11:11:20 2012>> 
+Mon Mar 19 11:11:20 2012>> 
+Mon Mar 19 11:11:20 2012>> 
+Mon Mar 19 11:11:20 2012>> 
+Mon Mar 19 11:11:20 2012>> 
+Mon Mar 19 11:11:21 2012>> 
+Mon Mar 19 11:11:21 2012>> 
+Mon Mar 19 11:11:21 2012>> 
+Mon Mar 19 11:11:21 2012>> 
+Mon Mar 19 11:11:21 2012>> 
+Mon Mar 19 11:11:22 2012>> 
+Mon Mar 19 11:11:22 2012>> 
+Mon Mar 19 11:11:22 2012>> 
+Mon Mar 19 11:11:22 2012>> 
+Mon Mar 19 11:11:22 2012>> 
+Mon Mar 19 11:11:23 2012>> 
+Mon Mar 19 11:13:32 2012>> Camera acknowledge...True
+Mon Mar 19 11:13:32 2012>> Cam Init: DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> 
+Mon Mar 19 11:13:37 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetAcquisitionMode: 5 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetExposureTime: 0.1000 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetTemperature: -10 - DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uCoolerOn: DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Mon Mar 19 11:13:37 2012>> Initialising Etalons
+Mon Mar 19 11:13:37 2012>> Open Port: 4 -5
+Mon Mar 19 11:13:38 2012>> Open Port: 5 -5
+Mon Mar 19 11:13:38 2012>> 
+Mon Mar 19 11:13:38 2012>> 
+Mon Mar 19 11:13:38 2012>> 
+Mon Mar 19 11:13:39 2012>> 
+Mon Mar 19 11:13:39 2012>> 
+Mon Mar 19 11:13:39 2012>> 
+Mon Mar 19 11:13:39 2012>> 
+Mon Mar 19 11:13:39 2012>> 
+Mon Mar 19 11:13:40 2012>> 
+Mon Mar 19 11:13:40 2012>> 
+Mon Mar 19 11:13:40 2012>> 
+Mon Mar 19 11:13:40 2012>> 
+Mon Mar 19 11:13:41 2012>> 
+Mon Mar 19 11:13:41 2012>> 
+Mon Mar 19 11:13:41 2012>> 
+Mon Mar 19 11:13:41 2012>> 
+Mon Mar 19 11:13:41 2012>> 
+Mon Mar 19 11:13:42 2012>> 
+Mon Mar 19 11:13:42 2012>> 
+Mon Mar 19 11:13:42 2012>> 
+Mon Mar 19 11:13:42 2012>> 
+Mon Mar 19 11:13:42 2012>> 
+Mon Mar 19 11:13:43 2012>> 
+Mon Mar 19 11:13:43 2012>> 
+Mon Mar 19 11:13:43 2012>> 
+Mon Mar 19 11:13:43 2012>> 
+Mon Mar 19 11:13:43 2012>> 
+Mon Mar 19 11:13:44 2012>> 
+Mon Mar 19 11:13:44 2012>> 
+Mon Mar 19 11:13:44 2012>> 
+Mon Mar 19 11:13:44 2012>> 
+Mon Mar 19 11:13:45 2012>> 
+Mon Mar 19 11:13:45 2012>> 
+Mon Mar 19 11:13:45 2012>> 
+Mon Mar 19 11:13:45 2012>> 
+Mon Mar 19 11:13:45 2012>> 
+Mon Mar 19 11:13:46 2012>> 
+Mon Mar 19 11:13:46 2012>> 
+Mon Mar 19 11:13:46 2012>> 
+Mon Mar 19 11:13:46 2012>> 
+Mon Mar 19 11:13:46 2012>> 
+Mon Mar 19 11:13:47 2012>> 
+Mon Mar 19 11:13:47 2012>> 
+Mon Mar 19 11:13:47 2012>> 
+Mon Mar 19 11:13:47 2012>> 
+Mon Mar 19 11:13:47 2012>> 
+Mon Mar 19 11:13:48 2012>> 
+Mon Mar 19 11:13:48 2012>> 
+Mon Mar 19 11:13:48 2012>> 
+Mon Mar 19 11:13:48 2012>> 
+Mon Mar 19 11:13:48 2012>> 
+Mon Mar 19 11:13:49 2012>> 
+Mon Mar 19 11:13:49 2012>> 
+Mon Mar 19 11:13:49 2012>> 
+Mon Mar 19 11:13:49 2012>> 
+Mon Mar 19 11:13:49 2012>> 
+Mon Mar 19 11:13:50 2012>> 
+Mon Mar 19 11:13:50 2012>> 
+Mon Mar 19 11:13:50 2012>> 
+Mon Mar 19 11:13:50 2012>> 
+Mon Mar 19 11:14:17 2012>> Driver updated camera settings.
+Mon Mar 19 11:18:23 2012>> Driver updated camera settings.
+Mon Mar 19 11:28:11 2012>> Camera acknowledge...True
+Mon Mar 19 11:28:11 2012>> Cam Init: DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> 
+Mon Mar 19 11:28:15 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetAcquisitionMode: 5 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetExposureTime: 0.1000 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetTemperature: -10 - DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uCoolerOn: DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Mon Mar 19 11:28:15 2012>> Initialising Etalons
+Mon Mar 19 11:28:16 2012>> Open Port: 4 -5
+Mon Mar 19 11:28:17 2012>> Open Port: 5 -5
+Mon Mar 19 11:28:17 2012>> 
+Mon Mar 19 11:28:17 2012>> 
+Mon Mar 19 11:28:17 2012>> 
+Mon Mar 19 11:28:18 2012>> 
+Mon Mar 19 11:28:18 2012>> 
+Mon Mar 19 11:28:18 2012>> 
+Mon Mar 19 11:28:18 2012>> 
+Mon Mar 19 11:28:18 2012>> 
+Mon Mar 19 11:28:40 2012>> 
+Mon Mar 19 11:28:40 2012>> 
+Mon Mar 19 11:28:40 2012>> 
+Mon Mar 19 11:28:40 2012>> 
+Mon Mar 19 11:28:41 2012>> 
+Mon Mar 19 11:28:41 2012>> 
+Mon Mar 19 11:28:41 2012>> 
+Mon Mar 19 11:28:41 2012>> 
+Mon Mar 19 11:28:41 2012>> 
+Mon Mar 19 11:28:42 2012>> 
+Mon Mar 19 11:28:42 2012>> 
+Mon Mar 19 11:28:42 2012>> 
+Mon Mar 19 11:28:42 2012>> 
+Mon Mar 19 11:28:42 2012>> 
+Mon Mar 19 11:28:43 2012>> 
+Mon Mar 19 11:28:43 2012>> 
+Mon Mar 19 11:28:43 2012>> 
+Mon Mar 19 11:28:43 2012>> 
+Mon Mar 19 11:28:43 2012>> 
+Mon Mar 19 11:28:44 2012>> 
+Mon Mar 19 11:28:44 2012>> 
+Mon Mar 19 11:28:44 2012>> 
+Mon Mar 19 11:28:44 2012>> 
+Mon Mar 19 11:28:45 2012>> 
+Mon Mar 19 11:28:45 2012>> 
+Mon Mar 19 11:28:45 2012>> 
+Mon Mar 19 11:28:45 2012>> 
+Mon Mar 19 11:28:45 2012>> 
+Mon Mar 19 11:28:46 2012>> 
+Mon Mar 19 11:28:46 2012>> 
+Mon Mar 19 11:28:46 2012>> 
+Mon Mar 19 11:28:46 2012>> 
+Mon Mar 19 11:28:46 2012>> 
+Mon Mar 19 11:28:47 2012>> 
+Mon Mar 19 11:28:47 2012>> 
+Mon Mar 19 11:28:47 2012>> 
+Mon Mar 19 11:28:47 2012>> 
+Mon Mar 19 11:28:47 2012>> 
+Mon Mar 19 11:28:48 2012>> 
+Mon Mar 19 11:28:48 2012>> 
+Mon Mar 19 11:28:48 2012>> 
+Mon Mar 19 11:28:48 2012>> 
+Mon Mar 19 11:28:48 2012>> 
+Mon Mar 19 11:28:49 2012>> 
+Mon Mar 19 11:28:49 2012>> 
+Mon Mar 19 11:28:49 2012>> 
+Mon Mar 19 11:28:49 2012>> 
+Mon Mar 19 11:28:49 2012>> 
+Mon Mar 19 11:28:50 2012>> 
+Mon Mar 19 11:28:50 2012>> 
+Mon Mar 19 11:28:50 2012>> 
+Mon Mar 19 11:28:50 2012>> 
+Mon Mar 19 11:30:18 2012>> Driver updated camera settings.
+Mon Mar 19 11:39:07 2012>> Driver updated camera settings.
+Mon Mar 19 11:39:52 2012>> Initialising Etalons
+Mon Mar 19 11:39:52 2012>> Open Port: 4 0
+Mon Mar 19 11:39:53 2012>> Open Port: 5 0
+Mon Mar 19 11:39:53 2012>> OK
+
+Mon Mar 19 11:39:53 2012>> OK
+
+Mon Mar 19 11:39:54 2012>> OK
+
+Mon Mar 19 11:39:54 2012>> OK
+
+Mon Mar 19 11:39:54 2012>> OK
+
+Mon Mar 19 11:39:54 2012>> OK
+
+Mon Mar 19 11:39:54 2012>> OK
+
+Mon Mar 19 11:39:55 2012>> OK
+
+Mon Mar 19 11:39:55 2012>> OK
+
+Mon Mar 19 11:39:55 2012>> OK
+
+Mon Mar 19 11:39:55 2012>> OK
+
+Mon Mar 19 11:39:55 2012>> OK
+
+Mon Mar 19 11:39:56 2012>> OK
+
+Mon Mar 19 11:39:56 2012>> OK
+
+Mon Mar 19 11:39:56 2012>> OK
+
+Mon Mar 19 11:39:56 2012>> OK
+
+Mon Mar 19 11:39:56 2012>> OK
+
+Mon Mar 19 11:39:57 2012>> OK
+
+Mon Mar 19 11:39:57 2012>> OK
+
+Mon Mar 19 11:39:57 2012>> OK
+
+Mon Mar 19 11:39:57 2012>> OK
+
+Mon Mar 19 11:39:57 2012>> OK
+
+Mon Mar 19 11:39:58 2012>> OK
+
+Mon Mar 19 11:39:58 2012>> OK
+
+Mon Mar 19 11:39:58 2012>> OK
+
+Mon Mar 19 11:39:58 2012>> OK
+
+Mon Mar 19 11:39:59 2012>> OK
+
+Mon Mar 19 11:39:59 2012>> OK
+
+Mon Mar 19 11:39:59 2012>> OK
+
+Mon Mar 19 11:39:59 2012>> OK
+
+Mon Mar 19 11:40:00 2012>> OK
+
+Mon Mar 19 11:40:00 2012>> OK
+
+Mon Mar 19 11:40:00 2012>> OK
+
+Mon Mar 19 11:40:00 2012>> OK
+
+Mon Mar 19 11:40:00 2012>> OK
+
+Mon Mar 19 11:40:01 2012>> OK
+
+Mon Mar 19 11:40:01 2012>> OK
+
+Mon Mar 19 11:40:01 2012>> OK
+
+Mon Mar 19 11:40:01 2012>> OK
+
+Mon Mar 19 11:40:01 2012>> OK
+
+Mon Mar 19 11:40:02 2012>> OK
+
+Mon Mar 19 11:40:02 2012>> OK
+
+Mon Mar 19 11:40:02 2012>> OK
+
+Mon Mar 19 11:40:02 2012>> OK
+
+Mon Mar 19 11:40:02 2012>> OK
+
+Mon Mar 19 11:40:03 2012>> OK
+
+Mon Mar 19 11:40:03 2012>> OK
+
+Mon Mar 19 11:40:03 2012>> OK
+
+Mon Mar 19 11:40:03 2012>> OK
+
+Mon Mar 19 11:40:03 2012>> OK
+
+Mon Mar 19 11:40:04 2012>> OK
+
+Mon Mar 19 11:40:04 2012>> OK
+
+Mon Mar 19 11:40:04 2012>> OK
+
+Mon Mar 19 11:40:04 2012>> OK
+
+Mon Mar 19 11:40:04 2012>> OK
+
+Mon Mar 19 11:40:05 2012>> OK
+
+Mon Mar 19 11:40:05 2012>> OK
+
+Mon Mar 19 11:40:05 2012>> OK
+
+Mon Mar 19 11:40:05 2012>> OK
+
+Mon Mar 19 11:40:05 2012>> OK
+
+Mon Mar 19 11:42:15 2012>> Driver updated camera settings.
+Mon Mar 19 12:06:17 2012>> Driver updated camera settings.
+Mon Mar 19 14:29:57 2012>> Driver updated camera settings.
+Mon Mar 19 14:30:36 2012>> Driver updated camera settings.
+Mon Mar 19 14:36:13 2012>> Driver updated camera settings.
+Mon Mar 19 14:36:32 2012>> Driver updated camera settings.
+Mon Mar 19 14:36:57 2012>> Driver updated camera settings.

@@ -1,0 +1,24 @@
+SDI 2000 Development Issues:
+
+Get spex to run for at least 1 full spectrum
+create operational config files - check pshf again
+test full obs cycle
+get computer control of top shutter
+
+
+get some analysis running
+test crash-proofing
+intensity map
+spex annotation - scans, etc
+auto gifs to web
+wind quicklooks ?
+data-based overlight check?
+tardis time server - using range time
+scheduled reboots
+
+>>> Done: commision new chiller
+>>> Done: Fix pmap geometry bug on restore/general save/restore fixup
+>>> Done: Write CHORD
+>>> Done: scheduling
+>>> Done: moon table
+>>> Done: shutter cleanup

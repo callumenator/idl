@@ -1,0 +1,136 @@
+Tue Mar 27 16:03:16 2012>> Wrote Settings: dcai_settings.pro
+Tue Mar 27 16:03:50 2012>> Loaded settings: dcai_settings
+Tue Mar 27 16:05:04 2012>> Loaded settings: dcai_settings
+Tue Mar 27 16:06:38 2012>> Loaded settings: dcai_settings
+Tue Mar 27 17:47:23 2012>> Driver updated camera settings.
+Wed Mar 28 11:55:26 2012>> Initialising Etalons
+Wed Mar 28 11:55:27 2012>> Open Port: 4 0
+Wed Mar 28 11:55:28 2012>> Open Port: 5 0
+Wed Mar 28 11:55:28 2012>> E1R1CC150: OK
+
+Wed Mar 28 11:55:28 2012>> E1R1CF128: OK
+
+Wed Mar 28 11:55:29 2012>> E1R1RC231: OK
+
+Wed Mar 28 11:55:29 2012>> E1R1RF150: OK
+
+Wed Mar 28 11:55:29 2012>> E1R2CC150: OK
+
+Wed Mar 28 11:55:29 2012>> E1R2CF128: OK
+
+Wed Mar 28 11:55:29 2012>> E1R2RC231: OK
+
+Wed Mar 28 11:55:30 2012>> E1R2RF150: OK
+
+Wed Mar 28 11:55:30 2012>> E1R3CC150: OK
+
+Wed Mar 28 11:55:30 2012>> E1R3CF128: OK
+
+Wed Mar 28 11:55:31 2012>> E1R3RC231: OK
+
+Wed Mar 28 11:55:31 2012>> E1R3RF150: OK
+
+Wed Mar 28 11:55:31 2012>> E1L1CC092: OK
+
+Wed Mar 28 11:55:31 2012>> E1L1CF128: OK
+
+Wed Mar 28 11:55:31 2012>> E1L1RC232: OK
+
+Wed Mar 28 11:55:32 2012>> E1L1RF080: OK
+
+Wed Mar 28 11:55:32 2012>> E1L2CC085: OK
+
+Wed Mar 28 11:55:32 2012>> E1L2CF129: OK
+
+Wed Mar 28 11:55:32 2012>> E1L2RC230: OK
+
+Wed Mar 28 11:55:32 2012>> E1L2RF154: OK
+
+Wed Mar 28 11:55:33 2012>> E1L3CC095: OK
+
+Wed Mar 28 11:55:33 2012>> E1L3CF132: OK
+
+Wed Mar 28 11:55:33 2012>> E1L3RC231: OK
+
+Wed Mar 28 11:55:33 2012>> E1L3RF060: OK
+
+Wed Mar 28 11:55:33 2012>> E1L1DD246: OK
+
+Wed Mar 28 11:55:34 2012>> E1L1DG60000: OK
+
+Wed Mar 28 11:55:34 2012>> E1L2DD246: OK
+
+Wed Mar 28 11:55:34 2012>> E1L2DG60000: OK
+
+Wed Mar 28 11:55:34 2012>> E1L3DD246: OK
+
+Wed Mar 28 11:55:34 2012>> E1L3DG60000: OK
+
+Wed Mar 28 11:55:35 2012>> E2R1CC150: OK
+
+Wed Mar 28 11:55:35 2012>> E2R1CF128: OK
+
+Wed Mar 28 11:55:35 2012>> E2R1RC231: OK
+
+Wed Mar 28 11:55:35 2012>> E2R1RF150: OK
+
+Wed Mar 28 11:55:36 2012>> E2R2CC150: OK
+
+Wed Mar 28 11:55:36 2012>> E2R2CF128: OK
+
+Wed Mar 28 11:55:36 2012>> E2R2RC231: OK
+
+Wed Mar 28 11:55:36 2012>> E2R2RF150: OK
+
+Wed Mar 28 11:55:36 2012>> E2R3CC150: OK
+
+Wed Mar 28 11:55:37 2012>> E2R3CF128: OK
+
+Wed Mar 28 11:55:37 2012>> E2R3RC231: OK
+
+Wed Mar 28 11:55:37 2012>> E2R3RF150: OK
+
+Wed Mar 28 11:55:37 2012>> E2L1CC095: OK
+
+Wed Mar 28 11:55:37 2012>> E2L1CF132: OK
+
+Wed Mar 28 11:55:38 2012>> E2L1RC231: OK
+
+Wed Mar 28 11:55:38 2012>> E2L1RF091: OK
+
+Wed Mar 28 11:55:38 2012>> E2L2CC101: OK
+
+Wed Mar 28 11:55:38 2012>> E2L2CF110: OK
+
+Wed Mar 28 11:55:38 2012>> E2L2RC229: OK
+
+Wed Mar 28 11:55:39 2012>> E2L2RF162: OK
+
+Wed Mar 28 11:55:39 2012>> E2L3CC100: OK
+
+Wed Mar 28 11:55:39 2012>> E2L3CF131: OK
+
+Wed Mar 28 11:55:39 2012>> E2L3RC228: OK
+
+Wed Mar 28 11:55:39 2012>> E2L3RF065: OK
+
+Wed Mar 28 11:55:40 2012>> E2L1DD244: OK
+
+Wed Mar 28 11:55:40 2012>> E2L1DG60000: OK
+
+Wed Mar 28 11:55:40 2012>> E2L2DD244: OK
+
+Wed Mar 28 11:55:40 2012>> E2L2DG60000: OK
+
+Wed Mar 28 11:55:40 2012>> E2L3DD245: OK
+
+Wed Mar 28 11:55:41 2012>> E2L3DG60000: OK
+
+Wed Mar 28 11:56:03 2012>> Driver updated camera settings.
+Wed Mar 28 11:59:37 2012>> Driver updated camera settings.
+Wed Mar 28 11:59:50 2012>> Driver updated camera settings.
+Wed Mar 28 12:00:08 2012>> Driver updated camera settings.
+Wed Mar 28 12:02:18 2012>> Driver updated camera settings.
+Wed Mar 28 12:11:32 2012>> Wrote Settings: C:\Users\DaytimeImager\Scripts\Hardware\dcai_settings.pro
+Wed Mar 28 12:30:17 2012>> Driver updated camera settings.
+Wed Mar 28 15:32:03 2012>> Driver updated camera settings.

@@ -1,0 +1,189 @@
+To: IDL Users
+From: Fred Walter
+Date: 7/1/95
+re: ICUR version 3.0 updates
+
+See the end of the file for instructions on copying files.
+
+***************************************************************************
+June 1997
+   Upgraded to IDL 4.0.1. Removed all references to SET_VIEWPORT.
+
+**********************************************************************
+6/16/92
+  1. Fixed another bug with changing "frozen" parameters in the fitting
+     routine. This affected only frozen line widths in spectra with
+     non-linear wavelength scales.
+  2. Changed the operating philosophy. ICURSTARTUP.PRO now initializes the
+     common blocks and starts GOICUR. GOICUR has been modified to a procedure.
+     Read the documentation (updated 6/16/92). This change should be transparent
+     to most users. The only difference is to replace the .RUN GOICUR command
+     with GOICUR.
+**********************************************************************
+6/13/92
+  1. Fixed some nagging bugs in the fitting program. The errors are now more
+     realistic, and frozed parameters stay where they should.
+  2. When using data with real errors (epsilon code 30), the equivalent
+     width code now gives errors on the equivelent widths. COADD also adds
+     error bars now.
+  3. For GHRS users: option d does quick and dirty deconvolutions of
+     GHRS spectra. You will need access to the GHRS software, and will need
+     to put the PSF*.DAT files in ICURDATA.
+  -  Thanks to R. Tarrall and J. Neff for uncovering more bugs hidden in dimly
+     lit corners of the code.
+**********************************************************************
+5/27/92
+  1. Finalized version 3.0
+  2. Revised documentation file ICUR.TEX
+  3. The .ICD files are now universally readable. Use ICD_VtoU to translate
+     files FTP'ed from VMS machines.
+  4. Cleared up some inconsistent variable names, and removed system variable
+     !debug.
+**********************************************************************
+5/24/92
+  1. Altered the way PLDATA knows how to plot bad data. If H(33)=30
+     (EPS vector is S/N vector), then the S/N vector is the bad data
+     vector, and can be plotted in PLDAT. Changed BDATA, PLDATA, and all
+     routines that call them. Note that this only affects PLDATA,3,... calls.
+**********************************************************************
+5/22/92
+  1. revised KDAT, GDAT, LDAT to check system architecture when .ICD
+     files are created. I can now read, under VMS, .ICD files written on a
+     Sparcstation. Further tests are needed to check the other direction.
+  2. Incorporated the real S/N vectors into the fitting
+     routines. Defined MODE=4 in ICFIT2. 
+  3. altered LINEARWAVE to overwrite header word 199.
+**********************************************************************
+3/11/92
+   Added a spawn,'rm NL0:' at the end of ICUR for UNIX calls
+**********************************************************************
+3/6/92
+  1. QPLT: added switch for hard copies, /hc for print, hc=-1 to make .ps file
+  2. added /NOTITLE keyword to DAT_TO_ICD. Set it and you won't be asked
+     for titles.
+  3. common variable PSDEL, controlling the .PS output, has been revised. 
+             - bit 0: set to save plot, 0 to delete
+             - bit 1: set to hold plot, 0 to plot
+               setting bit 1 overrides bit 0, i.e, psdel=2,3 are equivalent.
+**********************************************************************
+3/5/92
+  1. KDAT, GDAT, and LDAT replace KEEPDAT, GETDAT, LKDAT. Default extension
+     on all data files is .ICD. IDAT no longer exists as a data type
+     identifier. Standard files cannot be automatically identified, and
+     are prompted for at the first g command.
+     Use DAT_TO_ICD to translate data files. (GETDAT -> KDAT).
+  2. added w command to ICUR. This provides continuous readouts of cursor
+     position when it is inside the window. Procedure CWHERE.
+  3. Added USERDATA directory, at JEN's suggestion. Search path is:
+       - (1) Current directory, (2) USERDATA, (3) ICURDATA
+     USERDATA is read using GETENV, like ICURDATA
+  4. Removed KEEPADT and MKGENFIL from the library.
+**********************************************************************
+2/28/92
+  1. Fixed annoying bugs in FFCFIT: There was an itermittent 1/2 pixel error
+     in the line position. Also, the line width is now forced to be positive.
+  2. Revised logging option. Use the & command to turn it on and off within
+     ICUR. The log question in the main procedure has been dropped.
+  3. Simplified input to the main procedure. Just enter the file name.
+     No more -2 then the file name.
+  4. ICFIT: It now complains when you type an invalid option.
+  5. ICUR, FUN1: Now echo command to the X screen, and tell when its waiting
+     for more input. 
+     Added procedure OPSTAT.
+**********************************************************************
+2/18/92
+   Defined a new data format to ensure compatability between systems. the
+   .ICD data files will replace the .DAT data files. 
+   Added KDAT, GDAT, and LDAT to library. Added ancillary procedure LINEARWAVE.
+**********************************************************************
+2/7/92
+   Corrected factor of 2 error in Gausian Integrated Flux in FFLPFW.
+**********************************************************************
+1/31/92
+   Added new command - to permit freezing the Y scaling.
+**********************************************************************
+1/29/92
+   1. GOICUR has been modified to clean up the code.
+   2. An option to fix Y axis scaling has been added. Type _ (underscore)
+      to freeze Y scaling. The _ command toggles a flag. The flag is negated
+      by the Y or N commands.
+   3. The plotting options in ICFIT (option F) have been upgraded.
+**************************************************************************
+10/7/91 update
+   1. GOICUR.PRO, the main program, has been modified to permit use with
+      monochrome X-windows.
+   2. BBODY (option t) has been updated to permit use when the plot device
+      is set to the hard copy device (!). This lets the user overplot
+      black body curves on hard copies of spectra.
+**************************************************************************
+8/28/91 update
+   1. A bug in GHRSTOICUR was fixed. Spectra can again be cross correlated to
+      determine wavelength shifts.
+   2. GHRSTOICUR was modified to permit storage of summed direct downlink
+      data. Set the /dd keyword.
+   3. TABINV was updated using the GSFC version.
+*************************************************************************
+7/28/91
+In response to complaints, the following improvements have now been incorporated
+into ICUR.
+
+    1. The file UV.LIN should have been included for distribution. It is now.
+       The files HIGH.LIN and LOW.LIN are not used, and should be discarded.
+    2. All EXTRAC calls have been removed, as have some referrals to !sc3 and
+       !sc4 system variables. Further vestiges of version 1 will be removed as
+       necessary, and upon request.
+    3. A major problem with use of ICUR on TEK teminals has been corrected.
+       Basically, I forgot to put in a CASE statement for this plot device.
+
+An improved cross correlation routine (a la Tonry and Davis), incorporating
+estimates of rotational as well as radial velocities, will be added shortly.
+Stay tuned.
+
+****************************************************************************
+****************************************************************************
+****************************************************************************
+
+How to copy ICUR to your home institution
+
+All files are in 44156::rulupi$dka200:[users.public.icur]. You can access them
+through the GUEST account. You can use VMS copy, i.e,
+
+   dir 44156"guest guest"::rulupi$dka200:[users.public.icur]*.*  (to see what's there)
+   copy 44156"guest guest"::rulupi$dka200:[users.public.icur]xxx.xxx *
+ 
+or FTP, i.e,
+
+   ftp sbast1.ess.sunysb.edu
+   cd rulupi$dka200:[users.public.icur]
+   ls         (if you want to know what's there)
+   get ...
+
+Note that the guest account is restricted - you cannot log into it to do
+anything. You can do remote copies and directories, however. 
+
+The files you need are:
+   ICUR.COM :   a sample command file for running ICUR.
+   ICUR.TLB :   the text library containing all the procedures (1273 blocks).
+   ICUR.TEX :   the LATEX documentation file (39+ pages).
+   ICURSTARTUP_V2.PRO: a main procedure which runs GOICUR.
+   ICUR.MSG :   a file typed by GOICUR, containing messages.
+   *.LIN    :   2 files (UV and OPT) containing incomplete line lists.
+   *.DAT    :   5 files containing interstellar extinction curves. These are
+                needed for the u command. The files are:
+                NANDY.DAT, ORI.DAT, SAVMAT.DAT, SEATON.DAT, and SMC.DAT.
+                12 PSF*.DAT files, useful only for persons having GHRS
+                spectra and access to the GHRS software, for doing 
+                quick-and-dirty deconvolutions. 
+   SAMPLE.ICD: sample data file.
+   EXPORT.TXT: the list of current updates to the package (which you are now
+               reading).
+
+optional files are:
+   FFIT2.FOR  : the FORTRAN version of the fitting routine (optional).
+   FFIT2.EXE  : The executable code for the FORTRAN fitting routine (optional).
+ read the documentation before you copy these files
+
+Please report any problems to me at 44156::FWALTER or 
+FWALTER@SBAST1.ESS.SUNYSB.EDU. Also, please let me know if you actually use
+the package, so that I can inform you about bug fixes.
+*******************************************************************************

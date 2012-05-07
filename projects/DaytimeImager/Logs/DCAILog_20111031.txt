@@ -1,0 +1,472 @@
+Mon Oct 31 12:31:50 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 12:31:50 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> 
+Mon Oct 31 12:31:54 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 12:31:54 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 12:31:54 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 12:31:54 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 12:31:59 2011>> Failed to close shutter! Error: -1
+Mon Oct 31 12:31:59 2011>> Homing Filter Wheel...please wait...
+Mon Oct 31 12:34:43 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 12:34:43 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> 
+Mon Oct 31 12:34:47 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 12:34:47 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 12:34:47 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 12:34:47 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 12:34:50 2011>> Unable to load script: DCAI_Script_20111031, falling back on default...
+Mon Oct 31 12:34:50 2011>> Default script not found! No new script was loaded.
+Mon Oct 31 13:24:51 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:24:51 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> 
+Mon Oct 31 13:24:55 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:24:55 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:24:55 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:24:55 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:25:38 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:25:38 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:25:42 2011>> 
+Mon Oct 31 13:25:44 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:25:44 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:25:44 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:25:44 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:25:44 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:25:44 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:25:44 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:25:44 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:26:03 2011>> Loaded new script: 
+Mon Oct 31 13:26:05 2011>> Loaded new script: 
+Mon Oct 31 13:26:51 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:26:51 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> 
+Mon Oct 31 13:26:57 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:26:57 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:26:57 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:26:57 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:27:29 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:27:29 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> 
+Mon Oct 31 13:27:35 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:27:35 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:27:35 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:27:35 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:30:09 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:30:09 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:30:13 2011>> 
+Mon Oct 31 13:30:14 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:30:14 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:30:14 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:14 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:30:14 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:30:14 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:30:14 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:30:14 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:30:23 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:30:23 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> 
+Mon Oct 31 13:30:29 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:30:29 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:30:29 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:30:29 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:45:23 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:45:23 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> 
+Mon Oct 31 13:45:27 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:45:27 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:45:27 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:45:27 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:53:19 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:53:19 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> 
+Mon Oct 31 13:53:23 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:53:23 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:53:23 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:53:23 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:54:34 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:54:34 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> 
+Mon Oct 31 13:54:39 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:39 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:54:39 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:54:39 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:54:51 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:54:51 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> 
+Mon Oct 31 13:54:56 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:54:56 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:54:56 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:54:56 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:55:25 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:55:25 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> 
+Mon Oct 31 13:55:30 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:55:30 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:55:30 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:55:30 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:56:15 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:56:15 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> 
+Mon Oct 31 13:56:19 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:56:19 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:56:19 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:56:19 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 13:57:19 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 13:57:19 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> 
+Mon Oct 31 13:57:23 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 13:57:23 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 13:57:23 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 13:57:23 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 14:32:19 2011>> Loaded new script: 
+Mon Oct 31 14:32:26 2011>> Driver updated camera settings.
+Mon Oct 31 14:33:27 2011>> Driver updated camera settings.
+Mon Oct 31 14:33:50 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 14:33:50 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> 
+Mon Oct 31 14:33:54 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 14:33:54 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 14:33:54 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 14:33:54 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 14:34:00 2011>> Driver updated camera settings.
+Mon Oct 31 14:34:07 2011>> Driver updated camera settings.
+Mon Oct 31 14:38:42 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 14:38:42 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 14:38:46 2011>> 
+Mon Oct 31 14:38:47 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 14:38:47 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 14:38:47 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 14:38:47 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 14:38:47 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 14:38:47 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 14:38:47 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 14:38:47 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 14:39:03 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 14:39:03 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> 
+Mon Oct 31 14:39:07 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 14:39:07 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 14:39:07 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 14:39:07 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 14:56:05 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 14:56:05 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> 
+Mon Oct 31 14:56:09 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:09 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 14:56:09 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 14:56:09 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 14:56:38 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 14:56:38 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> 
+Mon Oct 31 14:56:42 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 14:56:42 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 14:56:42 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 14:56:42 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:12:23 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:12:23 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:12:27 2011>> 
+Mon Oct 31 15:12:28 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:12:28 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:12:28 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:28 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:12:28 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:12:28 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:12:28 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:12:28 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:12:46 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:12:46 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> 
+Mon Oct 31 15:12:51 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:12:51 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:12:51 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:12:51 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:13:04 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:13:04 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> 
+Mon Oct 31 15:13:08 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:08 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:13:08 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:13:08 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:13:51 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:13:51 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> 
+Mon Oct 31 15:13:55 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:13:55 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:13:55 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:13:55 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:33:06 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:33:06 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:33:36 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:33:36 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> 
+Mon Oct 31 15:33:40 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:33:40 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:33:40 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:33:40 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:34:51 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:34:51 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> 
+Mon Oct 31 15:34:55 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:34:55 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:34:55 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:34:55 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Mon Oct 31 15:35:27 2011>> Camera acknowledge...False - PROBLEM!
+Mon Oct 31 15:35:27 2011>> Cam Init: DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> 
+Mon Oct 31 15:35:31 2011>> uSetReadMode: 4 - DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetADChannel: 0 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> uSetHSSpeed(index): 0 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetVSSpeed(index): 1 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Mon Oct 31 15:35:31 2011>> uSetPreAmpGain(index): 1 - DRV_P1INVALID
+Mon Oct 31 15:35:31 2011>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> uSetTemperature: -40 - DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> uCoolerOn: DRV_ERROR_ACK
+Mon Oct 31 15:35:31 2011>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID

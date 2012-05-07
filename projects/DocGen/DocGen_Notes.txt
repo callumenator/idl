@@ -1,0 +1,7 @@
+
+Note that function and argument documentation is inserted into latex as-is, which means the following:
+
+	function/arg documentation can contain any valid latex code, formula's, typesettings (bold face, etc).
+
+	some characters will generate errors in latex, such as underscores which aren't escaped with a preceding 
+	backslash, so be careful

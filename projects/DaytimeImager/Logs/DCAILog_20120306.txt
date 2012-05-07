@@ -1,0 +1,942 @@
+Tue Mar 06 09:53:59 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 09:53:59 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> 
+Tue Mar 06 09:54:03 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 09:54:03 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 09:54:03 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 09:54:14 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 09:54:14 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> 
+Tue Mar 06 09:54:18 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 09:54:18 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 09:54:18 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 09:55:03 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 09:55:03 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> 
+Tue Mar 06 09:55:07 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 09:55:07 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 09:55:07 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:00:29 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:00:29 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> 
+Tue Mar 06 10:00:33 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:00:33 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:00:33 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:00:46 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:00:46 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> 
+Tue Mar 06 10:00:50 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:00:50 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:00:50 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:01:14 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:01:14 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> 
+Tue Mar 06 10:01:18 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:01:18 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:01:18 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:12:49 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:12:49 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> 
+Tue Mar 06 10:12:53 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:12:53 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:12:53 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:13:37 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:13:37 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> 
+Tue Mar 06 10:13:41 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:13:41 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:13:41 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:15:05 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:15:05 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> 
+Tue Mar 06 10:15:09 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:15:09 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:15:09 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:20:58 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:20:58 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> 
+Tue Mar 06 10:21:02 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:21:02 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:21:02 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:31:48 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:31:48 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> 
+Tue Mar 06 10:31:53 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:31:53 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:31:53 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:37:56 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:37:56 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> 
+Tue Mar 06 10:38:01 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:38:01 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:38:01 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:38:39 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:38:39 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> 
+Tue Mar 06 10:38:43 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:38:43 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:38:43 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:40:03 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:40:03 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> 
+Tue Mar 06 10:40:07 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:40:07 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:40:07 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:58:36 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:58:36 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> 
+Tue Mar 06 10:58:40 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:58:40 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:58:40 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 10:58:54 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 10:58:54 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> 
+Tue Mar 06 10:58:58 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 10:58:58 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 10:58:58 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:01:27 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:01:27 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> 
+Tue Mar 06 11:01:31 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:01:31 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:01:31 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:01:56 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:01:56 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> 
+Tue Mar 06 11:02:02 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:02:02 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:02:02 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:07:21 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:07:21 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> 
+Tue Mar 06 11:07:26 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:07:26 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:07:26 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:09:24 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:09:24 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> 
+Tue Mar 06 11:09:29 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:09:29 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:09:29 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:17:42 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:17:42 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> 
+Tue Mar 06 11:17:47 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:17:47 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:17:47 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:32:00 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:32:00 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> 
+Tue Mar 06 11:32:05 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:32:05 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:32:05 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:33:10 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:33:10 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> 
+Tue Mar 06 11:33:14 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:33:14 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:33:14 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:35:10 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:35:10 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> 
+Tue Mar 06 11:35:15 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:35:15 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:35:15 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:37:43 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:37:43 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> 
+Tue Mar 06 11:37:48 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:37:48 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:37:48 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:44:38 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:44:38 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> 
+Tue Mar 06 11:44:42 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:44:42 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:44:42 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 11:49:08 2012>> Camera acknowledge...False - PROBLEM!
+Tue Mar 06 11:49:08 2012>> Cam Init: DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> 
+Tue Mar 06 11:49:13 2012>> uSetReadMode: 4 - DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetEMCCDGain: 2 - DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 11:49:13 2012>> uSetTriggerMode: 0 - DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> uSetTemperature: -40 - DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> uCoolerOn: DRV_ERROR_ACK
+Tue Mar 06 11:49:13 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_P6INVALID
+Tue Mar 06 12:28:58 2012>> Camera acknowledge...True
+Tue Mar 06 12:28:58 2012>> Cam Init: DRV_IDLE
+Tue Mar 06 12:29:03 2012>> 
+Tue Mar 06 12:29:03 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Tue Mar 06 12:29:03 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 12:29:03 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 12:29:03 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uCoolerOn: DRV_ACQUIRING
+Tue Mar 06 12:29:03 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Tue Mar 06 12:29:03 2012>> Open Port: 4 -5
+Tue Mar 06 12:29:04 2012>> Open Port: 5 -5
+Tue Mar 06 12:29:04 2012>> 
+Tue Mar 06 12:29:04 2012>> 
+Tue Mar 06 12:29:04 2012>> 
+Tue Mar 06 12:29:05 2012>> 
+Tue Mar 06 12:29:05 2012>> 
+Tue Mar 06 12:29:05 2012>> 
+Tue Mar 06 12:29:05 2012>> 
+Tue Mar 06 12:29:05 2012>> 
+Tue Mar 06 12:29:06 2012>> 
+Tue Mar 06 12:29:06 2012>> 
+Tue Mar 06 12:29:06 2012>> 
+Tue Mar 06 12:29:06 2012>> 
+Tue Mar 06 12:29:06 2012>> 
+Tue Mar 06 12:29:07 2012>> 
+Tue Mar 06 12:29:07 2012>> 
+Tue Mar 06 12:29:07 2012>> 
+Tue Mar 06 12:29:07 2012>> 
+Tue Mar 06 12:29:07 2012>> 
+Tue Mar 06 12:29:08 2012>> 
+Tue Mar 06 12:29:08 2012>> 
+Tue Mar 06 12:29:08 2012>> 
+Tue Mar 06 12:29:08 2012>> 
+Tue Mar 06 12:29:08 2012>> 
+Tue Mar 06 12:29:09 2012>> 
+Tue Mar 06 12:29:09 2012>> 
+Tue Mar 06 12:29:09 2012>> 
+Tue Mar 06 12:29:09 2012>> 
+Tue Mar 06 12:29:09 2012>> 
+Tue Mar 06 12:29:10 2012>> 
+Tue Mar 06 12:29:10 2012>> 
+Tue Mar 06 12:29:10 2012>> 
+Tue Mar 06 12:29:10 2012>> 
+Tue Mar 06 12:29:11 2012>> 
+Tue Mar 06 12:29:11 2012>> 
+Tue Mar 06 12:29:11 2012>> 
+Tue Mar 06 12:29:11 2012>> 
+Tue Mar 06 12:29:11 2012>> 
+Tue Mar 06 12:29:12 2012>> 
+Tue Mar 06 12:29:12 2012>> 
+Tue Mar 06 12:29:12 2012>> 
+Tue Mar 06 12:29:12 2012>> 
+Tue Mar 06 12:29:12 2012>> 
+Tue Mar 06 12:29:13 2012>> 
+Tue Mar 06 12:29:13 2012>> 
+Tue Mar 06 12:29:13 2012>> 
+Tue Mar 06 12:29:13 2012>> 
+Tue Mar 06 12:29:14 2012>> 
+Tue Mar 06 12:29:14 2012>> 
+Tue Mar 06 12:29:14 2012>> 
+Tue Mar 06 12:29:14 2012>> 
+Tue Mar 06 12:29:14 2012>> 
+Tue Mar 06 12:29:15 2012>> 
+Tue Mar 06 12:29:15 2012>> 
+Tue Mar 06 12:29:15 2012>> 
+Tue Mar 06 12:29:15 2012>> 
+Tue Mar 06 12:29:15 2012>> 
+Tue Mar 06 12:29:16 2012>> 
+Tue Mar 06 12:29:16 2012>> 
+Tue Mar 06 12:29:16 2012>> 
+Tue Mar 06 12:29:16 2012>> 
+Tue Mar 06 12:32:11 2012>> Camera acknowledge...True
+Tue Mar 06 12:32:11 2012>> Cam Init: DRV_IDLE
+Tue Mar 06 12:32:15 2012>> 
+Tue Mar 06 12:32:15 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Tue Mar 06 12:32:15 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 12:32:15 2012>> uSetExposureTime: 0.0100 - DRV_ACQUIRING
+Tue Mar 06 12:32:15 2012>> uSetOutputAmplifier: 0 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 12:32:16 2012>> uSetEMCCDGain: 2 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetHSSpeed(index): 1 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetVSSpeed(index): 3 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetVSAmplitude: 0 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetPreAmpGain(index): 0 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetTriggerMode: 0 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetTemperature: -40 - DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uCoolerOn: DRV_ACQUIRING
+Tue Mar 06 12:32:16 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Tue Mar 06 12:32:16 2012>> Open Port: 4 -5
+Tue Mar 06 12:32:17 2012>> Open Port: 5 -5
+Tue Mar 06 12:32:17 2012>> 
+Tue Mar 06 12:32:17 2012>> 
+Tue Mar 06 12:32:17 2012>> 
+Tue Mar 06 12:32:17 2012>> 
+Tue Mar 06 12:32:18 2012>> 
+Tue Mar 06 12:32:18 2012>> 
+Tue Mar 06 12:32:18 2012>> 
+Tue Mar 06 12:32:18 2012>> 
+Tue Mar 06 12:32:18 2012>> 
+Tue Mar 06 12:32:19 2012>> 
+Tue Mar 06 12:32:19 2012>> 
+Tue Mar 06 12:32:19 2012>> 
+Tue Mar 06 12:32:19 2012>> 
+Tue Mar 06 12:32:19 2012>> 
+Tue Mar 06 12:32:20 2012>> 
+Tue Mar 06 12:32:20 2012>> 
+Tue Mar 06 12:32:20 2012>> 
+Tue Mar 06 12:32:20 2012>> 
+Tue Mar 06 12:32:20 2012>> 
+Tue Mar 06 12:32:21 2012>> 
+Tue Mar 06 12:32:21 2012>> 
+Tue Mar 06 12:32:21 2012>> 
+Tue Mar 06 12:32:21 2012>> 
+Tue Mar 06 12:32:22 2012>> 
+Tue Mar 06 12:32:22 2012>> 
+Tue Mar 06 12:32:22 2012>> 
+Tue Mar 06 12:32:22 2012>> 
+Tue Mar 06 12:32:22 2012>> 
+Tue Mar 06 12:32:23 2012>> 
+Tue Mar 06 12:32:23 2012>> 
+Tue Mar 06 12:32:23 2012>> 
+Tue Mar 06 12:32:23 2012>> 
+Tue Mar 06 12:32:24 2012>> 
+Tue Mar 06 12:32:24 2012>> 
+Tue Mar 06 12:32:24 2012>> 
+Tue Mar 06 12:32:24 2012>> 
+Tue Mar 06 12:32:24 2012>> 
+Tue Mar 06 12:32:25 2012>> 
+Tue Mar 06 12:32:25 2012>> 
+Tue Mar 06 12:32:25 2012>> 
+Tue Mar 06 12:32:25 2012>> 
+Tue Mar 06 12:32:25 2012>> 
+Tue Mar 06 12:32:26 2012>> 
+Tue Mar 06 12:32:26 2012>> 
+Tue Mar 06 12:32:26 2012>> 
+Tue Mar 06 12:32:26 2012>> 
+Tue Mar 06 12:32:26 2012>> 
+Tue Mar 06 12:32:27 2012>> 
+Tue Mar 06 12:32:27 2012>> 
+Tue Mar 06 12:32:27 2012>> 
+Tue Mar 06 12:32:27 2012>> 
+Tue Mar 06 12:32:27 2012>> 
+Tue Mar 06 12:32:28 2012>> 
+Tue Mar 06 12:32:28 2012>> 
+Tue Mar 06 12:32:28 2012>> 
+Tue Mar 06 12:32:28 2012>> 
+Tue Mar 06 12:32:28 2012>> 
+Tue Mar 06 12:32:29 2012>> 
+Tue Mar 06 12:32:29 2012>> 
+Tue Mar 06 12:32:29 2012>> 
+Tue Mar 06 12:36:40 2012>> Camera acknowledge...True
+Tue Mar 06 12:36:40 2012>> Cam Init: DRV_IDLE
+Tue Mar 06 12:36:44 2012>> 
+Tue Mar 06 12:36:44 2012>> uSetReadMode: 4 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetAcquisitionMode: 1 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetExposureTime: 0.0100 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetOutputAmplifier: 0 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetADChannel: 0 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetEMCCDGain: 2 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetHSSpeed(index): 1 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetVSSpeed(index): 3 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetVSAmplitude: 0 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetPreAmpGain(index): 0 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetTriggerMode: 0 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetTemperature: -40 - DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uCoolerOn: DRV_SUCCESS
+Tue Mar 06 12:36:44 2012>> uSetImage: 2,2,1,1024,1,1024: DRV_SUCCESS
+Tue Mar 06 12:36:45 2012>> Open Port: 4 -5
+Tue Mar 06 12:36:45 2012>> Open Port: 5 -5
+Tue Mar 06 12:36:45 2012>> 
+Tue Mar 06 12:36:46 2012>> 
+Tue Mar 06 12:36:46 2012>> 
+Tue Mar 06 12:36:46 2012>> 
+Tue Mar 06 12:36:46 2012>> 
+Tue Mar 06 12:36:46 2012>> 
+Tue Mar 06 12:36:47 2012>> 
+Tue Mar 06 12:36:47 2012>> 
+Tue Mar 06 12:36:48 2012>> 
+Tue Mar 06 12:36:48 2012>> 
+Tue Mar 06 12:36:49 2012>> 
+Tue Mar 06 12:36:49 2012>> 
+Tue Mar 06 12:36:49 2012>> 
+Tue Mar 06 12:36:49 2012>> 
+Tue Mar 06 12:36:49 2012>> 
+Tue Mar 06 12:36:50 2012>> 
+Tue Mar 06 12:36:50 2012>> 
+Tue Mar 06 12:36:50 2012>> 
+Tue Mar 06 12:36:50 2012>> 
+Tue Mar 06 12:36:50 2012>> 
+Tue Mar 06 12:36:51 2012>> 
+Tue Mar 06 12:36:51 2012>> 
+Tue Mar 06 12:36:51 2012>> 
+Tue Mar 06 12:36:51 2012>> 
+Tue Mar 06 12:36:52 2012>> 
+Tue Mar 06 12:36:52 2012>> 
+Tue Mar 06 12:36:52 2012>> 
+Tue Mar 06 12:36:52 2012>> 
+Tue Mar 06 12:36:53 2012>> 
+Tue Mar 06 12:36:53 2012>> 
+Tue Mar 06 12:36:53 2012>> 
+Tue Mar 06 12:36:53 2012>> 
+Tue Mar 06 12:36:54 2012>> 
+Tue Mar 06 12:36:54 2012>> 
+Tue Mar 06 12:36:55 2012>> 
+Tue Mar 06 12:36:55 2012>> 
+Tue Mar 06 12:36:55 2012>> 
+Tue Mar 06 12:36:55 2012>> 
+Tue Mar 06 12:36:55 2012>> 
+Tue Mar 06 12:36:56 2012>> 
+Tue Mar 06 12:36:56 2012>> 
+Tue Mar 06 12:36:56 2012>> 
+Tue Mar 06 12:36:56 2012>> 
+Tue Mar 06 12:36:56 2012>> 
+Tue Mar 06 12:36:57 2012>> 
+Tue Mar 06 12:36:57 2012>> 
+Tue Mar 06 12:36:57 2012>> 
+Tue Mar 06 12:36:57 2012>> 
+Tue Mar 06 12:36:57 2012>> 
+Tue Mar 06 12:36:58 2012>> 
+Tue Mar 06 12:36:58 2012>> 
+Tue Mar 06 12:36:58 2012>> 
+Tue Mar 06 12:36:58 2012>> 
+Tue Mar 06 12:36:58 2012>> 
+Tue Mar 06 12:36:59 2012>> 
+Tue Mar 06 12:36:59 2012>> 
+Tue Mar 06 12:36:59 2012>> 
+Tue Mar 06 12:36:59 2012>> 
+Tue Mar 06 12:36:59 2012>> 
+Tue Mar 06 12:37:00 2012>> 
+Tue Mar 06 12:37:25 2012>> Driver updated camera settings.
+Tue Mar 06 12:38:08 2012>> Driver updated camera settings.
+Tue Mar 06 12:51:12 2012>> Open Port: 4 0
+Tue Mar 06 12:51:12 2012>> Open Port: 5 0
+Tue Mar 06 12:51:13 2012>> OK
+
+Tue Mar 06 12:51:13 2012>> OK
+
+Tue Mar 06 12:51:13 2012>> OK
+
+Tue Mar 06 12:51:13 2012>> OK
+
+Tue Mar 06 12:51:14 2012>> OK
+
+Tue Mar 06 12:51:14 2012>> OK
+
+Tue Mar 06 12:51:14 2012>> OK
+
+Tue Mar 06 12:51:14 2012>> OK
+
+Tue Mar 06 12:51:14 2012>> OK
+
+Tue Mar 06 12:51:15 2012>> OK
+
+Tue Mar 06 12:51:15 2012>> OK
+
+Tue Mar 06 12:51:15 2012>> OK
+
+Tue Mar 06 12:51:15 2012>> OK
+
+Tue Mar 06 12:51:15 2012>> OK
+
+Tue Mar 06 12:51:16 2012>> OK
+
+Tue Mar 06 12:51:16 2012>> OK
+
+Tue Mar 06 12:51:16 2012>> OK
+
+Tue Mar 06 12:51:16 2012>> OK
+
+Tue Mar 06 12:51:16 2012>> OK
+
+Tue Mar 06 12:51:17 2012>> OK
+
+Tue Mar 06 12:51:17 2012>> OK
+
+Tue Mar 06 12:51:17 2012>> OK
+
+Tue Mar 06 12:51:17 2012>> OK
+
+Tue Mar 06 12:51:17 2012>> OK
+
+Tue Mar 06 12:51:18 2012>> OK
+
+Tue Mar 06 12:51:18 2012>> OK
+
+Tue Mar 06 12:51:18 2012>> OK
+
+Tue Mar 06 12:51:18 2012>> OK
+
+Tue Mar 06 12:51:18 2012>> OK
+
+Tue Mar 06 12:51:19 2012>> OK
+
+Tue Mar 06 12:51:19 2012>> OK
+
+Tue Mar 06 12:51:19 2012>> OK
+
+Tue Mar 06 12:51:19 2012>> OK
+
+Tue Mar 06 12:51:20 2012>> OK
+
+Tue Mar 06 12:51:20 2012>> OK
+
+Tue Mar 06 12:51:20 2012>> OK
+
+Tue Mar 06 12:51:20 2012>> OK
+
+Tue Mar 06 12:51:20 2012>> OK
+
+Tue Mar 06 12:51:21 2012>> OK
+
+Tue Mar 06 12:51:21 2012>> OK
+
+Tue Mar 06 12:51:21 2012>> OK
+
+Tue Mar 06 12:51:21 2012>> OK
+
+Tue Mar 06 12:51:21 2012>> OK
+
+Tue Mar 06 12:51:22 2012>> OK
+
+Tue Mar 06 12:51:22 2012>> OK
+
+Tue Mar 06 12:51:22 2012>> OK
+
+Tue Mar 06 12:51:22 2012>> OK
+
+Tue Mar 06 12:51:22 2012>> OK
+
+Tue Mar 06 12:51:23 2012>> OK
+
+Tue Mar 06 12:51:23 2012>> OK
+
+Tue Mar 06 12:51:23 2012>> OK
+
+Tue Mar 06 12:51:23 2012>> OK
+
+Tue Mar 06 12:51:23 2012>> OK
+
+Tue Mar 06 12:51:24 2012>> OK
+
+Tue Mar 06 12:51:24 2012>> OK
+
+Tue Mar 06 12:51:24 2012>> OK
+
+Tue Mar 06 12:51:24 2012>> OK
+
+Tue Mar 06 12:51:25 2012>> OK
+
+Tue Mar 06 12:51:25 2012>> OK
+
+Tue Mar 06 12:51:25 2012>> OK
+
+Tue Mar 06 14:44:12 2012>> Open Port: 4 0
+Tue Mar 06 14:44:13 2012>> Open Port: 5 -5
+Tue Mar 06 14:44:13 2012>> OK
+
+Tue Mar 06 14:44:13 2012>> OK
+
+Tue Mar 06 14:44:13 2012>> OK
+
+Tue Mar 06 14:44:13 2012>> OK
+
+Tue Mar 06 14:44:14 2012>> OK
+
+Tue Mar 06 14:44:14 2012>> OK
+
+Tue Mar 06 14:44:14 2012>> OK
+
+Tue Mar 06 14:44:14 2012>> OK
+
+Tue Mar 06 14:44:14 2012>> OK
+
+Tue Mar 06 14:44:15 2012>> OK
+
+Tue Mar 06 14:44:15 2012>> OK
+
+Tue Mar 06 14:44:15 2012>> OK
+
+Tue Mar 06 14:44:15 2012>> OK
+
+Tue Mar 06 14:44:15 2012>> OK
+
+Tue Mar 06 14:44:16 2012>> OK
+
+Tue Mar 06 14:44:16 2012>> OK
+
+Tue Mar 06 14:44:16 2012>> OK
+
+Tue Mar 06 14:44:16 2012>> OK
+
+Tue Mar 06 14:44:17 2012>> OK
+
+Tue Mar 06 14:44:17 2012>> OK
+
+Tue Mar 06 14:44:17 2012>> OK
+
+Tue Mar 06 14:44:17 2012>> OK
+
+Tue Mar 06 14:44:17 2012>> OK
+
+Tue Mar 06 14:44:18 2012>> OK
+
+Tue Mar 06 14:44:18 2012>> OK
+
+Tue Mar 06 14:44:18 2012>> OK
+
+Tue Mar 06 14:44:18 2012>> OK
+
+Tue Mar 06 14:44:18 2012>> OK
+
+Tue Mar 06 14:44:19 2012>> OK
+
+Tue Mar 06 14:44:19 2012>> OK
+
+Tue Mar 06 14:44:19 2012>> OK
+
+Tue Mar 06 14:44:19 2012>> OK
+
+Tue Mar 06 14:44:20 2012>> OK
+
+Tue Mar 06 14:44:20 2012>> OK
+
+Tue Mar 06 14:44:20 2012>> OK
+
+Tue Mar 06 14:44:20 2012>> OK
+
+Tue Mar 06 14:44:20 2012>> OK
+
+Tue Mar 06 14:44:21 2012>> OK
+
+Tue Mar 06 14:44:21 2012>> OK
+
+Tue Mar 06 14:44:21 2012>> OK
+
+Tue Mar 06 14:44:21 2012>> OK
+
+Tue Mar 06 14:44:21 2012>> OK
+
+Tue Mar 06 14:44:22 2012>> OK
+
+Tue Mar 06 14:44:22 2012>> OK
+
+Tue Mar 06 14:44:22 2012>> OK
+
+Tue Mar 06 14:44:22 2012>> OK
+
+Tue Mar 06 14:44:22 2012>> OK
+
+Tue Mar 06 14:44:23 2012>> OK
+
+Tue Mar 06 14:44:23 2012>> OK
+
+Tue Mar 06 14:44:23 2012>> OK
+
+Tue Mar 06 14:44:23 2012>> OK
+
+Tue Mar 06 14:44:23 2012>> OK
+
+Tue Mar 06 14:44:24 2012>> OK
+
+Tue Mar 06 14:44:24 2012>> OK
+
+Tue Mar 06 14:44:24 2012>> OK
+
+Tue Mar 06 14:44:24 2012>> OK
+
+Tue Mar 06 14:44:24 2012>> OK
+
+Tue Mar 06 14:44:25 2012>> OK
+
+Tue Mar 06 14:44:25 2012>> OK
+
+Tue Mar 06 14:44:25 2012>> OK
+
