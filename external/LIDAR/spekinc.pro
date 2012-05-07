@@ -1,0 +1,1 @@
+common spek_com, dimz, ptrz, namz, ctlz, funz, qalz

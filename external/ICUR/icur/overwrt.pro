@@ -1,0 +1,14 @@
+;**************************************************************
+PRO OVERWRT,IM,FLUX,EPS,WAVE,F,E,W,RESET ; OVERWRITE VECTORS
+IF IM EQ 0 THEN BEGIN
+   F=FLUX
+   RESET=0
+   ENDIF
+IF (IM EQ 1) OR (IM EQ 2) THEN BEGIN
+   FLUX=F
+   EPS=E
+   RESET=1
+   ENDIF
+IF IM EQ 2 THEN WAVE=W
+RETURN
+END

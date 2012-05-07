@@ -1,0 +1,2 @@
+.rnew codaplot
+exit

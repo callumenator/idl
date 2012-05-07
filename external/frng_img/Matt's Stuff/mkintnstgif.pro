@@ -1,0 +1,1 @@
+gif_this, file='c:\wtsrv\profiles\mpkryn\imagefiles\datafiles\'+year+'\intnst'+yr+mnthval+day+'.gif'
