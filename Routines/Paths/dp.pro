@@ -1,4 +1,6 @@
 
+;\\ Straight wrapper around dialog_pickfile
+
 function dp, DEFAULT_EXTENSION=DEFAULT_EXTENSION, $
 			 DIRECTORY=DIRECTORY, $
 			 DIALOG_PARENT=DIALOG_PARENT, $
