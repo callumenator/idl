@@ -5,7 +5,11 @@ pro get_zone_locations, meta, $
 						zones=zones	;\\ Data is returned in this structure
 
 	;\\ Figure out zone angles
-		radii = [0.0, meta.zone_radii[0:meta.rings-1]]/100.
+		if meta.zone_radii[0] eq 0 then begin
+			radii = meta.zone_radii[0:meta.rings]/100.
+		endif else begin
+			radii = [0.0, meta.zone_radii[0:meta.rings-1]]/100.
+		endelse
 		sectors = meta.zone_sectors[0:meta.rings-1]
 
 		zones = replicate({min_azi:0., $

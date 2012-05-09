@@ -11,107 +11,92 @@ pro plot_allsky_on_map, map, $
 						border=border, $
 						mask_radius=mask_radius, $
 						true=true, $
-						offset=offset
+						offset=offset, $
+						alpha=alpha, $
+						ctable=ctable
 
 	COMMON Allsky_Plot, cached_map
 
 	dim = size(image, /dimensions)
-
-	if not keyword_set(center) then center = dim/2.
 	if not keyword_set(offset) then offset = [0,0]
 	if not keyword_set(border) then border = [0,0,0,0]
-	if not keyword_set(mask_radius) then mask_radius = 1E6
-
-	if keyword_set(true) then begin
-		img = image[*, border[0]:dim[0]-border[2]-1, border[1]:dim[1]-border[3]-1]
-	endif else begin
-		img = image[border[0]:dim[0]-border[2]-1, border[1]:dim[1]-border[3]-1]
-	endelse
 
 
-	xs = 5
-	ys = 5
-	latlon = findgen(dim[0]/xs + 1, dim[1]/ys + 1, 2)
-	for xx = 0, dim[0] - 1, xs do begin
-	for yy = 0, dim[1] - 1, ys do begin
+ 	zang = 360.*mc_dist(dim[0], dim[1], $
+ 					    (border[0]+border[2])/2, $
+ 					    (border[1]+border[3])/2, $
+ 					    x=xx, y=yy)/(total(border))
 
-		xd = float((xx-center[0]))
-		yd = float((yy-center[1]))
+    azi = atan(yy, xx)
+    azi = 180 + rotate(reverse(azi, 1), 1)/!dtor
+    rdist  = 100.*tan(!dtor*zang)
+    xdist  = rdist*sin(!dtor*azi)
+    ydist  = rdist*cos(!dtor*azi)
+    useful = where(zang lt 85.)
+    useord = sort(zang(useful))
+    useful = useful(reverse(useord))
+    refpoints = {dims: dim, $
+    			 horizon: [border[0], border[2], border[1], border[3]], $
+    			 zang: zang, $
+    			 azimuth: azi, $
+    			 xdist: xdist, $
+    			 ydist: ydist, $
+    			 useful: useful}
 
-		dd = sqrt(xd*xd + yd*yd)
+	dummy   = mc_dist(dims[0], dims[1], 0., 0., x=xx, y=yy)
+    data_coords = convert_coord(xx, yy, /device, /to_data)
+    lonlats = map_proj_inverse(data_coords[0,*], data_coords[1,*], map=map)
+    dx      = 111.12*(lonlats(0, *) - longitude)*cos(!dtor*latitude)
+    dy      = 111.12*(lonlats(1, *) - latitude)
+    rads    = sqrt(dx^2 + dy^2)
+    use     = where(rads lt 450.)
+    zang    = atan(rads(use)/105.)/!dtor
+    pixrad  = 0.25*total(refpoints.horizon)*zang/(90.)
+    maxrad  = max(rads(use))
+    azi     = atan(dy(use), dx(use))
+    radhere = sqrt((dx(use))^2 + (dy(use))^2)
+    xx      = pixrad*dx(use)/radhere + (refpoints.horizon(0) + refpoints.horizon(1))/2
+    yy      = pixrad*dy(use)/radhere + (refpoints.horizon(2) + refpoints.horizon(3))/2
+    mapvec  = use
+    ascvec  = long(yy)*refpoints.dims(0) + xx
 
-		zen = float(fov)*dd/max(dim/2.)
-		azi = atan(xd, yd)/!DTOR + azi_plus
 
-		ll = get_end_lat_lon(latitude, longitude, $
-							get_great_circle_length(zen, altitude), azi)
-
-		if dd gt mask_radius then latlon[xx/xs,yy/ys,*] = [-999, 0] else latlon[xx/xs,yy/ys,*] = ll
-
-	endfor
-	endfor
-
-	xr = [min(latlon[*,*,1]), max(latlon[*,*,1])]
-	yr = [min(latlon[*,*,0]), max(latlon[*,*,0])]
-
-	latlon = congrid(latlon, dim[0], dim[1], 2, /interp)
-
-	recalc_map = 1
-	if recalc_map eq 1 then begin
-		x_step_size = 5
-		y_step_size = 5
-		nx = dims[0]/x_step_size
-		ny = dims[1]/y_step_size
-		index_map = intarr(nx, ny, 2)
-		for ix = 0, dims[0] - 1, x_step_size do begin
-		for iy = 0, dims[1] - 1, y_step_size do begin
-			cc = convert_coord(ix, iy, /device, /to_data)
-			ll = map_proj_inverse(cc[0], cc[1], map=map)
-			if finite(ll[0]) eq 0 or finite(ll[1]) eq 0 then begin
-				index_map[ix/x_step_size,iy/y_step_size,*] = [-1,-1]
-			endif else begin
-				if ll[0] lt min(xr) or ll[0] gt max(xr) or $
-				   ll[1] lt min(yr) or ll[1] gt max(yr) then begin
-				   	index_map[ix/x_step_size,iy/y_step_size,*] = [-1,-1]
-				endif else begin
-					;cx = interpol(findgen(n), xr, ll[0]) > 0
-					;cy = interpol(findgen(n), yr, ll[1]) > 0
-
-					diff = abs(ll[0] - latlon[*,*,1]) + abs(ll[1] - latlon[*,*,0])
-					pt = (where(diff eq min(diff)))[0]
-					pt_idx = array_indices(latlon, pt)
-					cx = pt_idx[0]
-					cy = pt_idx[1]
-					if diff[pt] lt .2 then begin
-						index_map[ix/x_step_size,iy/y_step_size,0] = cx
-						index_map[ix/x_step_size,iy/y_step_size,1] = cy
-					endif else begin
-					 	index_map[ix/x_step_size,iy/y_step_size,0] = -1
-						index_map[ix/x_step_size,iy/y_step_size,1] = -1
-					endelse
-				endelse
-			endelse
-		endfor
-			wait, 0.001
-		endfor
-		neg_pts = congrid(index_map ne -1, dims[0], dims[1], 2)
-		cached_map = congrid(index_map, dims[0], dims[1], 2)
-		cached_map = cached_map * neg_pts
+	screen_img = tvrd(/true)
+	if keyword_set(alpha) then begin
+		current_image = tvrd(/true)
+		screen_img *= 0
+		erase, 0
 	endif
 
-	scaled_map = bytscl(img)
+	asc_gain = 1
+    red        = reform(screen_img(0, *, *))
+    green      = reform(screen_img(1, *, *))
+    blue       = reform(screen_img(2, *, *))
+    red[mapvec]   = 0.4*image[ascvec]*asc_gain < 255
+    green[mapvec] = 0.4*image[ascvec]*asc_gain < 255
+    blue[mapvec]  = image[ascvec]*asc_gain < 255
+    screen_img[0, *, *] = red
+    screen_img[1, *, *] = green
+    screen_img[2, *, *] = blue
 
-	for ix = 0, dims[0] - 1 do begin
-	for iy = 0, dims[1] - 1 do begin
+	if keyword_set(alpha) then begin
+		overlay_image = tvrd(/true)
+		alpha_map = float(reform(screen_img[0,*,*]))
+		pts = where(total(screen_img, 1) eq 0, complement=blend, ncomp=nblend)
+		if nblend ne 0 then alpha_map[blend] = alpha
 
-		if cached_map[ix,iy,0] eq -1 or cached_map[ix,iy,1] eq -1 then continue
-		map_val = img[cached_map[ix,iy,0],cached_map[ix,iy,1]]
+		alpha3 = screen_img
+		alpha3 = [[alpha_map], [alpha_map], [alpha_map]]
+		blend_image = alpha_blend(current_image, screen_img, alpha3)
 
-		plots, ix + offset[0], iy + offset[1], color=scaled_map[cached_map[ix,iy,0],cached_map[ix,iy,1]], $
-			   /device, psym=3
-	endfor
-	endfor
+	endif else begin
 
-	stop
+    	blend_image = screen_img
+
+	endelse
+
+	device, decom=1
+	tv, blend_image, /true
+	device, decomp=0
 
 end
