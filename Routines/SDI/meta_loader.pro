@@ -346,10 +346,10 @@ pro meta_loader, out, $
 
 		if keyword_set(get_allsky_ims) then begin
 			res = execute(meta.site_code + ' = {ut:ut, vz:vz, meta:meta, winds:winds, speks:speks, lats:lat, lons:lon, zone:centers:zone_centers, ' + $
-												'speks_dc:speks_dc, images:images, drift_curve:drift_curve, map:map_image, aziPlus:aziPlus}')
+												'speks_dc:speks_dc, images:images, drift_curve:drift_curve, map:map_image, aziPlus:aziPlus, filename:obs_files[k]}')
 		endif else begin
 			res = execute(meta.site_code + ' = {ut:ut, vz:vz, meta:meta, winds:winds, speks:speks, lats:lat, lons:lon, zone_centers:zone_centers, ' + $
-												'speks_dc:speks_dc, drift_curve:drift_curve, map:map_image, aziPlus:aziPlus}')
+												'speks_dc:speks_dc, drift_curve:drift_curve, map:map_image, aziPlus:aziPlus, filename:obs_files[k]}')
 		endelse
 		top_level_list = [top_level_list, meta.site_code]
 		real_raw_obs ++
