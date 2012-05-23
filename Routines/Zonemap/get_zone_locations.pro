@@ -62,11 +62,11 @@ pro get_zone_locations, meta, $
 
 		if not keyword_set(magnetic) then begin
 			;\\ Rotate into geographic (assumed to be in magnetic currently)
-			zones.min_azi += meta.oval_angle + add_angle + meta.rotation_from_oval
-			zones.max_azi += meta.oval_angle + add_angle + meta.rotation_from_oval
+			zones.min_azi += meta.oval_angle + meta.rotation_from_oval
+			zones.max_azi += meta.oval_angle + meta.rotation_from_oval
 		endif else begin
-			zones.min_azi += add_angle + meta.rotation_from_oval
-			zones.max_azi += add_angle + meta.rotation_from_oval
+			zones.min_azi += meta.rotation_from_oval
+			zones.max_azi += meta.rotation_from_oval
 		endelse
 
 		zones.mid_azi = ((zones.min_azi + zones.max_azi)/2.) mod 360
