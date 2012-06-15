@@ -1,8 +1,0 @@
-o 131.172.132.40
-callum
-and123
-cd davis_realtime
-put d:\drta\plots\real_time.png
-disconnect
-quit
-
