@@ -34,7 +34,7 @@ function where_is, what
 
 		'sdi_skymap_series': path = 'c:\cal\fpsdata\skymaps\'
 
-		'mawson_davis_cv': path = 'C:\Cal\IDLSource\NewAlaskaCode\Davis\CommonVolume\'
+		'mawson_davis_cv': path = 'C:\Cal\idlgit\Davis\CommonVolume\'
 
 		'poker_asc': path = 'c:\cal\fpsdata\poker_asc\'
 

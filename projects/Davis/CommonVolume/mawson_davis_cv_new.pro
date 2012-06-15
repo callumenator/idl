@@ -11,7 +11,6 @@ pro mawson_davis_cv_new
 	mag_bearing = (map_2points(mlon[0], mlat[0], mlon[1], mlat[1]))[1]
 	hvec = [sin(mag_bearing*!DTOR), cos(mag_bearing*!DTOR)]
 
-
 	aacgmidl
 	redo = 1
 	top_dir = where_is('mawson_davis_cv')
@@ -193,7 +192,7 @@ pro mawson_davis_cv_new
 
 
 						;\\ Visualize the intersection
-						if 0 then begin
+						if 1 then begin
 							window, 0, xs=900, ys=900
 							loadct, 39, /silent
 							plot_simple_map, (station_info('maw')).glat, (station_info('maw')).glon, $
@@ -236,6 +235,8 @@ pro mawson_davis_cv_new
 													  dist, azis[dcv1])
 								plots, map_proj_forward(ll[1], ll[0] , map=map), /data, psym=1, sym=.1, color=0
 							endfor
+
+							stop
 						endif
 
 						;\\ Interpolate to common time
