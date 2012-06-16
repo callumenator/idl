@@ -2,7 +2,7 @@
 ;\\ Resolution is number of points in interpolated curve...
 function smooth_in_time, time, var, resolution, timeSmooth, $
 						 gauss=gauss, $
-						 gauss_convol=gauss_convol
+						 gconvol=gconvol
 
 	if not keyword_set(gauss) and not keyword_set(gauss_convol) then begin
 		resolution = double(resolution)
@@ -26,14 +26,14 @@ function smooth_in_time, time, var, resolution, timeSmooth, $
 		retvar = fltarr(n_elements(time))
 		for tt = 0L, n_elements(time) - 1 do begin
 			t_dists = time[tt] - time
-			weight = exp( -(t_dists)^2./(2*timeSmooth^2.) )
-			weight = weight/total(weight)
-			retvar[tt] = total(var*weight)
+			weight = exp( -((t_dists)^2.)/(2*timeSmooth^2.) )
+			;weight = weight/total(weight)
+			retvar[tt] = total(var*weight)/total(weight)
 		endfor
 		return, retvar
 	endif
 
-	if keyword_set(gauss_convol) then begin
+	if keyword_set(gconvol) then begin
 
 		resolution = double(resolution)
 		intTime = (dindgen(resolution)/(resolution-1)) * double((max(time) - min(time))) + min(time)
@@ -49,6 +49,8 @@ function smooth_in_time, time, var, resolution, timeSmooth, $
 		return, retvar
 
 	endif
+
+
 
 end
 

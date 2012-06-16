@@ -3,13 +3,16 @@
 pro mawson_davis_cv_new
 
 @sdi3k_ncdf_inc
-
+loadct, 39, /silent
 
 	;\\ I think positive is from davis-to-mawson now...
 	mlat = (station_info(['dav','maw'])).mlat
 	mlon = (station_info(['dav','maw'])).mlon
 	mag_bearing = (map_2points(mlon[0], mlat[0], mlon[1], mlat[1]))[1]
 	hvec = [sin(mag_bearing*!DTOR), cos(mag_bearing*!DTOR)]
+	glat = (station_info(['dav','maw'])).glat
+	glon = (station_info(['dav','maw'])).glon
+	geo_sep = ((map_2points(glon[0], glat[0], glon[1], glat[1], /meters))[0])/1000.
 
 	aacgmidl
 	redo = 1
@@ -30,6 +33,8 @@ pro mawson_davis_cv_new
 	  '110713', '110716', '110717', '110718', '110719', '110720', '110721',$
 	  '110722', '110724', '110808', '110809', '110813', '110814', '110830',$
 	  '110831' ]
+
+	dav_dates = ['110704', '110808']
 
 	n_dav = n_elements(dav_dates)
 
@@ -137,6 +142,8 @@ pro mawson_davis_cv_new
 
 					triangulate, xx, yy, tr, b
 					alt_surf = trigrid(xx, yy, t_alts, tr, xout=xax, yout=yax, extrap=b)
+					alt_surf_missing = trigrid(xx, yy, t_alts, tr, xout=xax, yout=yax, missing=-999)
+					alt_surf = smooth(alt_surf, 20, /edge)
 
 					cv_zenang = get_unique(*dav_cv.zen_ang)
 					n_cv = n_elements(cv_zenang)
@@ -173,6 +180,7 @@ pro mawson_davis_cv_new
 						if npts eq 0 then stop
 
 						ray_emission = interpolate(alt_surf, lon_idx, lat_idx)
+						ray_emission_missing = interpolate(alt_surf_missing, lon_idx, lat_idx)
 						isect = (where(abs(ray_alt - ray_emission) eq min(abs(ray_alt - ray_emission))))[0]
 
 						isect_lat = ray_lat[isect]
@@ -190,13 +198,56 @@ pro mawson_davis_cv_new
 						common_ll = [ 0.5*(isect_lat+zz_ll[cv_zone,0]), 0.5*(isect_lon+zz_ll[cv_zone,1])]
 						cnv_aacgm, common_ll[0], common_ll[1], 240, common_mlat, common_mlon, r, error
 
+						if file_basename(dav_filename) eq '2011_185' or file_basename(dav_filename) eq '2011_220' then begin
+
+							if cv_idx eq 0 and tt eq 0 then begin
+								eps, filename = 'C:\cal\Docs\Latex\Papers\DavisMawson_RedGreen_Bistatic\Pics\Intersects\' + $
+									 file_basename(dav_filename) + '.eps', /open, xs = 10, ys = 10
+
+								plot, get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)), ray_emission, $
+										/nodata, xrange = [0,1000], yrange=[0,200], xtitle='Great Circle Distance (km)', $
+										ytitle = 'Altitude (km)', chars = .7, chart = 2, pos=[.12, .09, .96, .98]
+							endif
+
+							pts = where(ray_emission_missing gt 0)
+
+							oplot, (get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)))[pts], ray_emission[pts], $
+									color=0, thick=.2
+
+							if cv_idx eq 0 and tt eq  n_elements(common_times) - 1 then begin
+
+								oplot, get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)), ray_alt, $
+									color= 255, thick=4
+
+								oplot, get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)), ray_alt, $
+									color= 50, thick=2
+
+							endif
+
+							if cv_idx eq 1 and tt eq  n_elements(common_times) - 1 then begin
+
+								oplot, get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)), ray_alt, $
+									color= 255, thick=4
+
+								oplot, get_great_circle_length(dav_zen, arc_len*cos(dav_zen*!DTOR)), ray_alt, $
+									color= 50, thick=2
+
+								oplot, [geo_sep, geo_sep], [0,10], thick=10, color = 250
+								xyouts, /data, geo_sep, 12, 'Mawson', align=.5, chart = 2, chars=.7, color=250
+
+								eps, /close
+							endif
+
+						endif
+
 
 						;\\ Visualize the intersection
-						if 1 then begin
+						if 0 then begin
 							window, 0, xs=900, ys=900
 							loadct, 39, /silent
-							plot_simple_map, (station_info('maw')).glat, (station_info('maw')).glon, $
-						 					8, 1, 1, map=map
+							plot_simple_map, mean((station_info(['maw','dav'])).glat), $
+											 mean((station_info(['maw','dav'])).glon), $
+						 					 12, 1, 1, map=map
 
 							plot_zonemap_on_map, 0, 0, 0, 0, t_alts[cv_zone], 180+maw.meta.oval_angle, 0, map, $
 											 ctable=39, front_color=0, $
@@ -236,7 +287,6 @@ pro mawson_davis_cv_new
 								plots, map_proj_forward(ll[1], ll[0] , map=map), /data, psym=1, sym=.1, color=0
 							endfor
 
-							stop
 						endif
 
 						;\\ Interpolate to common time
