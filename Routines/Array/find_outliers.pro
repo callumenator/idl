@@ -9,6 +9,7 @@ pro find_outliers, in_data, $
 
 
 	nt = n_elements(in_data)
+	if nt le 3 then return
 
 	if not keyword_set(window_hwidth) then window_hwidth = round(nt*.1)
 	if not keyword_set(rel_thresh) and not keyword_set(abs_thresh) then rel_thresh = .2
