@@ -22,10 +22,10 @@ pro bin2d, x, y, z, widths, outx, outy, outz, $
 						y ge grid_y[iy] and $
 						y le grid_y[iy+1], np)
 
-			if np gt 0 then begin
-				outx[ix] = mean(x[pts])
-				outy[iy]= mean(y[pts])
-				outz[ix,iy] = mean(z[pts])
+			if np gt 3 then begin
+				outx[ix] = median(x[pts])
+				outy[iy]= median(y[pts])
+				outz[ix,iy] = median(z[pts])
 			endif else begin
 				outx[ix]=0.5*(grid_x[ix]+grid_x[ix+1])
 				outy[iy]=0.5*(grid_y[iy]+grid_y[iy+1])
@@ -51,10 +51,10 @@ pro bin2d, x, y, z, widths, outx, outy, outz, $
 						y ge min(y) + iy*widths[1] and $
 						y le min(y) + (iy+1)*widths[1], np)
 
-			if np gt 0 then begin
-				outx[ix] = mean(x[pts])
-				outy[iy]= mean(y[pts])
-				outz[ix,iy] = mean(z[pts])
+			if np gt 3 then begin
+				outx[ix] = median(x[pts])
+				outy[iy]= median(y[pts])
+				outz[ix,iy] = median(z[pts])
 			endif else begin
 				outx[ix] = min(x) + (ix+.5)*widths[0]
 				outy[iy]= min(y) + (iy+.5)*widths[1]

@@ -66,13 +66,11 @@ pro cal_extract_de
                northward_ion_drift: 0., $
                upward_ion_drift:0.}
 
-	list = file_search('C:\Cal\IDLSource\de2_data\DE2_DATA\' + '*.ASC', count = nfiles)
+	list = file_search('C:\Cal\idlgit\projects\de2\DE2_DATA\' + '*.ASC', count = nfiles)
 
 	for fidx = 1, nfiles - 1 do begin
 		ua = replicate(uarec, 1)
 		cal_extract_de_reader, filename=list(fidx)
-
-		save_path = 'C:\Cal\IDLSource\de2_data\Cal_Saves\'
 
 		orbits = ua._orbit
 		vz = ua.upward_wind
@@ -81,6 +79,8 @@ pro cal_extract_de
 		lat = ua.latitude
 		ilat = ua.inv_latitude
 		temp = ua.neutral_temp
+		alt = ua.altitude
+		mlt = ua.loc_mag_time
 
 		;\\ Count orbits
 			so = orbits(sort(orbits))
@@ -98,6 +98,8 @@ pro cal_extract_de
 				o_lat = lat(pts)
 				i_lat = ilat(pts)
 				o_temp = temp(pts)
+				o_mlt = mlt[pts]
+				o_alt = alt[pts]
 
 				nkeep = -1
 				keep = where(o_vz ne 0., nkeep)
@@ -108,8 +110,10 @@ pro cal_extract_de
 					k_lat = o_lat(keep)
 					k_ilat = i_lat(keep)
 					k_temp = o_temp(keep)
+					k_mlt = o_mlt[keep]
+					k_alt = o_alt[keep]
 
-					;\\ Sort by time (probably redundant)
+					;\\ Sort by latitude
 						ord = sort(k_ut)
 						k_vz = k_vz(ord)
 						k_ut = k_ut(ord)
@@ -117,16 +121,33 @@ pro cal_extract_de
 						k_lat = k_lat(ord)
 						k_ilat = k_ilat(ord)
 						k_temp = k_temp(ord)
+						k_mlt = k_mlt(ord)
+						k_alt = k_alt(ord)
 
 					;\\ Subtract a 3rd order polynomial from vz...
-						poly = poly_fit(k_ut, k_vz, 3, yfit = curve)
+						poly = poly_fit(k_lat, k_vz, 3, yfit = curve)
 						k_vz_poly = curve
 						k_vz_mod = k_vz - curve
+						k_vz_mod -= median(k_vz_mod)
+
 
 						date = ua(pts)._date
 						date = date(0)
-						fname = save_path + 'DE_' + string(date, f='(i0)') + '_Orbit_' + string(orb_num, f='(i0)') + '.dat'
-						save, filename = fname, k_vz, k_ut, k_vz_ion, k_lat, k_ilat, k_vz_poly, k_vz_mod, k_temp
+						;fname = save_path + 'DE_' + string(date, f='(i0)') + '_Orbit_' + string(orb_num, f='(i0)') + '.dat'
+						;save, filename = fname, k_vz, k_ut, k_vz_ion, k_lat, k_ilat, k_vz_poly, k_vz_mod, k_temp
+
+						for i = 0, nels(k_vz) - 1 do begin
+							append, {vz:k_vz_mod[i], $
+									 ut:k_ut[i], $
+									 vz_ion:k_vz_ion[i], $
+								 	 lat:k_lat[i], $
+								 	 ilat:k_ilat[i], $
+								 	 temp:k_temp[i], $
+								 	 mlt:k_mlt[i], $
+								 	 alt:k_alt[i]}, $
+								 	 all_data
+						endfor
+
 
 				endif else begin
 					print, 'No non-zero points from orbit ' + string(orb_num, f='(i0)') + '!'
@@ -138,5 +159,6 @@ pro cal_extract_de
 			print, fidx, nfiles
 		endfor
 
+		stop
 
 end
