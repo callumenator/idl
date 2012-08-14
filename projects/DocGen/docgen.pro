@@ -97,6 +97,7 @@ pro DocGen_Format, docgen_path, $
 		;\\ Check to see if code already formatted
 			formatted = 0
 			if content(0) eq ';\\ Code formatted by DocGen' then formatted = 1
+			if content(0) eq ';\\ DocGen skip this file' then continue
 
 		;\\ Loop through content
 			struc = {def_line_range:[0,0], $
@@ -269,6 +270,7 @@ pro DocGen_Format, docgen_path, $
 				endif
 			endfor	;\\ Line loop within a file
 
+
 		;\\ If formatted, extract documentation info
 		if formatted then begin
 			;\\ Loop through defs
@@ -311,6 +313,7 @@ pro DocGen_Format, docgen_path, $
 						endfor
 						defs(dx).arg_text_ptr = ptr_new(arg_info_str)
 						endif
+
 				;\\ Get function documentation - start at def_line_range(0)-1 and work upward
 					ln = defs(dx).def_line_range(0) - 1
 					cmnt_match = strpos(strtrim(content(ln), 2), ';')
@@ -504,6 +507,9 @@ pro DocGen_Format, docgen_path, $
 										' \label{' + defs(ix).name + '_lab}}'
 						printf, handle, '\addcontentsline{toc}{section}{'+class_name+'}'
 
+						defdoc = strjoin(*defs[ix].def_text_ptr, ' ', /single)
+						printf, handle, defdoc + '\newline \newline'
+
 						if ptr_valid(defs(ix).super_class_ptr) then begin
 							super_classes = strjoin(*defs(ix).super_class_ptr, ', ', /single)
 							super_classes = DocGen_CharacterEscape(super_classes, byte('_'))
@@ -517,19 +523,19 @@ pro DocGen_Format, docgen_path, $
 							class_types = strlowcase(*defs(ix).class_type_ptr)
 							printf, handle, 'Class Data: '
 							printf, handle, '\begin{table}[!h]
-							printf, handle, '\begin{small}\vspace{-.1cm}\begin{center}'
+							printf, handle, '\begin{tiny}\vspace{-.1cm}\begin{center}'
 							printf, handle, '\begin{tabular}{rl|rl|rl}'
 							printf, handle, '\hline'
 							for ctx = 0, n_elements(class_tags) - 3, 3 do begin
-										printf, handle, '(\textit{' + class_types(ctx) + '})' $
+										printf, handle, '(\verb"' + class_types(ctx) + '")' $
 												+ ' & ' + DocGen_CharacterEscape(class_tags(ctx), byte('_')) + $
-												'& (\textit{' + class_types(ctx+1) + '})' $
+												'& (\verb"' + class_types(ctx+1) + '")' $
 												+ ' & ' + DocGen_CharacterEscape(class_tags(ctx+1), byte('_')) + $
-												'& (\textit{' + class_types(ctx+2) + '})' $
+												'& (\verb"' + class_types(ctx+2) + '")' $
 												+ ' & ' + DocGen_CharacterEscape(class_tags(ctx+2), byte('_')) + ' \\'
 							endfor
 							printf, handle, '\hline'
-							printf, handle, '\end{tabular}\end{center}\end{small}\end{table}\vspace{-.5cm} \\'
+							printf, handle, '\end{tabular}\end{center}\end{tiny}\end{table}\vspace{-.5cm} \\'
 
 						endif else begin
 							class_tags = 'None'
@@ -580,7 +586,7 @@ pro DocGen_Format, docgen_path, $
 								if nargs gt 0 then begin
 									args = *methods(method_idx).args_ptr
 									args_str = args
-									for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
+									;for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
 								endif
 
 								if nargs gt 0 then begin
@@ -589,8 +595,8 @@ pro DocGen_Format, docgen_path, $
 									printf, handle, '\begin{description}'
 									for nx = 0, nargs - 1 do begin
 										printf, handle, '\vspace{-.15cm}'
-										printf, handle, '\item[] \hspace{.5cm} \textit{' + args_str(nx) + $
-														'}: ' + arg_info(nx)
+										printf, handle, '\item[] \hspace{.5cm} \verb"' + args_str(nx) + $
+														'": ' + arg_info(nx)
 									endfor
 									printf, handle, '\end{description}'
 								endif else begin
@@ -644,17 +650,16 @@ pro DocGen_Format, docgen_path, $
 								printf, handle, '\small{' + file_path + '/' + file_name + '} \newline'
 
 								printf, handle, '\textbf{Function Documentation:} \\'
-								func_doc = *funcs(didx).def_text_ptr
-								for mx = 0, n_elements(func_doc) - 1 do begin
-									printf, handle, func_doc(mx) + '\newline'
-								endfor
+								func_doc = strjoin(*funcs(didx).def_text_ptr, ' ', /single)
+								printf, handle, func_doc + '\newline'
+
 
 								type = funcs(didx).type
 								nargs = funcs(didx).nargs
 								if nargs gt 0 then begin
 									args = *funcs(didx).args_ptr
 									args_str = args
-									for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
+									;for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
 								endif
 
 								if nargs gt 0 then begin
@@ -663,8 +668,8 @@ pro DocGen_Format, docgen_path, $
 									printf, handle, '\begin{description}'
 									for nx = 0, nargs - 1 do begin
 										printf, handle, '\vspace{-.15cm}'
-										printf, handle, '\item[] \hspace{.5cm} \textit{' + args_str(nx) + $
-														'}: ' + arg_info(nx)
+										printf, handle, '\item[] \hspace{.5cm} \verb"' + args_str(nx) + $
+														'": ' + arg_info(nx)
 									endfor
 									printf, handle, '\end{description}'
 								endif else begin
@@ -693,17 +698,16 @@ pro DocGen_Format, docgen_path, $
 								printf, handle, '\small{' + file_path + '/' + file_name + '} \newline'
 
 								printf, handle, '\textbf{Procedure Documentation:} \\'
-								pro_doc = *procs(didx).def_text_ptr
-								for mx = 0, n_elements(proc_doc) - 1 do begin
-									printf, handle, proc_doc(mx) + '\newline'
-								endfor
+								proc_doc = strjoin(*procs(didx).def_text_ptr, ' ', /single)
+								printf, handle, proc_doc + '\newline'
+
 
 								type = procs(didx).type
 								nargs = procs(didx).nargs
 								if nargs gt 0 then begin
 									args = *procs(didx).args_ptr
 									args_str = args
-									for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
+									;for nx = 0, nargs - 1 do args_str(nx) = DocGen_CharacterEscape(args(nx), byte('_'))
 								endif
 
 								if nargs gt 0 then begin
@@ -712,8 +716,8 @@ pro DocGen_Format, docgen_path, $
 									printf, handle, '\begin{description}'
 									for nx = 0, nargs - 1 do begin
 										printf, handle, '\vspace{-.15cm}'
-										printf, handle, '\item[] \hspace{.5cm} \textit{' + args_str(nx) + $
-														'}: ' + arg_info(nx)
+										printf, handle, '\item[] \hspace{.5cm} \verb"' + args_str(nx) + $
+														'": ' + arg_info(nx)
 									endfor
 									printf, handle, '\end{description}'
 								endif else begin
@@ -740,14 +744,15 @@ end
 pro DocGen
 
 	docgen_path = 'c:\cal\idlsource\docgen\'
-	source_path = 'c:\cal\idlsource\objects\utility\'
+	source_path = 'C:\cal\Operations\SDI_Instruments\common\idl\core\'
 
-	format_path = 'c:\cal\idlsource\objects\'
-	output_path = 'c:\cal\idlsource\objects\'
+	format_path = 'C:\cal\Operations\SDI_Instruments\common\idl\core\'
+	output_path = 'C:\cal\Operations\SDI_Instruments\common\doc\codedoc\'
 
 	docgen_suffix = '.pro'
 
 	flist = file_search(source_path, '*.pro', count = nfiles)
+
 	;pts = where(file_basename(flist) ne 'include_source.pro', npts)
 	;flist = flist(pts)
 
