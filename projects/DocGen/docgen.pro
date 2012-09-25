@@ -53,11 +53,14 @@ pro DocGen_Format, docgen_path, $
 				   source_path, $
 				   format_path, $
 				   output_path, $
+				   output_name, $
 				   file_list, $
 				   docgen_suffix=docgen_suffix, $
 				   format_only=format_only, $
 				   latex_only=latex_only, $
 				   force_format=force_format
+
+	texname = output_name
 
 	nfiles = n_elements(file_list)
 	flist = file_list
@@ -472,7 +475,7 @@ pro DocGen_Format, docgen_path, $
 	if not keyword_set(format_only) then begin
 		;\\ Get a list of any eps files in the output path, to include where appropriate
 			pic_list = strlowcase(file_basename(file_search(output_path, '*.png')))
-			openw, handle, output_path + 'out.tex', /get
+			openw, handle, output_path + texname + '.tex', /get
 
 		;\\ Read-in and write-out Write the latex preamble
 			preamble = strarr(file_lines(docgen_path + 'docgen_preamble.txt'))
@@ -495,6 +498,7 @@ pro DocGen_Format, docgen_path, $
 
 						;\\ Need to escape underscores and backslashes in latex...
 							class_name = DocGen_CharacterEscape(defs(ix).class, byte('_'))
+							raw_class_name = defs(ix).class
 							file_name = DocGen_CharacterEscape(defs(ix).fname, byte('_'))
 							file_path = DocGen_CharacterReplace(defs(ix).fpath, byte('\'), byte('/'))
 							file_path = DocGen_CharacterEscape(file_path, byte('_'))
@@ -567,6 +571,7 @@ pro DocGen_Format, docgen_path, $
 
 								type = methods(method_idx).type
 								mth_name = DocGen_CharacterEscape(methods(method_idx).name, byte('_'))
+								raw_mth_name = methods(method_idx).name
 								printf, handle, '\subsubsection*{' + '(' + type + ') ' + strupcase(mth_name) + $
 										' \label{' + methods(method_idx).class + '::' + methods(method_idx).name + '_lab}}'
 										;printf, handle, '\addcontentsline{toc}{subsection}{'+mth_name+'}'
@@ -603,26 +608,52 @@ pro DocGen_Format, docgen_path, $
 									printf, handle, 'Takes no arguments \\'
 								endelse
 
+
 								printf, handle, 'Example Call:'
-								printf, handle, '\begin{align*}'
+								printf, handle, '\begin{table}[!h] \centering \begin{tabular}{l l}'
+
 									if type eq 'function' then begin
-										call_str = 'result = \mathbf{'+class_name+'}-\hspace{-.15cm}>\mathbf{'+mth_name+'}(&'
+										call_str = 'result = \verb"'+raw_class_name+'"$-$\hspace{-.15cm}$>$\verb"'+raw_mth_name+'"(&'
 									endif else begin
-									  	call_str = '\mathbf{'+class_name+'}-\hspace{-.15cm}>\mathbf{'+mth_name+'}'
+									  	call_str = '\verb"'+raw_class_name+'"$-$\hspace{-.15cm}$>$\verb"'+raw_mth_name+'"'
 									endelse
 									if nargs gt 0 then begin
 										for argidx = 0, nargs - 1 do begin
 											arg = args_str(argidx)
-											if type eq 'function' and argidx eq 0 then call_str = call_str + arg
-											if type eq 'pro' and argidx eq 0 then call_str = call_str + ', \ &' + arg
-											if argidx gt 0 and argidx lt nargs - 1 then call_str = call_str + ',\\ \ &' + arg
-											if argidx gt 0 and argidx eq nargs - 1 then call_str = call_str + ',\\ \ &' + arg
+											if type eq 'function' and argidx eq 0 then call_str = call_str + '\verb"' + arg + '"'
+											if type eq 'pro' and argidx eq 0 then call_str = call_str + ', & \verb"' + arg + '"'
+											if argidx gt 0 and argidx lt nargs - 1 then call_str = call_str + ',\\ & \verb"' + arg + '"'
+											if argidx gt 0 and argidx eq nargs - 1 then call_str = call_str + ',\\ & \verb"' + arg + '"'
 										endfor
 									endif
 									if type eq 'function' then call_str = call_str + ')'
-									printf, handle, call_str
-									printf, handle, '\end{align*}'
-									printf, handle, '\begin{center}\rule{.85\textwidth}{.01cm}\end{center}'
+									printf, handle, call_str + ' \\'
+
+								printf, handle, '\end{tabular} \end{table}'
+
+								printf, handle, '\begin{center}\rule{.85\textwidth}{.01cm}\end{center}'
+
+
+;								printf, handle, 'Example Call:'
+;								printf, handle, '\begin{align*}'
+;									if type eq 'function' then begin
+;										call_str = 'result = \mathbf{'+class_name+'}-\hspace{-.15cm}>\mathbf{'+mth_name+'}(&'
+;									endif else begin
+;									  	call_str = '\mathbf{'+class_name+'}-\hspace{-.15cm}>\mathbf{'+mth_name+'}'
+;									endelse
+;									if nargs gt 0 then begin
+;										for argidx = 0, nargs - 1 do begin
+;											arg = args_str(argidx)
+;											if type eq 'function' and argidx eq 0 then call_str = call_str + arg
+;											if type eq 'pro' and argidx eq 0 then call_str = call_str + ', \ & ' + arg
+;											if argidx gt 0 and argidx lt nargs - 1 then call_str = call_str + ',\\ \ & ' + arg
+;											if argidx gt 0 and argidx eq nargs - 1 then call_str = call_str + ',\\ \ & \verb"' + arg + '"'
+;										endfor
+;									endif
+;									if type eq 'function' then call_str = call_str + ')'
+;									printf, handle, call_str
+;									printf, handle, '\end{align*}'
+;									printf, handle, '\begin{center}\rule{.85\textwidth}{.01cm}\end{center}'
 							endfor
 						endif
 					endfor
@@ -731,10 +762,10 @@ pro DocGen_Format, docgen_path, $
 			free_lun, handle
 			;\\ Run pdflatex on the file
 				cd, output_path, current=old_dir
-				spawn, 'pdflatex out.tex'
-				spawn, 'pdflatex out.tex'
-				spawn, 'pdflatex out.tex'
-				spawn, output_path + 'out.pdf', /hide, /nowait
+				spawn, 'pdflatex ' + texname + '.tex'
+				spawn, 'pdflatex ' + texname + '.tex'
+				spawn, 'pdflatex ' + texname + '.tex'
+				spawn, output_path + texname + '.pdf', /hide, /nowait
 				cd, old_dir
 		endif
 
@@ -750,6 +781,7 @@ pro DocGen
 	output_path = 'C:\cal\Operations\SDI_Instruments\common\doc\codedoc\'
 
 	docgen_suffix = '.pro'
+	output_name = 'SDI_Code_Reference'
 
 	flist = file_search(source_path, '*.pro', count = nfiles)
 
@@ -757,7 +789,7 @@ pro DocGen
 	;flist = flist(pts)
 
 	DocGen_Format, docgen_path, source_path, $
-				   format_path, output_path, $
+				   format_path, output_path, output_name, $
 				   flist, $
 				   docgen_suffix=docgen_suffix, $
 				   /latex_only

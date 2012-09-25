@@ -1,5 +1,5 @@
 
-pro sdi_analysis, directory, filter = filter, plot_to = plot_to
+pro sdi_analysis, directory, filter = filter, plot_to = plot_to, only_zones = only_zones
 
 	if keyword_set(plot_to) then plot_dir = plot_to
 
@@ -32,7 +32,7 @@ pro sdi_analysis, directory, filter = filter, plot_to = plot_to
 	if nsky eq 0 then begin
 		for k = 0, nlas - 1 do begin
 			fname = las_list[k]
-			sdi_fit_spectra, fit_insfile = fname
+			sdi_fit_spectra, fit_insfile = fname, only_zones = only_zones
 		endfor
 	endif
 
@@ -68,11 +68,11 @@ pro sdi_analysis, directory, filter = filter, plot_to = plot_to
 
 			print
 			print, 'LASER FIT: ' + las_names[best_match[0]]
-			sdi_fit_spectra, fit_insfile = use_laser
+			sdi_fit_spectra, fit_insfile = use_laser, only_zones = only_zones
 
 			print
 			print, 'SKY FIT: ' + fname
-			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser
+			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, only_zones = only_zones
 
 			print
 			print, 'WIND FIT: ' + fname

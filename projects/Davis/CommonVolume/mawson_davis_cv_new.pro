@@ -34,7 +34,7 @@ loadct, 39, /silent
 	  '110722', '110724', '110808', '110809', '110813', '110814', '110830',$
 	  '110831' ]
 
-	dav_dates = ['110704', '110808']
+	;dav_dates = ['110704', '110808']
 
 	n_dav = n_elements(dav_dates)
 
@@ -43,7 +43,6 @@ loadct, 39, /silent
 
 
 	data_count = 0L
-
 
 	for j = 0, n_dav - 1 do begin
 
@@ -90,7 +89,7 @@ loadct, 39, /silent
 				dav_drift = (dav_drift - dav_drift[0])*dav_data.chan_to_vel
 
 			;\\ Mawson data
-				meta_loader, out, filename=maw_filename, filter=['*'+maw_lambda+'*'], drift='both', $
+				meta_loader, out, filename=maw_filename, filter=['*'+maw_lambda+'*'], drift='laser', $
 							 /auto_flat, /no_usolve, /no_bi, /no_mono, raw_path=where_is('mawson_data')
 
 				maw = out.maw

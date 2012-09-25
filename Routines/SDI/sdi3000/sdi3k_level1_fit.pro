@@ -5,7 +5,7 @@
 pro sdi3k_level1_fit,  record, sectime, spectra, mm, sig2noise, chi_squared, $
                        sigarea, sigwid, sigpos, sigbgnd, $
                        backgrounds, areas, widths, positions, insprofs, no_temperature=notemp, $
-                       initial_temp=itmp, min_iters=min_iters, shiftpos = shiftpos
+                       initial_temp=itmp, min_iters=min_iters, shiftpos = shiftpos, only_zones = only_zones
 
         if (total(abs(spectra)) lt 100) then return
 
@@ -31,6 +31,9 @@ pro sdi3k_level1_fit,  record, sectime, spectra, mm, sig2noise, chi_squared, $
     if keyword_set(notemp) then fix_mask= [0,  1,  0,  0,  1]
 
         nz = mm.nzones
+
+        if size(only_zones, /type) eq 0 then only_zones = indgen(nz)
+
         sig2noise   = fltarr(nz)
         chi_squared = fltarr(nz)
         positions   = fltarr(nz)
@@ -42,7 +45,10 @@ pro sdi3k_level1_fit,  record, sectime, spectra, mm, sig2noise, chi_squared, $
         sigarea     = fltarr(nz)
         sigbgnd     = fltarr(nz)
 
-        for zidx=0,nz-1 do begin
+        for zloop = 0, n_elements(only_zones) - 1 do begin
+
+			zidx = only_zones[zloop]
+
             fitpars = [0., 0., 0., 0., 500.]
             if keyword_set(itmp) then fitpars(4) = itmp
 ;-----------Fit the spectra:
