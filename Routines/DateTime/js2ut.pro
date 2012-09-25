@@ -11,8 +11,6 @@ function js2ut, js, wraptimes=wraptimes
 	xvals = (s/3600.)
 
 	if not keyword_set(wraptimes) then begin
-		;add24 = where( (d - d(0)) ne 0, npts)
-		;if npts gt 0 then xvals(add24) = xvals(add24) + 24
 		xvals += (d - d[0])*24.
 	endif
 
