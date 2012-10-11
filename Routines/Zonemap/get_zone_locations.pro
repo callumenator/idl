@@ -48,11 +48,15 @@ pro get_zone_locations, meta, $
 		zones.y = .5 + norm_rad*sin(mid_azi*!DTOR)
 
 		;\\ Convert to actual azimuths (east of 'north')
-		zones.min_azi = (450 - zones.min_azi)
-		zones.max_azi = (450 - zones.max_azi)
+		;zones.min_azi = (450 - zones.min_azi)
+		;zones.max_azi = (450 - zones.max_azi)
+
+		zones.min_azi += 90
+		zones.max_azi += 90
+
 		;\\ Flip azimuths left-to-right
-		zones.min_azi = (360 - zones.min_azi)
-		zones.max_azi = (360 - zones.max_azi)
+		;zones.min_azi = (360 - zones.min_azi)
+		;zones.max_azi = (360 - zones.max_azi)
 
 		if strlowcase(meta.site_code) eq 'maw' then begin
 			add_angle = 0

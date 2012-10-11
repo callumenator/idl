@@ -30,7 +30,6 @@ pro sdi_tag_event, event
 				sdi_tag_scan_dir
 			end
 
-
 			'filename_filter': begin
 				filter = global.state.filename_filter
 				xvaredit, filter, group = global.gui.base, name = 'Set New Filter'
@@ -75,7 +74,7 @@ pro sdi_tag_event, event
 
 					1: begin ;\\ button release
 
-						if event.release eq 4 then begin ;\\ right button press
+						if event.release eq 4 then begin ;\\ right button release
 							global.state.rbutton_down = 0
 							sdi_tag_edit, 'release', event.x, event.y
 						endif
@@ -114,14 +113,13 @@ pro sdi_tag_event, event
 
 			end
 
-
 			else:
 		endcase
-
 	endif
-
 end
 
+
+;\\ Tag creation, update, finalize
 pro sdi_tag_edit, type, x, y
 
 	common SDITag_Common, global
@@ -134,7 +132,7 @@ pro sdi_tag_edit, type, x, y
 
 		'click': begin ;\\ create new or edit existing
 
-			editing_current = 0
+			;\\ If we clicked inside a current tag, draw the offset associated with it and select it in the list
 			if (size(*global.tags, /type) ne 0) then begin
 
 				for i = 0, n_elements(*global.tags) - 1 do begin
@@ -145,30 +143,37 @@ pro sdi_tag_edit, type, x, y
 						widget_control, set_list_select = i, global.gui.tag_list
 						global.state.tag_list_selected = i
 
+						tag = (*global.tags)[i]
+
+						if size(*tag.offset, /type) ne 0 then begin
+							wset, global.gui.tag_window_id
+							plot, *tag.offset, pos = [.1, .1, .94, .98], yrange=[min(*tag.offset), max(*tag.offset)], /ystyle
+							wset, global.gui.window_id
+						endif
+
 					endif
 
 				endfor
 
 			endif
 
+			;\\ Create the new tag
+			new_tag = global.tag_template
+			new_tag.offset = ptr_new(/alloc)
+			new_tag.site_code = (*global.data.meta).site_code
+			new_tag.year = global.data.year
+			new_tag.dayno = global.data.dayno
+			new_tag.lambda = (*global.data.meta).wavelength_nm
+			new_tag.ut_start = res[0]
+			new_tag.ut_end = res[0]
 
-				new_tag = global.tag_template
-				new_tag.site_code = (*global.data.meta).site_code
-				new_tag.year = global.data.year
-				new_tag.dayno = global.data.dayno
-				new_tag.lambda = (*global.data.meta).wavelength_nm
-				new_tag.ut_start = res[0]
-				new_tag.ut_end = res[0]
+			if (size(*global.tags, /type) eq 0) then begin
+				*global.tags = [new_tag]
+			endif else begin
+				*global.tags = [*global.tags, new_tag]
+			endelse
 
-				if (size(*global.tags, /type) eq 0) then begin
-					*global.tags = [new_tag]
-				endif else begin
-					*global.tags = [*global.tags, new_tag]
-				endelse
-
-				global.current_tag = n_elements(*global.tags) - 1
-
-
+			global.current_tag = n_elements(*global.tags) - 1
 
 		end
 
@@ -177,7 +182,7 @@ pro sdi_tag_edit, type, x, y
 			;\\ Check for zero (and small) length tag and delete
 			if abs((*global.tags)[global.current_tag].ut_end - (*global.tags)[global.current_tag].ut_start) lt 5./60. then begin
 				sdi_tag_delete_tag, global.current_tag
-				;sdi_tag_plot_winds
+				sdi_tag_plot_winds
 				break
 			endif
 
@@ -197,14 +202,20 @@ pro sdi_tag_edit, type, x, y
 
 			;\\ Check for overlap with other tags and merge if overlapping
 			sdi_tag_merge_overlaps, newIndex
+
 			global.current_tag = newIndex
 
 			;\\ If cloud type tag, generate an offset
 			tag = (*global.tags)[global.current_tag]
 			pts = where(*global.data.time ge tag.ut_start and $
 						*global.data.time le tag.ut_end, npts)
-			sub = (*global.data.spek)[pts].velocity
-			*(*global.tags)[global.current_tag].offset = median(sub, dim=2)
+			if npts gt 3 then begin
+				sub = median((*global.data.spek)[pts].velocity, dim=2)
+				*((*global.tags)[global.current_tag].offset) = sub
+
+				wset, global.gui.tag_window_id
+				plot, sub, pos = [.1, .1, .94, .98], yrange=[min(sub), max(sub)], /ystyle
+			endif
 
 			sdi_tag_plot_winds
 
@@ -242,15 +253,12 @@ pro sdi_tag_edit, type, x, y
 end
 
 
+;\\ Convert js to ut
 function sdi_tag_js2ut, js
 
 	js2ymds, double(js), y, m, d, s
 	xvals = (s/3600.)
-
-	if not keyword_set(wraptimes) then begin
-		xvals += (d-d[0])*24.
-	endif
-
+	xvals += (d-d[0])*24.
 	return, xvals
 
 end
@@ -300,6 +308,8 @@ pro sdi_tag_merge_overlaps, newIndex
 	sdi_tag_update_taglist
 end
 
+
+;\\ Update the widget list containing the list of current tags
 pro sdi_tag_update_taglist
 
 	common SDITag_Common, global
@@ -313,9 +323,10 @@ pro sdi_tag_update_taglist
 			   ' ' + tags.site_code + ' ' + string(tags.dayno, f='(i03)')
 		widget_control, set_value = list, global.gui.tag_list
 	endelse
-
 end
 
+
+;\\ Delete a tag
 pro sdi_tag_delete_tag, index
 
 	common SDITag_Common, global
@@ -344,6 +355,7 @@ pro sdi_tag_delete_tag, index
 end
 
 
+;\\ Scan a directory for files
 pro sdi_tag_scan_dir
 
 	common SDITag_Common, global
@@ -354,6 +366,7 @@ pro sdi_tag_scan_dir
 end
 
 
+;\\ Change the currently selected file
 pro sdi_tag_change_file, direction
 
 	common SDITag_Common, global
@@ -376,6 +389,8 @@ pro sdi_tag_change_file, direction
 	sdi_tag_load_file
 end
 
+
+;\\ Load a new file
 pro sdi_tag_load_file
 
 	common SDITag_Common, global
@@ -416,6 +431,8 @@ pro sdi_tag_load_file
 	sdi_tag_update_taglist
 end
 
+
+;\\ Update the zonal and meridional wind plot for the currently selected day
 pro sdi_tag_plot_winds
 
 	common SDITag_Common, global
@@ -467,6 +484,8 @@ pro sdi_tag_plot_winds
 
 end
 
+
+;\\ Save the current tag data
 pro sdi_tag_save_daydata
 
 	common SDITag_Common, global
@@ -482,10 +501,8 @@ pro sdi_tag_save_daydata
 		if (size(*global.tags, /type) ne 0) then begin
 			tags = *global.tags
 		endif else begin
-			if (file_test(global.state.save_file) eq 1) then begin
-				file_delete, global.state.save_file
-				return
-			endif
+			if (file_test(global.state.save_file) eq 1) then file_delete, global.state.save_file
+			return
 		endelse
 
 	endif else begin
@@ -505,10 +522,8 @@ pro sdi_tag_save_daydata
 			if (ncompts gt 0) then begin
 				tags = [tags[compts]]
 			endif else begin
-				if (file_test(global.state.save_file) eq 1) then begin
-					file_delete, global.state.save_file
-					return
-				endif
+				if (file_test(global.state.save_file) eq 1) then file_delete, global.state.save_file
+				return
 			endelse
 		endelse
 	endelse
@@ -517,6 +532,8 @@ pro sdi_tag_save_daydata
 
 end
 
+
+;\\ Restore the tag database
 pro sdi_tag_restore_daydata
 
 	common SDITag_Common, global
@@ -544,16 +561,43 @@ pro sdi_tag_restore_daydata
 end
 
 
+;\\ Widget close cleanup, save the database, free heap vars
 pro sdi_tag_cleanup, arg
 
 	common SDITag_Common, global
-	;sdi_tag_save_daydata
+	sdi_tag_save_daydata
 	heap_gc, /verbose
 end
 
-pro sdi_tag
+
+;\\ Query the tag database, can be called from external code
+function sdi_tag_query, site_code, year, dayno, ut
+
+	whoami, home_dir, file
+	save_file = home_dir + 'tag.idlsave'
+
+	if file_test(save_file) eq 0 then begin
+		print, 'NO DATABASE AVAILABLE!'
+		return, 0
+	endif else begin
+		restore, save_file
+		pts = where(tags.site_code eq site_code and $
+					tags.year eq year and $
+					tags.dayno eq dayno and $
+					tags.ut_start le ut and $
+					tags.ut_end ge ut, nmatch)
+		if (nmatch gt 0) then return, tags[pts] else return, 0
+	endelse
+
+end
+
+
+;\\ Main entry point
+pro sdi_tag, directory = directory
 
 	common SDITag_Common, global
+
+	if not keyword_set(directory) then directory = 'c:\'
 
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
@@ -579,18 +623,21 @@ pro sdi_tag
 					   uval = {tag:'draw'})
 
 	tag_base = widget_base(base0, col=1)
-	tag_list = widget_list(tag_base, font=font, scr_xsize = .15*width, scr_ysize = height - 35, $
+	tag_draw = widget_draw(tag_base, scr_xsize = .15*width, scr_ysize = .15*width)
+	tag_list = widget_list(tag_base, font=font, scr_xsize = .15*width, scr_ysize = height - 35 - .15*width, $
 					   uval = {tag:'tag_list'})
 	del_button = widget_button(tag_base, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
 
 
 	widget_control, base, /realize
 	widget_control, get_value = window_id, draw
+	widget_control, get_value = tag_window_id, tag_draw
 
 
 	gui = {base:base, $
 		   draw:draw, $
 		   window_id:window_id, $
+		   tag_window_id:tag_window_id, $
 		   draw_cache:ptr_new(/alloc), $
 		   list:list, $
 		   tag_list:tag_list, $
@@ -598,7 +645,7 @@ pro sdi_tag
 		   base_geom:widget_info(base, /geom), $
 		   font:font }
 
-	state = {current_dir:'c:\cal\testdata_mine', $
+	state = {current_dir:directory, $
 			 current_list_index:0, $
 			 file_list:ptr_new(/alloc), $
 			 rbutton_down:0, $
@@ -623,7 +670,7 @@ pro sdi_tag
 				    lambda:0.0, $
 				    ut_start:0D, $
 				    ut_end:0D, $
-				    offset:ptr_new(/alloc), $
+				    offset:ptr_new(), $
 				    valid:0 }
 
 	global = {gui:gui, $
