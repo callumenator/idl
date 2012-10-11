@@ -35,6 +35,19 @@ pro sdi_tag_event, event
 				sdi_tag_load_file
 			end
 
+			'tag_list': begin
+				global.state.tag_list_selected = event.index
+			end
+
+			'delete_tag': begin
+				if (global.state.tag_list_selected ge 0) then begin
+					sdi_tag_delete_tag, global.state.tag_list_selected
+					global.state.tag_list_selected = -1
+					sdi_tag_plot_winds
+					sdi_tag_update_taglist
+				endif
+			end
+
 			'draw': begin
 
 
@@ -111,7 +124,8 @@ pro sdi_tag_edit, type, x, y
 					if res[0] ge (*global.tags)[i].ut_start and $
 					   res[0] le (*global.tags)[i].ut_end then begin
 
-						print, i
+						widget_control, set_list_select = i, global.gui.tag_list
+						global.state.tag_list_selected = i
 
 					endif
 
@@ -119,10 +133,13 @@ pro sdi_tag_edit, type, x, y
 
 			endif
 
-
+				js2ymds, (*global.data.meta).start_time[0], y, m, d, s
+				dayno = ymd2dn(y, m, d)
 
 				new_tag = global.tag_template
 				new_tag.site_code = (*global.data.meta).site_code
+				new_tag.year = y
+				new_tag.dayno = dayno
 				new_tag.ut_start = res[0]
 				new_tag.ut_end = res[0]
 
@@ -140,19 +157,32 @@ pro sdi_tag_edit, type, x, y
 
 		'release': begin ;\\ finalize existing
 
-			if ((*global.tags)[global.current_tag].ut_end eq (*global.tags)[global.current_tag].ut_start) then begin
+			;\\ Check for zero (and small) length tag and delete
+			if abs((*global.tags)[global.current_tag].ut_end - (*global.tags)[global.current_tag].ut_start) lt 5./60. then begin
 				sdi_tag_delete_tag, global.current_tag
+				sdi_tag_plot_winds
 				break
 			endif
 
+			;\\ Check for end time greater than start time, and reverse them
 			if ((*global.tags)[global.current_tag].ut_end lt (*global.tags)[global.current_tag].ut_start) then begin
 				temp = (*global.tags)[global.current_tag].ut_start
 				(*global.tags)[global.current_tag].ut_start = (*global.tags)[global.current_tag].ut_end
 				(*global.tags)[global.current_tag].ut_end = temp
-				break
 			endif
 
+			;\\ Check for range greater than time range, and adjust
+			time = js2ut( ((*global.data.wind).start_time[0] + (*global.data.wind).end_time[0])/2.)
+			if ((*global.tags)[global.current_tag].ut_end gt max(time)) then $
+				(*global.tags)[global.current_tag].ut_end = max(time)
+			if ((*global.tags)[global.current_tag].ut_start lt min(time)) then $
+				(*global.tags)[global.current_tag].ut_start = min(time)
 
+
+			;\\ Check for overlap with other tags and merge if overlapping
+			sdi_tag_merge_overlaps
+
+			sdi_tag_plot_winds
 
 		end
 
@@ -168,6 +198,49 @@ pro sdi_tag_edit, type, x, y
 
 	if (global.state.rbutton_down) then sdi_tag_plot_winds
 	print, 'Nels: ', n_elements(*global.tags)
+end
+
+
+pro sdi_tag_merge_overlaps
+
+	common SDITag_Common, global
+
+	MERGE_START:
+
+	if (size(*global.tags, /type) eq 0) then return
+	tags = *global.tags
+
+	for x = 0, n_elements(tags) - 1 do begin
+	for y = x+1, n_elements(tags) - 1 do begin
+
+		notover = tags[x].ut_end lt tags[y].ut_start or $
+				  tags[x].ut_start gt tags[y].ut_end
+
+		if not notover then begin
+			(*global.tags)[x].ut_start = min([tags[x].ut_start, tags[y].ut_start])
+			(*global.tags)[x].ut_end = max([tags[x].ut_end, tags[y].ut_end])
+			sdi_tag_delete_tag, y
+			goto, MERGE_START
+		endif
+	endfor
+	endfor
+	sdi_tag_update_taglist
+end
+
+pro sdi_tag_update_taglist
+
+	common SDITag_Common, global
+
+
+	if (size(*global.tags, /type) eq 0) then begin
+		widget_control, set_value = [''], global.gui.tag_list
+	endif else begin
+		tags = *global.tags
+		list = string(tags.ut_start, f='(f0.2)') + ' - ' + string(tags.ut_end, f='(f0.2)') + $
+			   ' ' + tags.site_code + ' ' + string(tags.dayno, f='(i03)')
+		widget_control, set_value = list, global.gui.tag_list
+	endelse
+
 end
 
 pro sdi_tag_delete_tag, index
@@ -194,6 +267,7 @@ pro sdi_tag_delete_tag, index
 
 	tags = [ tags[0:index-1], tags[index+1:*]]
 	*global.tags = tags
+	sdi_tag_update_taglist
 end
 
 
@@ -232,6 +306,9 @@ pro sdi_tag_load_file
 
 	common SDITag_Common, global
 
+	;\\ First save current state
+	sdi_tag_save_daydata
+
 	fname = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
 	if file_test(fname) eq 0 then return
 
@@ -239,9 +316,13 @@ pro sdi_tag_load_file
 	*global.data.meta = meta
 	*global.data.wind = wind
 	global.data.valid = 1
-	sdi_tag_plot_winds
+
+	ptr_free, global.tags
+	global.tags = ptr_new(/alloc)
 
 	widget_control, set_value = 'Current Filename: ' + fname, global.gui.filename_label
+	sdi_tag_plot_winds
+	sdi_tag_update_taglist
 end
 
 pro sdi_tag_plot_winds
@@ -300,18 +381,54 @@ pro sdi_tag_plot_winds
 
 end
 
+pro sdi_tag_save_daydata
+
+	common SDITag_Common, global
+
+	if (file_test(global.state.save_file) eq 1) then begin
+		restore, global.state.save_file
+	endif
+
+	site = (*global.data.meta).site
+
+	if (size(tags.site, /type) eq 0) then begin
+
+	endif else begin
+		saved = tag_names(tags)
+		outstruc = 'tags = {'
+
+		pts = where(saved ne site, npts)
+		for i = 0, npts - 1 do begin
+			outstruc += ' ' + saved[i] + ':tags.' + saved[i]
+			if (i lt npts - 1) then outstruc += ', '
+		endfor
+
+		if (size(*global.tags, /type) ne 0) then begin
+			outstruc += site + ':*global.tags}'
+		endif else begin
+			outstruct += '}'
+		endelse
+		print, outstruc
+		;res = execute(outstruc)
+
+
+	endelse
+
+end
+
 
 pro sdi_tag_cleanup, arg
 
 	common SDITag_Common, global
-
 	heap_gc, /verbose
-
 end
 
 pro sdi_tag
 
 	common SDITag_Common, global
+
+	whoami, home_dir, file
+	save_file = home_dir + 'tag.idlsave'
 
 	width = 900.
 	height = 500.
@@ -324,13 +441,19 @@ pro sdi_tag
 
 	filename_label = widget_label(base, value = 'Current Filename:', font=font, xs = .5*width, /align_left)
 
-	base0 = widget_base(base, col=2)
+	base0 = widget_base(base, col=3)
 
-	list = widget_list(base0, font=font, scr_xsize = .25*width, scr_ysize = height, $
+	list = widget_list(base0, font=font, scr_xsize = .2*width, scr_ysize = height, $
 					   uval = {tag:'file_list'})
 
-	draw = widget_draw(base0, xs = .75*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
+	draw = widget_draw(base0, xs = .7*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
 					   uval = {tag:'draw'})
+
+	tag_base = widget_base(base0, col=1)
+	tag_list = widget_list(tag_base, font=font, scr_xsize = .1*width, scr_ysize = height - 35, $
+					   uval = {tag:'tag_list'})
+	del_button = widget_button(tag_base, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
+
 
 	widget_control, base, /realize
 	widget_control, get_value = window_id, draw
@@ -339,6 +462,7 @@ pro sdi_tag
 		   draw:draw, $
 		   window_id:window_id, $
 		   list:list, $
+		   tag_list:tag_list, $
 		   filename_label:filename_label, $
 		   base_geom:widget_info(base, /geom), $
 		   font:font }
@@ -346,14 +470,15 @@ pro sdi_tag
 	state = {current_dir:'c:\sdidata', $
 			 current_list_index:0, $
 			 file_list:ptr_new(/alloc), $
-			 rbutton_down:0 }
+			 rbutton_down:0, $
+			 tag_list_selected:-1, $
+			 save_file:save_file}
 
 	data = {valid:0, $
 			meta:ptr_new(/alloc), $
 			wind:ptr_new(/alloc) }
 
 	tag_template = {site_code:'', $
-				    filename:'', $
 				    year:0, $
 				    dayno:0, $
 				    ut_start:0D, $
