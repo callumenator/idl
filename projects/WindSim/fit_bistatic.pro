@@ -1,4 +1,5 @@
 
+;\\ Fits a single pair of exposures
 
 pro fit_bistatic, meta1, meta2, $
 				  wind1, wind2, $

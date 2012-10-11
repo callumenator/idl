@@ -908,7 +908,8 @@ units_meridional_wind: 'm/s', $
        for k=0,ncnrings-1 do begin
            resrcd.resolved_divergence(k) = 1000*(winds(j).dudx(k)+ winds(j).dvdy(k))
        endfor
-       if n_elements(windpars) eq 0 then windpars = resrcd else windpars = [windpars, resrcd]
+;       if n_elements(windpars) eq 0 then windpars = resrcd else windpars = [windpars, resrcd]
+       if j eq limz(0) then windpars = resrcd else windpars = [windpars, resrcd]
    endfor
 end
 
@@ -944,7 +945,8 @@ pro sdi3k_read_netcdf_data, filename, $
                             range=range, $
                             cadence=cadence, $
                             preprocess_spekfits=preprocess_spekfits, $
-                            close_nc_file=close_nc_file
+                            close_nc_file=close_nc_file, $
+                            keep_nc_open=keep_nc_open
 
    if not(keyword_set(cadence))   then cadence=1
    metadata = -1
@@ -974,7 +976,7 @@ pro sdi3k_read_netcdf_data, filename, $
    if read_zone_map                then sdi3k_read_zonemap,     ncid, zonemap,      metadata
    if arg_present(zone_centers)    then sdi3k_get_zone_centers, ncid, zone_centers, metadata
    if arg_present(zone_edges)      then sdi3k_get_zone_edges,   ncid, zone_edges,   metadata
-   if keyword_set(close_nc_file)   then sdi3k_ncdf_close,       ncid
+   if keyword_set(close_nc_file) or ~(keyword_set(keep_nc_open)) then sdi3k_ncdf_close, ncid
 
    if arg_present(spekfits) and keyword_set(preprocess_spekfits) and size(spekfits, /tname) eq 'STRUCT' then begin
       maxpix = 0.

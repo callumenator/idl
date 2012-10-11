@@ -75,12 +75,22 @@ pro sdi_tag_event, event
 					end
 
 					2: begin ;\\ motion event
-						if global.state.rbutton_down eq 1 then sdi_tag_edit, 'move', event.x, event.y
+						if global.state.rbutton_down eq 1 then sdi_tag_edit, 'move', event.x, event.y $
+							else sdi_tag_edit, 'update_cursor', event.x, event.y
 					end
 
 					5: begin ;\\ ascii key press
 						if event.release eq 1 then break
-						print, string(event.ch)
+
+						if event.ch eq 127 then begin ;\\ delete
+							if (global.state.tag_list_selected ge 0) then begin
+								sdi_tag_delete_tag, global.state.tag_list_selected
+								global.state.tag_list_selected = -1
+								sdi_tag_plot_winds
+								sdi_tag_update_taglist
+							endif
+						endif
+
 					end
 
 					6: begin ;\\ non-ascii key press
@@ -133,13 +143,11 @@ pro sdi_tag_edit, type, x, y
 
 			endif
 
-				js2ymds, (*global.data.meta).start_time[0], y, m, d, s
-				dayno = ymd2dn(y, m, d)
 
 				new_tag = global.tag_template
 				new_tag.site_code = (*global.data.meta).site_code
-				new_tag.year = y
-				new_tag.dayno = dayno
+				new_tag.year = global.data.year
+				new_tag.dayno = global.data.dayno
 				new_tag.ut_start = res[0]
 				new_tag.ut_end = res[0]
 
@@ -160,7 +168,7 @@ pro sdi_tag_edit, type, x, y
 			;\\ Check for zero (and small) length tag and delete
 			if abs((*global.tags)[global.current_tag].ut_end - (*global.tags)[global.current_tag].ut_start) lt 5./60. then begin
 				sdi_tag_delete_tag, global.current_tag
-				sdi_tag_plot_winds
+				;sdi_tag_plot_winds
 				break
 			endif
 
@@ -190,14 +198,31 @@ pro sdi_tag_edit, type, x, y
 
 			(*global.tags)[global.current_tag].valid = 1
 			(*global.tags)[global.current_tag].ut_end = res[0]
+			sdi_tag_plot_winds
+
+			plots, /device, [x,x], [0,1000], line=1
+			xyouts, .05, .05, string(res[0], f='(f0.2)'), /normal
+
+		end
+
+		'update_cursor': begin ;\\ update existing
+
+			if (size(*global.gui.draw_cache, /type) ne 0) then begin
+				wset, global.gui.window_id
+				device, decomposed = 1
+				tv, *global.gui.draw_cache, /true
+				device, decomposed = 0
+				plots, /device, [x,x], [0,1000], line=1
+				xyouts, .05, .05, string(res[0], f='(f0.2)'), /normal
+			endif else begin
+				sdi_tag_plot_winds
+			endelse
 
 		end
 
 		else:
 	endcase
 
-	if (global.state.rbutton_down) then sdi_tag_plot_winds
-	print, 'Nels: ', n_elements(*global.tags)
 end
 
 
@@ -307,7 +332,7 @@ pro sdi_tag_load_file
 	common SDITag_Common, global
 
 	;\\ First save current state
-	sdi_tag_save_daydata
+	if (global.data.valid eq 1) then sdi_tag_save_daydata
 
 	fname = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
 	if file_test(fname) eq 0 then return
@@ -315,10 +340,19 @@ pro sdi_tag_load_file
 	sdi3k_read_netcdf_data, fname, meta = meta, winds = wind
 	*global.data.meta = meta
 	*global.data.wind = wind
+	*global.data.time = js2ut((wind.start_time[0] + wind.end_time[0])/2.)
+	*global.data.med_zonal = median(wind.zonal_wind, dimension=1)
+	*global.data.med_merid = median(wind.meridional_wind, dimension=1)
+
+	js2ymds, (*global.data.meta).start_time[0], y, m, d, s
+	global.data.year = y
+	global.data.dayno = ymd2dn(y, m, d)
+
 	global.data.valid = 1
 
 	ptr_free, global.tags
 	global.tags = ptr_new(/alloc)
+	sdi_tag_restore_daydata
 
 	widget_control, set_value = 'Current Filename: ' + fname, global.gui.filename_label
 	sdi_tag_plot_winds
@@ -331,29 +365,22 @@ pro sdi_tag_plot_winds
 
 	if global.data.valid eq 0 then return
 
+	wset, global.gui.window_id
+	erase, 0
+
 	meta = *global.data.meta
 	wind = *global.data.wind
-	time = js2ut((wind.start_time[0] + wind.end_time[0])/2.)
-
-	zonal = median(wind.zonal_wind, dimension=1)
-	merid = median(wind.meridional_wind, dimension=1)
+	time = *global.data.time
+	zonal = *global.data.med_zonal
+	merid = *global.data.med_merid
 
 	yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
 	trange = [min(time), max(time)]
 
 	bounds = split_page(2, 1, bounds=[.1, .1, .98, .98])
+	top = bounds[0,0,3]
+	bottom = bounds[1,0,1]
 
-	plot, time, time*0, /nodata, xstyle=5, pos = bounds[0,0,*], yrange=yrange, /ystyle, ytitle = 'Zonal'
-	oplot, trange, [0,0], line=1
-	oplot, time, zonal, psym=-1, sym=.5
-
-	top = (convert_coord(0, yrange[1], /data, /to_device))[1]
-
-	plot, time, time*0, /nodata, xstyle=9, pos = bounds[1,0,*], /noerase, yrange=yrange, /ystyle, ytitle = 'Merid'
-	oplot, trange, [0,0], line=1
-	oplot, time, merid, psym=-1, sym=.5
-
-	bottom = (convert_coord(0, yrange[0], /data, /to_device))[1]
 
 	if (size(*global.tags, /type) ne 0) then begin
 
@@ -362,9 +389,9 @@ pro sdi_tag_plot_winds
 			tag = (*global.tags)[i]
 			if tag.valid eq 0 then continue
 
-			left = (convert_coord(tag.ut_start, 0, /data, /to_device))[0]
-			right = (convert_coord(tag.ut_end, 0, /data, /to_device))[0]
-			polyfill, [left, left, right, right], [bottom,top,top,bottom], /device, color = 50
+			left = (convert_coord(tag.ut_start, 0, /data, /to_normal))[0]
+			right = (convert_coord(tag.ut_end, 0, /data, /to_normal))[0]
+			polyfill, [left, left, right, right], [bottom,top,top,bottom], /normal, color = 100
 
 		endfor
 
@@ -378,6 +405,7 @@ pro sdi_tag_plot_winds
 	oplot, trange, [0,0], line=1
 	oplot, time, merid, psym=-1, sym=.5
 
+	*global.gui.draw_cache = tvrd(/true)
 
 end
 
@@ -391,24 +419,69 @@ pro sdi_tag_save_daydata
 
 	site = (*global.data.meta).site
 
-	if (size(tags.site, /type) eq 0) then begin
+	if (size(tags, /type) eq 0) then begin
+
+		if (size(*global.tags, /type) ne 0) then begin
+			tags = *global.tags
+		endif else begin
+			if (file_test(global.state.save_file) eq 1) then begin
+				file_delete, global.state.save_file
+				return
+			endif
+		endelse
 
 	endif else begin
-		saved = tag_names(tags)
-		outstruc = 'tags = {'
 
-		pts = where(saved ne site, npts)
-		for i = 0, npts - 1 do begin
-			outstruc += ' ' + saved[i] + ':tags.' + saved[i]
-			if (i lt npts - 1) then outstruc += ', '
-		endfor
+		pts = where(tags.site_code eq site and $
+					tags.year eq global.data.year and $
+					tags.dayno eq global.data.dayno, nmatch, complement = compts, ncomp = ncompts)
 
-		outstruc += site + ':*global.tags}'
-		print, outstruc
-		;res = execute(outstruc)
-
-
+		if (size(*global.tags, /type) ne 0) then begin
+			if (ncompts gt 0) then begin
+				tags = [tags[compts], *global.tags]
+			endif else begin
+				tags = *global.tags
+			endelse
+		endif else begin
+			if (ncompts gt 0) then begin
+				tags = [tags[compts]]
+			endif else begin
+				if (file_test(global.state.save_file) eq 1) then begin
+					file_delete, global.state.save_file
+					return
+				endif
+			endelse
+		endelse
 	endelse
+
+	save, file = global.state.save_file, tags
+
+end
+
+pro sdi_tag_restore_daydata
+
+	common SDITag_Common, global
+
+	if (file_test(global.state.save_file) eq 1) then begin
+		restore, global.state.save_file
+	endif else begin
+		return
+	endelse
+
+	site = (*global.data.meta).site
+
+	pts = where(tags.site_code eq site and $
+				tags.year eq global.data.year and $
+				tags.dayno eq global.data.dayno, nmatch)
+
+	print, tags.site_code
+	print, site
+
+	print, nmatch
+
+	if nmatch eq 0 then return
+
+	*global.tags = tags[pts]
 
 end
 
@@ -426,7 +499,7 @@ pro sdi_tag
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 
-	width = 900.
+	width = 1000.
 	height = 500.
 
 	font = 'Ariel*16*Bold'
@@ -442,11 +515,11 @@ pro sdi_tag
 	list = widget_list(base0, font=font, scr_xsize = .2*width, scr_ysize = height, $
 					   uval = {tag:'file_list'})
 
-	draw = widget_draw(base0, xs = .7*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
+	draw = widget_draw(base0, xs = .6*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
 					   uval = {tag:'draw'})
 
 	tag_base = widget_base(base0, col=1)
-	tag_list = widget_list(tag_base, font=font, scr_xsize = .1*width, scr_ysize = height - 35, $
+	tag_list = widget_list(tag_base, font=font, scr_xsize = .2*width, scr_ysize = height - 35, $
 					   uval = {tag:'tag_list'})
 	del_button = widget_button(tag_base, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
 
@@ -457,13 +530,14 @@ pro sdi_tag
 	gui = {base:base, $
 		   draw:draw, $
 		   window_id:window_id, $
+		   draw_cache:ptr_new(/alloc), $
 		   list:list, $
 		   tag_list:tag_list, $
 		   filename_label:filename_label, $
 		   base_geom:widget_info(base, /geom), $
 		   font:font }
 
-	state = {current_dir:'c:\sdidata', $
+	state = {current_dir:'c:\cal\testdata_mine', $
 			 current_list_index:0, $
 			 file_list:ptr_new(/alloc), $
 			 rbutton_down:0, $
@@ -471,8 +545,13 @@ pro sdi_tag
 			 save_file:save_file}
 
 	data = {valid:0, $
+			year:0, $
+			dayno:0, $
 			meta:ptr_new(/alloc), $
-			wind:ptr_new(/alloc) }
+			wind:ptr_new(/alloc), $
+			time:ptr_new(/alloc), $
+			med_zonal:ptr_new(/alloc), $
+			med_merid:ptr_new(/alloc) }
 
 	tag_template = {site_code:'', $
 				    year:0, $
