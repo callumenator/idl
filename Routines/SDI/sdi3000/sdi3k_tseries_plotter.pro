@@ -162,7 +162,7 @@ pro sdi3k_tseries_plotter, tlist, tcen, mm, resin, tsplot_settings, culz, $
        msis_dll  = 'c:\Documents and Settings\mark_con\My Documents\IDL\msis\Idlmsis.dll'
        if not(file_test(msis_dll)) then msis_dll = 'c:\users\conde\main\idl\msis\idlmsis.dll'
        if not(file_test(msis_dll)) then msis_dll = 'd:\users\conde\main\idl\msis\idlmsis.dll'
-       if not(file_test(msis_dll)) then msis_dll = 'C:\cal\IDLSource\Code\msis\idlmsis.dll'
+       if not(file_test(msis_dll)) then msis_dll = 'C:\rsi\idlsource\code\msise2000\debug\msise2000.dll'
        nmsis     = 16L*(max(timlimz) - min(timlimz))/86400L + 8
        msis_vals = fltarr(nmsis)
        tmx       = findgen(nmsis)*deltime/(nmsis-1) + timlimz(0)
@@ -193,10 +193,30 @@ pro sdi3k_tseries_plotter, tlist, tcen, mm, resin, tsplot_settings, culz, $
              ap(0)  = tsplot_settings.msis.ap
 ;             help, ss
 ;             print, yyddd, ss, lat, lon, lst, f107a, f107, ap, mass
-                 zv = alt + idz*delz
-             result = call_external(msis_dll,'msis90', $
-                                     yyddd, ss, zv, lat, lon, lst, f107a, f107, ap, mass, d, t)
+
+             zv = alt + idz*delz
+             ;result = call_external(msis_dll,'nrlmsise00', $
+             ;                        yyddd, ss, zv, lat, lon, lst, f107a, f107, ap, mass, d, t)
              msis_vals(j) = t(1)
+
+			tsec = double(ss)
+			dens = dblarr(9)
+			temp = dblarr(2)
+			flags = intarr(24)
+			flags(*) = 1L
+			flags(0) = 0L
+			apa = dblarr(7)
+			apa(*) = 10D
+			f107a = double(f107a)
+			f107  = double(f107)
+			ap = double(15)
+
+			lst = double(tsec/3600. + lon/15.)
+			result = call_external('C:\rsi\idlsource\code\msise2000\debug\msise2000.dll','nrlmsise00', $
+                        2012L, 100L, tsec, double(zv), double(lat), double(lon), lst, f107a, f107, ap, apa, flags, dens, temp)
+
+			msis_vals(j) = temp[1]
+
 ;             print, t(1)
              wait, 0.002
          endfor

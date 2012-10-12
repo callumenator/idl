@@ -15,9 +15,23 @@ pro sdi_analysis, directory, $
 				  skylist = skylist, $
 				  ipc_info = ipc_info ;\\ inter-process communication info
 
+;	catch, error_status
+;	if error_status ne 0 then begin
+;		if keyword_set(ipc_info) then begin
+;			sdi_analysis_ipc_message, ipc_info, sharedVar, 'finished'
+;			sharedVar = 0
+;			shmunmap, ipc_info.shmid
+;		endif
+;		;\\ Should log the error here
+;		catch, /cancel
+;		return
+;	endif
+
+
 	if keyword_set(ipc_info) then begin
 		shmmap, ipc_info.shmid, /byte, ipc_info.maxlength
 		sharedVar = shmvar(ipc_info.shmid)
+		sdi_analysis_ipc_message, ipc_info, sharedVar, 'Entered SDI Analysis'
 	endif
 
 	if keyword_set(plot_to) then plot_dir = plot_to
@@ -111,11 +125,11 @@ pro sdi_analysis, directory, $
 			sdi3k_batch_windfitz, sky_list[k]
 
 			;\\ Marks Plotter
-			;sdi3k_batch_plotz, sky_list[k], $
-			;				   skip_existing = 0, $
-			;				   stage = 0, $
-			;				   drift_mode = 'data', $
-			;				   xy_only = 0
+			sdi3k_batch_plotz, sky_list[k], $
+							   skip_existing = 0, $
+							   stage = 0, $
+							   drift_mode = 'data', $
+							   xy_only = 0
 
 			wait, 0.01
 	endfor

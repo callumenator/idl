@@ -228,7 +228,7 @@ pro sdi_monitor_event, event
 
 
 		;\\ Check on running daily analysis jobs, and start new analysis tasks
-			sdi_monitor_analysis
+			;sdi_monitor_analysis
 
 
 		;\\ Manage the log (check if we need to open a new one, email the current one, etc)
@@ -545,14 +545,13 @@ pro sdi_monitor_event, event
 		;\\ Run multistatic analyses
 		status = sdi_monitor_job_status('multistatic')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
+
 			sdi_monitor_job_timeupdate, 'multistatic'
 			sdi_monitor_multistatic
-			;append, 'sdi_windfields', image_names
-			;append, global.draw_id[3], draw_ids
-			;ftp = 1
+			append, 'sdi_multistatic', image_names
+			append, global.draw_id[4], draw_ids
+			ftp = 1
 		endif
-
-
 
 
 		;\\ FTP images
@@ -664,6 +663,8 @@ pro sdi_monitor
 	tab_1_base = widget_base(tab, title = 'Timeseries', col = 1)
 	tab_2_base = widget_base(tab, title = 'ForMark', col = 1)
 	tab_3_base = widget_base(tab, title = 'Windfields', col = 1)
+	tab_4_base = widget_base(tab, title = 'MultiStatic', col = 1)
+
 	file_menu = widget_button(menu, value = 'File')
 	file_plugin_status = widget_button(file_menu, value = 'Set Job Status ', uval={tag:'file_jobs'})
 	file_background_menu = widget_button(file_menu, value = 'Select Background Parameter', uval={tag:'file_background'})
@@ -671,17 +672,18 @@ pro sdi_monitor
 	monitor_jobs = where(job_status.active eq 1, njobs)
 	if (njobs gt 0) then begin
 		monitor_jobs_label = string(njobs, f='(i0)') + string([13b,10b]) + $
-									strjoin('     ' + job_status[monitor_jobs].name, string([13b,10b]))
+							 strjoin('     ' + job_status[monitor_jobs].name, string([13b,10b]))
 	endif else begin
 		monitor_jobs_label = 'None'
 	endelse
-	label = widget_label(tab_status_base, value = 'Monitor Jobs Running: ' + monitor_jobs_label, font=font, uname='status_jobs_running', ysize = 15*(njobs+1))
-	label = widget_label(tab_status_base, value = 'Analysis Processes Running: 0', font=font, uname='status_analyses_running')
+	label = widget_label(tab_status_base, value = 'Monitor Jobs Running: ' + monitor_jobs_label, font=font, uname='status_jobs_running', ysize = 15*(njobs+1), xs=500)
+	label = widget_label(tab_status_base, value = 'Analysis Processes Running: 0', font=font, uname='status_analyses_running', xs=500)
 
 	draw0 = widget_draw(tab_0_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
 	draw1 = widget_draw(tab_1_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
 	draw2 = widget_draw(tab_2_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
 	draw3 = widget_draw(tab_3_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
+	draw4 = widget_draw(tab_4_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
 
 	widget_control, /realize, base
 	widget_control, timer = timer_interval, base
@@ -707,8 +709,8 @@ pro sdi_monitor
 			  ftp_batch:ftp_batch, $
 			  base_id:base, $
 			  base_geom:widget_info(base, /geom), $
-			  draw_id:[draw0, draw1, draw2, draw3], $
-			  tab_id:[tab_0_base, tab_1_base, tab_2_base, tab_3_base], $
+			  draw_id:[draw0, draw1, draw2, draw3, draw4], $
+			  tab_id:[tab_0_base, tab_1_base, tab_2_base, tab_3_base, tab_4_base], $
 			  status_base:tab_status_base, $
 			  label_id:label, $
 			  free_index_0:0L, $

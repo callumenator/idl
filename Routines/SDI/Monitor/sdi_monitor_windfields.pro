@@ -1,5 +1,5 @@
 
-;\\ Plot the current snapshots
+;\\ Plot the current windfields
 pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot time in days
 
 	common sdi_monitor_common, global, persistent

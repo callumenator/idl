@@ -1,4 +1,6 @@
 
+@sdi_monitor
+
 pro sdi_monitor_analysis
 
 	common sdi_monitor_common, global, persistent
@@ -138,7 +140,6 @@ pro sdi_monitor_analysis
 		;\\ Get current tasks running
 		curr_tasks = get_tasklist(image = 'idlde.exe')
 		spawn, cmd_str, /nowait, /hide ;, pid=pid returns wrong PID
-
 
 		;\\ Compare with tasks now to find PID of new process
 		now_tasks = get_tasklist(image = 'idlde.exe')

@@ -66,7 +66,7 @@ data_based_drift = strupcase(drift_mode) eq 'DATA'
     endfor
 
 ;---Check if plots already exist for this netCDF file. If so, and we're not forcing an update, then return:
-    plot_dir = 'C:\cal\FPSData\RTPlot\'
+    plot_dir = 'c:\sdiplots\'
     plots_exist = -1
     sdi3k_batch_plotsave, plot_dir, mm, 'Wind_Dial_Plot', test_exist=plots_exist, plot_folder=plot_folder
     if plots_exist and skip_existing then return
