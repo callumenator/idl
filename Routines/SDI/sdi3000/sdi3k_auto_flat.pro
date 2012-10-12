@@ -1,9 +1,10 @@
+@sdi_tag
+
 pro sdi3k_auto_flat, mm, wind_offset, use_database = use_database
 
 	if keyword_set(use_database) then begin
 	;\\ ######## Version utilizing the all-in-one database ##########
 
-		js2ymds, mm.start_time
 		possible = sdi_tag_query(mm.site_code, mm.wavelength_nm, mm.start_time[0])
 
 		if size(possible, /type) eq 2 then begin

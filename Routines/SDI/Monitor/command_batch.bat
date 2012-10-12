@@ -1,2 +1,2 @@
-ftp -s:C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\ftp_batch.bat
-del C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\\sdi_windfields_61291.png
+ftp -s:C:\RSI\idl\Routines\SDI\Monitor\ftp_batch.bat
+del C:\RSI\idl\Routines\SDI\Monitor\\sdi_monitor_63823.png

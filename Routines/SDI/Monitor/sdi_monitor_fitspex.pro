@@ -16,6 +16,7 @@ function sdi_monitor_fitspex, snapshot, ip_snapshot, calibration=calibration
 			'PKR': gap = 20.02
 			'HRP': gap = 18.6
 			'MAW': gap = 25.
+			'TLK': gap = 20.
 			else: gap = 20.
 		endcase
 
