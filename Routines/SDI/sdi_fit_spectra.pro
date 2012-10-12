@@ -2,20 +2,28 @@
 @sdi3k_ncdf
 @sdi3k_read_netcdf_data
 
+pro sdi_fit_spectra_ipc_message, ipc_info, sharedVar, msg_string
+	time = string(long(systime(/sec)), f='(i10)')
+	msg_string = byte(time + msg_string)
+	sharedVar[0] = bytarr(ipc_info.maxlength)
+	sharedVar[0] = msg_string[0: n_elements(msg_string) - 1 < (ipc_info.maxlength - 1)]
+end
+
 pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
 					 fit_insfile = fit_insfile, $
 					 use_insfile = use_insfile, $
 					 force_refit = force_refit, $	;\\ Force fitted spectra to be refit
 					 start_record = start_record, $	;\\ Start fitting at this record number
 					 recent_fits = recent_fits, $	;\\ Return the recently fitted spectra in this variable
-					 only_zones = only_zones
-
+					 only_zones = only_zones, $
+					 ipc_info = ipc_info
 
 	if not keyword_set(start_record) then start_record = 0
 
 	if keyword_set(fit_insfile) then begin
 		insfile = fit_insfile
 		ncid = sdi3k_nc_get_ncid(insfile, write_allowed=1)
+		laser_ncid = ncid
 		sdi3k_add_spekfitvars, ncid
 		sdi3k_read_netcdf_data, insfile, metadata=meta, spex=spex, spekfits=fits, /close
 		file = insfile
@@ -54,9 +62,13 @@ pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
                dt_tm_mk(js2jd(0d)+1, ssec, format='d$-n$-Y$ h$:m$-'), $
                dt_tm_mk(js2jd(0d)+1, esec, format='h$:m$')
 
+		if keyword_set(ipc_info) then begin
+			sharedVar = shmvar(ipc_info.shmid)
+			sdi_fit_spectra_ipc_message, ipc_info, sharedVar, log_leader + ' ' + string(rec, f='(i0)') + ' of ' + string(meta.maxrec, f='(i0)')
+		endif
+
         badz = where(~(finite(fits(rec).chi_squared)), nf)
         fit_this = (nf ne 0) or (max(fits(rec).chi_squared) eq min(fits(rec).chi_squared)) or min(fits(rec).chi_squared) gt 1000.
-
 
         if (fit_this)  or (keyword_set(force_refit)) then begin
 
@@ -96,6 +108,7 @@ pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
         endif
 
     endfor
+
     sdi3k_ncdf_close, ncid
 
 	;\\ Return the new fits

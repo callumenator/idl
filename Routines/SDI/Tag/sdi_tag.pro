@@ -144,13 +144,6 @@ pro sdi_tag_edit, type, x, y
 						global.state.tag_list_selected = i
 
 						tag = (*global.tags)[i]
-
-						if size(*tag.offset, /type) ne 0 then begin
-							wset, global.gui.tag_window_id
-							plot, *tag.offset, pos = [.1, .1, .94, .98], yrange=[min(*tag.offset), max(*tag.offset)], /ystyle
-							wset, global.gui.window_id
-						endif
-
 					endif
 
 				endfor
@@ -159,10 +152,14 @@ pro sdi_tag_edit, type, x, y
 
 			;\\ Create the new tag
 			new_tag = global.tag_template
-			new_tag.offset = ptr_new(/alloc)
+			new_tag.positions = ptr_new(/alloc)
+			new_tag.metadata = ptr_new(/alloc)
+
+			*new_tag.metadata = *global.data.meta
 			new_tag.site_code = (*global.data.meta).site_code
 			new_tag.year = global.data.year
 			new_tag.dayno = global.data.dayno
+			new_tag.filename = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
 			new_tag.lambda = (*global.data.meta).wavelength_nm
 			new_tag.ut_start = res[0]
 			new_tag.ut_end = res[0]
@@ -204,17 +201,22 @@ pro sdi_tag_edit, type, x, y
 			sdi_tag_merge_overlaps, newIndex
 
 			global.current_tag = newIndex
+			(*global.tags)[global.current_tag].js_created = dt_tm_tojs(systime(/ut))
 
-			;\\ If cloud type tag, generate an offset
+
+
+			;\\ Store the position info for the time range
 			tag = (*global.tags)[global.current_tag]
 			pts = where(*global.data.time ge tag.ut_start and $
 						*global.data.time le tag.ut_end, npts)
-			if npts gt 3 then begin
-				sub = median((*global.data.spek)[pts].velocity, dim=2)
-				*((*global.tags)[global.current_tag].offset) = sub
 
-				wset, global.gui.tag_window_id
-				plot, sub, pos = [.1, .1, .94, .98], yrange=[min(sub), max(sub)], /ystyle
+			if npts gt 0 then begin
+				*(*global.tags)[global.current_tag].positions = (*global.data.spek)[pts].velocity
+
+				;\\ Save js time range
+				js_mid = ((*global.data.wind).start_time + (*global.data.wind).end_time) /2.
+				(*global.tags)[global.current_tag].js_start = js_mid[min(pts)]
+				(*global.tags)[global.current_tag].js_end = js_mid[max(pts)]
 			endif
 
 			sdi_tag_plot_winds
@@ -432,6 +434,66 @@ pro sdi_tag_load_file
 end
 
 
+function sdi_tag_split_page, nrows, ncolumns, $
+					 bounds = bounds, $
+					 row_gap = row_gap, $
+					 col_gap = col_gap, $
+					 col_percents = col_percents, $
+					 row_percents = row_percents
+
+	if not keyword_set(bounds) then bounds = [.1,.1,.98,.98]
+	if n_elements(row_gap) eq 0 then row_gap = .1
+	if n_elements(col_gap) eq 0 then col_gap = .1
+
+	ob = fltarr(nrows, ncolumns, 4)
+
+	fwidth = bounds[2] - bounds[0]
+	fheight = bounds[3] - bounds[1]
+
+
+	if keyword_set(col_percents) then begin
+		if n_elements(col_percents) eq ncolumns then begin
+			col_percents = float(col_percents) / total(col_percents)
+			fcolWidth = fwidth*col_percents
+		endif
+	endif else begin
+		fcolWidth = replicate( fwidth/float(ncolumns), ncolumns)
+	endelse
+
+	if keyword_set(row_percents) then begin
+		if n_elements(row_percents) eq nrows then begin
+			row_percents = float(row_percents) / total(row_percents)
+			frowWidth = fheight*row_percents
+		endif
+	endif else begin
+		frowWidth = replicate( fheight/float(nrows), nrows)
+	endelse
+
+	colWidth = fcolWidth - col_gap/2.
+	rowWidth = frowWidth - row_gap/2.
+
+	for r = 0, nrows - 1 do begin
+		for c = 0, ncolumns - 1 do begin
+
+			xc = bounds[0] + total(fcolWidth[0:c]) - fcolWidth[c]/2.
+			yc = bounds[3] - total(frowWidth[0:r]) + frowWidth[r]/2.
+			;yc = bounds[3] - (r+1)*(frowWidth) + frowWidth/2.
+
+			x0 = xc - colWidth[c]/2.
+			x1 = xc + colWidth[c]/2.
+			y0 = yc - rowWidth[r]/2.
+			y1 = yc + rowWidth[r]/2.
+
+			ob[r,c,*] = [x0,y0,x1,y1]
+
+		endfor
+	endfor
+
+	return, ob
+
+end
+
+
 ;\\ Update the zonal and meridional wind plot for the currently selected day
 pro sdi_tag_plot_winds
 
@@ -451,7 +513,7 @@ pro sdi_tag_plot_winds
 	yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
 	trange = [min(time), max(time)]
 
-	bounds = split_page(2, 1, bounds=[.1, .1, .98, .98])
+	bounds = sdi_tag_split_page(2, 1, bounds=[.1, .1, .98, .98])
 	top = bounds[0,0,3]
 	bottom = bounds[1,0,1]
 
@@ -483,6 +545,7 @@ pro sdi_tag_plot_winds
 	*global.gui.draw_cache = tvrd(/true)
 
 end
+
 
 
 ;\\ Save the current tag data
@@ -573,7 +636,7 @@ end
 
 
 ;\\ Query the tag database, can be called from external code
-function sdi_tag_query, site_code, year, dayno, ut
+function sdi_tag_query, site_code, lambda, js
 
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
@@ -584,10 +647,8 @@ function sdi_tag_query, site_code, year, dayno, ut
 	endif else begin
 		restore, save_file
 		pts = where(tags.site_code eq site_code and $
-					tags.year eq year and $
-					tags.dayno eq dayno and $
-					tags.ut_start le ut and $
-					tags.ut_end ge ut, nmatch)
+					tags.js_end lt js and $
+					tags.lambda eq lambda, nmatch)
 		if (nmatch gt 0) then return, tags[pts] else return, 0
 	endelse
 
@@ -625,21 +686,18 @@ pro sdi_tag, directory = directory
 					   uval = {tag:'draw'})
 
 	tag_base = widget_base(base0, col=1)
-	tag_draw = widget_draw(tag_base, scr_xsize = .15*width, scr_ysize = .15*width)
-	tag_list = widget_list(tag_base, font=font, scr_xsize = .15*width, scr_ysize = height - 35 - .15*width, $
+	tag_list = widget_list(tag_base, font=font, scr_xsize = .15*width, scr_ysize = height - 35, $
 					   uval = {tag:'tag_list'})
 	del_button = widget_button(tag_base, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
 
 
 	widget_control, base, /realize
 	widget_control, get_value = window_id, draw
-	widget_control, get_value = tag_window_id, tag_draw
 
 
 	gui = {base:base, $
 		   draw:draw, $
 		   window_id:window_id, $
-		   tag_window_id:tag_window_id, $
 		   draw_cache:ptr_new(/alloc), $
 		   list:list, $
 		   tag_list:tag_list, $
@@ -666,13 +724,18 @@ pro sdi_tag, directory = directory
 			med_merid:ptr_new(/alloc) }
 
 	tag_template = {type:'cloud', $
+					filename:'', $
 					site_code:'', $
 				    year:0, $
 				    dayno:0, $
 				    lambda:0.0, $
 				    ut_start:0D, $
 				    ut_end:0D, $
-				    offset:ptr_new(), $
+				    js_start:0D, $
+				    js_end:0D, $
+					metadata:ptr_new(), $
+				    positions:ptr_new(), $
+				    js_created:0D, $
 				    valid:0 }
 
 	global = {gui:gui, $

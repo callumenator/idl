@@ -54,6 +54,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			endcase
 			if altitude eq -1 then continue
 
+
 		;\\ Get zonemap info
 			zone_radii = (*zonemaps[snapshots[i].zonemap_index].rads)*100.
 			zone_radii = zone_radii[1:*]
@@ -72,6 +73,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		;\\ Fill a metadata structure
 			case snapshots[i].site_code of
 				'PKR': meta = {site:snapshots[i].site_code, $
+							   site_code:snapshots[i].site_code, $
 							   oval_angle:23., $
 							   sky_fov_deg:68., $
 							   latitude:65.13, $
@@ -85,8 +87,10 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 							   scan_channels:snapshots[i].scan_channels, $
 							   rotation_from_oval:0., $
 							   start_time:series.start_time, $
-							   end_time:series.end_time}
+							   end_time:series.end_time, $
+							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
 				'HRP': meta = {site:snapshots[i].site_code, $
+							   site_code:snapshots[i].site_code, $
 							   oval_angle:22.7, $
 							   sky_fov_deg:80., $
 							   latitude:62.3, $
@@ -100,8 +104,10 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 							   scan_channels:snapshots[i].scan_channels, $
 							   rotation_from_oval:0., $
 							   start_time:series.start_time, $
-							   end_time:series.end_time}
+							   end_time:series.end_time, $
+							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
 				'TLK': meta = {site:snapshots[i].site_code, $
+							   site_code:snapshots[i].site_code, $
 							   oval_angle:24, $
 							   sky_fov_deg:75., $
 							   latitude:68.63, $
@@ -115,7 +121,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 							   scan_channels:snapshots[i].scan_channels, $
 							   rotation_from_oval:0., $
 							   start_time:series.start_time, $
-							   end_time:series.end_time}
+							   end_time:series.end_time, $
+							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
 				else: meta = -1
 			endcase
 			if size(meta, /type) ne 8 then continue
@@ -125,8 +132,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		zcen = [[zinfo.x], [zinfo.y]]
 
 		;\\ Flatfield
-			;sdi3k_auto_flat, meta, flat_field, use_path = sdi_monitor_get_directory(meta.site)
-			;print, meta.site, flat_field
+			sdi3k_auto_flat, meta, flat_field, /use_database
 
 
 		;\\ Windfit settings
@@ -159,19 +165,21 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			var.end_time = series.end_time
 			var.scans = series.scans
 
+			for iix = 0, n_elements(var) - 1 do var[iix].velocity -= flat_field
+
 			last_idx = n_elements(var)-1
 
 			nobs = n_elements(var)
 			if nobs lt 5 then continue
 			sdi3k_drift_correct, var, meta, /data_based, /force
-			sdi3k_remove_radial_residual, meta, var, parname='velocity'
-    		var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
+			sdi3k_remove_radial_residual, meta, var, parname='VELOCITY'
     		var.velocity *= cnv
     		var.sigma_velocity *= cnv
     		posarr = var.velocity
     		sdi3k_timesmooth_fits,  posarr, 1.1, meta
     		sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
     		var.velocity = posarr
+    		var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
     		;windfit_modified, var, meta, /dvdx_zero, windfit, wind_settings, zcen, /no_vz
     		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
 
@@ -210,6 +218,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				endfor
 				append, reform(windfit.zonal_wind, nels(windfit.zonal_wind)), allZonal
 				append, reform(windfit.meridional_wind, nels(windfit.meridional_wind)), allMerid
+				append, reform(var.temperature, nels(var.temperature)), allTemps
 				append, reform(zn_mlt, nels(zn_mlt)), allMlt
 				append, reform(zn_mlat, nels(zn_mlat)), allMlat
 			;\\ ------------------------- End dial plot info ---------------------
@@ -392,80 +401,91 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 	;########### Begin ave dial plot #########
 
-		!p.font = 0
-		device, set_font='Ariel*15*Bold'
+		if size(allMlt, /type) ne 0 then begin
 
-		scale = 0.3
-		bin2d, allMlt, allMlat, allZonal, [.5, 2], outx, outy, aveZonal, /extrap
-		bin2d, allMlt, allMlat, allMerid, [.5, 2], outx, outy, aveMerid, /extrap
 
-		aveMlt = aveZonal*0.
-		aveMlat = aveZonal*0.
-		for xx = 0, n_elements(outx) - 1 do aveMlat[xx,*] = outy
-		for yy = 0, n_elements(outy) - 1 do aveMlt[*,yy] = outx
+			!p.font = 0
+			device, set_font='Ariel*15*Bold'
 
-		width = (winx/2.)*.85
-		border = (winx/2.) - width
-		mlat_range = [55, 90]
-		radii = (1 - ((aveMlat - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
-		clock_angle = 90. * ((aveMlt - 12) / 6.) * !DTOR
+			scale = 0.3
+			bin2d, allMlt, allMlat, allTemps, [.25, 1], outx, outy, aveTemps, /extrap
+			bin2d, allMlt, allMlat, allZonal, [.5, 2], outx, outy, aveZonal, /extrap
+			bin2d, allMlt, allMlat, allMerid, [.5, 2], outx, outy, aveMerid, /extrap
 
-		rotAngle = -1*(!PI - clock_angle)
-		rotZonal = (aveZonal*cos(rotAngle) - aveMerid*sin(rotAngle))*scale
-		rotMerid = (aveZonal*sin(rotAngle) + aveMerid*cos(rotAngle))*scale
 
-		dialxcen = 0.5*winx + width/2. + border/2.
-		dialycen = 0.5*winy + width/2. + border/2.
-		loadct, 0, /silent
-		plots, dialxcen + [-10,10], dialycen + [0,0], /device, thick = 2, color = 100
-		plots, dialxcen + [0,0], dialycen + [-10,10], /device, thick = 2, color = 100
+			aveMlt = aveZonal*0.
+			aveMlat = aveZonal*0.
+			for xx = 0, n_elements(outx) - 1 do aveMlat[xx,*] = outy
+			for yy = 0, n_elements(outy) - 1 do aveMlt[*,yy] = outx
 
-		circ = (30 + findgen(331))*!DTOR
-		for lat_circ = mlat_range[0], mlat_range[1], 5 do begin
-			lat_circ_radius = (1 - ((lat_circ - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
-			plots, dialxcen - lat_circ_radius*sin(circ), $
-				   dialycen + lat_circ_radius*cos(circ), $
+			width = (winx/2.)*.85
+			border = (winx/2.) - width
+			mlat_range = [55, 90]
+			radii = (1 - ((aveMlat - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
+			clock_angle = 90. * ((aveMlt - 12) / 6.) * !DTOR
+
+			rotAngle = -1*(!PI - clock_angle)
+			rotZonal = (aveZonal*cos(rotAngle) - aveMerid*sin(rotAngle))*scale
+			rotMerid = (aveZonal*sin(rotAngle) + aveMerid*cos(rotAngle))*scale
+
+			dialxcen = 0.5*winx + width/2. + border/2.
+			dialycen = 0.5*winy + width/2. + border/2.
+			loadct, 0, /silent
+			plots, dialxcen + [-10,10], dialycen + [0,0], /device, thick = 2, color = 100
+			plots, dialxcen + [0,0], dialycen + [-10,10], /device, thick = 2, color = 100
+
+			circ = (30 + findgen(331))*!DTOR
+			for lat_circ = mlat_range[0], mlat_range[1], 5 do begin
+				lat_circ_radius = (1 - ((lat_circ - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
+				plots, dialxcen - lat_circ_radius*sin(circ), $
+					   dialycen + lat_circ_radius*cos(circ), $
+					   color = 100, /device
+				if lat_circ gt mlat_range[0] and lat_circ lt mlat_range[1] then begin
+					label = string(lat_circ, f='(i0)')
+					if lat_circ eq mlat_range[0] + 5 then label += ' MLAT'
+					xyouts, dialxcen, dialycen + lat_circ_radius, label, color = 100, /device, align=1.1
+				endif
+			endfor
+			plots, [dialxcen, dialxcen], dialycen + [0, width/2.], color = 100, /device
+			plots, dialxcen - [0, width/2.]*sin(30*!DTOR), $
+				   dialycen + [0, width/2.]*cos(30*!DTOR), $
 				   color = 100, /device
-			if lat_circ gt mlat_range[0] and lat_circ lt mlat_range[1] then begin
-				label = string(lat_circ, f='(i0)')
-				if lat_circ eq mlat_range[0] + 5 then label += ' MLAT'
-				xyouts, dialxcen, dialycen + lat_circ_radius, label, color = 100, /device, align=1.1
-			endif
-		endfor
-		plots, [dialxcen, dialxcen], dialycen + [0, width/2.], color = 100, /device
-		plots, dialxcen - [0, width/2.]*sin(30*!DTOR), $
-			   dialycen + [0, width/2.]*cos(30*!DTOR), $
-			   color = 100, /device
 
-		lat_circ_radius = (1 - ((-3) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
-		for mlt_clock = 6, 24, 6 do begin
-			mlt_label_angle = 90. * ((mlt_clock - 12) / 6.) * !DTOR
-			xpos = dialxcen - lat_circ_radius*sin(mlt_label_angle)
-			ypos = dialycen + lat_circ_radius*cos(mlt_label_angle) - 8
-			label = string(mlt_clock*100, f='(i04)')
-			if mlt_clock eq 12 then label += ' MLT'
-			xyouts, xpos, ypos, /device, label, color = 100, align=.5
-		endfor
+			lat_circ_radius = (1 - ((-3) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
+			for mlt_clock = 6, 24, 6 do begin
+				mlt_label_angle = 90. * ((mlt_clock - 12) / 6.) * !DTOR
+				xpos = dialxcen - lat_circ_radius*sin(mlt_label_angle)
+				ypos = dialycen + lat_circ_radius*cos(mlt_label_angle) - 8
+				label = string(mlt_clock*100, f='(i04)')
+				if mlt_clock eq 12 then label += ' MLT'
+				xyouts, xpos, ypos, /device, label, color = 100, align=.5
+			endfor
 
 
-		xpos = dialxcen - radii*sin(clock_angle)
-		ypos = dialycen + radii*cos(clock_angle)
-		arrow, xpos - .0*rotZonal, $
-			   ypos - .0*rotMerid, $
-			   xpos + 1*rotZonal, $
-			   ypos + 1*rotMerid, $
-			   hsize = 5
+			xpos = dialxcen - radii*sin(clock_angle)
+			ypos = dialycen + radii*cos(clock_angle)
+			arrow, xpos - .0*rotZonal, $
+				   ypos - .0*rotMerid, $
+				   xpos + 1*rotZonal, $
+				   ypos + 1*rotMerid, $
+				   hsize = 5
 
-		device, set_font='Ariel*17*Bold'
-		xyouts, winx/2. + 5, winy-15, 'Average Vector Dial Plot', color = 250, /device
-		xyouts, winx/2. + 5, winy-30, '(Magnetic Coordinates)', color = 250, /device
-		xpos = winx/2. + 5
-		ypos = winy-55
-		mag = 200
-		arrow, xpos, ypos, xpos + scale*mag, ypos, color = 250, thick=2, hsize = 10
-		xyouts, xpos, ypos + 8, '200 m/s', color = 250, /device
+			device, set_font='Ariel*17*Bold'
+			xyouts, winx/2. + 5, winy-15, 'Average Vector Dial Plot', color = 250, /device
+			xyouts, winx/2. + 5, winy-30, '(Magnetic Coordinates)', color = 250, /device
+			xpos = winx/2. + 5
+			ypos = winy-55
+			mag = 200
+			arrow, xpos, ypos, xpos + scale*mag, ypos, color = 250, thick=2, hsize = 10
+			xyouts, xpos, ypos + 8, '200 m/s', color = 250, /device
 
-		!p.font = -1
+			;tvlct, red, gre, blu, /get
+			;loadct, 39, /silent
+			;tvscl, congrid(aveTemps, winx/3., winy/6., /interp), 3*winx/4. - winx/6, winy/2 + 10
+			;tvlct, red, gre, blu
+
+			!p.font = -1
+		endif
 
 	;########### End ave dial plot #########
 

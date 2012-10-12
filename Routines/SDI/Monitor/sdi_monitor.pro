@@ -396,9 +396,9 @@ pro sdi_monitor_event, event
 						ptr_free, (*persistent.snapshots)[have_site_lambda].fits
 						(*persistent.snapshots)[have_site_lambda] = snapshot_entry
 
-
 						;\\ If it is a calibration wavelength, check to see if it is the first one for the night
 						if snapshot.wavelength eq 6328 then begin
+
 							if ptr_valid(persistent.calibrations) eq 0 then begin
 								persistent.calibrations = ptr_new([calibration_entry])
 							endif else begin
@@ -406,7 +406,7 @@ pro sdi_monitor_event, event
 											  (*persistent.calibrations).zonemap_index eq have_zmap_type, n_match)
 								if n_match eq 1 then begin
 									idx = match[0]
-									if (snapshot.start_time - (*persistent.snapshots)[have_site_lambda].start_time) gt 4*3600. then begin
+									if (snapshot.start_time - curr_snapshot.start_time) gt 4*3600. then begin
 										ptr_free, (*persistent.calibrations)[idx].spectra
 										ptr_free, (*persistent.calibrations)[idx].fits
 										(*persistent.calibrations)[idx] = calibration_entry
@@ -544,7 +544,7 @@ pro sdi_monitor_event, event
 		endif
 		;\\ Run multistatic analyses
 		status = sdi_monitor_job_status('multistatic')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 120) then begin
+		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
 			sdi_monitor_job_timeupdate, 'multistatic'
 			sdi_monitor_multistatic
 			;append, 'sdi_windfields', image_names

@@ -20,8 +20,12 @@ pro meta_loader, out, $
 
 
 ;\\ SOME DEFAULT PATHS
-	if not keyword_set(raw_paths) then obs_data_path = [where_is('poker_data'), where_is('gakona_data')] $
+	if not keyword_set(raw_paths) then obs_data_path = [where_is('poker_data'), $
+														where_is('gakona_data'), $
+														where_is('mawson_data'), $
+														where_is('toolik_data') ] $
 		else obs_data_path = raw_paths
+
 	monostatic_data_path = where_is('monostatic_fits')
 	bistatic_data_path = where_is('bistatic_fits')
 	bi_usolve_data_path = where_is('usolve_fits')
@@ -69,9 +73,6 @@ pro meta_loader, out, $
 	if keyword_set(filename) then begin
 		out = {err_code:'No Date Supplied/Bad Filename: ' + filename}
 
-		;sdi3k_read_netcdf_data, filename, metadata = meta, /close
-		;dt = convert_js(meta.start_time)
-
 		filename = file_basename(filename)
 
 		byte_name = byte(filename)
@@ -95,7 +96,7 @@ pro meta_loader, out, $
 
 	if date_yn eq 0 then return
 
-	if not keyword_set(filter) then filter = ['*630*']
+	if not keyword_set(filter) then filter = ['*630*', '*NZ0115*']
 
 
 ;\\ SEARCH FOR FILES
@@ -104,7 +105,6 @@ pro meta_loader, out, $
 	for j = 0, n_elements(obs_data_path) - 1 do begin
 		obs_files = [obs_files, file_search(obs_data_path[j] + obs_date + '*sky*' + ['*.nc', '*.sky'], count = nobs)]
 	endfor
-
 	if n_elements(obs_files) gt 0 then begin
 		obs_files = obs_files[1:*]
 		valid = where(obs_files ne '', nvalid)
@@ -136,7 +136,6 @@ pro meta_loader, out, $
 		nlas = 0
 	endelse
 
-
 	mo_date = '*' + year + '-' + month + '-' + day + '*'
 	mo_files = file_search(monostatic_data_path + 'MonoStaticFits' + mo_date, count = nmo)
 
@@ -161,7 +160,7 @@ pro meta_loader, out, $
 	endif
 
 	if nlas gt 0 then begin
-		n_filter = ['*']
+		n_filter = ['*NZ0115*']
 		match = intarr(nlas)
 		for k = 0, n_elements(n_filter) - 1 do begin
 			match += strmatch(las_files, '*'+n_filter[k]+'*', /fold)
@@ -172,7 +171,6 @@ pro meta_loader, out, $
 			found.las = nin
 		endif
 	endif
-
 
 
 	n_filter = ['*']
@@ -235,17 +233,19 @@ pro meta_loader, out, $
 		endif else begin
 			sdi3k_read_netcdf_data, obs_files[k], metadata = meta, winds=winds, spek=speks, zone_centers=zone_centers, /close
 		endelse
-		ut = js2ut(0.5*(winds.start_time + winds.end_time))
-
 
 		if size(speks, /type) eq 7 then begin
 			;\\ No speks really, lets skip this.
 			continue
 		endif
 
+		ut = js2ut(0.5*(winds.start_time + winds.end_time))
+
+
+
 		;\\ Apply flat field
 		if keyword_set(auto_flat) then begin
-			sdi3k_auto_flat, meta, wind_offset, extend_valid_time = 10*3600.*24.
+			sdi3k_auto_flat, meta, wind_offset, /use_database
 			for kk = 0, n_elements(speks.velocity[0])-1 do speks[kk].velocity[1:*] = speks[kk].velocity[1:*] - wind_offset[1:*]
 		endif
 
@@ -272,7 +272,7 @@ pro meta_loader, out, $
 			if nyes eq 1 then begin
 				speks_dc = speks
 				insfile = (las_files[yes[0]])[0]
-				drift_correct, speks_dc, meta, /force, insfile=insfile
+				sdi3k_drift_correct, speks_dc, meta, /force, insfile=insfile
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			endif else begin
 				speks_dc = speks
@@ -291,7 +291,7 @@ pro meta_loader, out, $
 			if nyes eq 1 then begin
 				speks_dc = speks
 				insfile = (las_files[yes[0]])[0]
-				drift_correct, speks_dc, meta, /force, insfile=insfile
+				sdi3k_drift_correct, speks_dc, meta, /force, insfile=insfile
 				sdi3k_drift_correct, speks_dc, meta, /force, /data_based
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			endif else begin
