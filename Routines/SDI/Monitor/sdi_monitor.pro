@@ -612,7 +612,8 @@ pro sdi_monitor
 	common sdi_monitor_common, global, persistent
 
 	in_dir = 'C:\FTP\'
-	home_dir = 'C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\'
+	;home_dir = 'C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\'
+	whoami, home_dir, file
 	out_dir = home_dir
 
 
