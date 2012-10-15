@@ -183,7 +183,7 @@ pro sdi_monitor_multistatic
 
 	;\\ Nominal values of middle lat and lon, refined depending on available info
 	midLat = 65.
-	midLon = -145.
+	midLon = -147.
 	if size(*global.shared.recent_monostatic_winds, /type) ne 0 then begin
 		midLat = mean((*global.shared.recent_monostatic_winds).lat)
 		midLon = mean((*global.shared.recent_monostatic_winds).lon)
@@ -201,13 +201,20 @@ pro sdi_monitor_multistatic
 					 backcolor=[0,0], continentcolor=[50,0], $
 					 outlinecolor=[90,0], bounds = [0,.25,1,1]
 
+	;\\ Allsky image
+	read_jpeg, global.home_dir + '\test_image.jpeg', allsky_image
+	plot_allsky_on_map, map, allsky_image, 80., -90 + 23, 240., 65.13, -147.48, [600,800]
+
 	overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
+
+
+
 
 	if show_zonemaps eq 1 then begin
 		for i = 0, nseries - 1 do begin
 			plot_zonemap_on_map, 0, 0, 0, 0, 240., $
 								 180 + (*allMeta[i]).oval_angle, $
-								 0, map, meta=*allMeta[i], front_color = 150, $
+								 0, map, meta=*allMeta[i], front_color = 0, $
 								 lineThick=.5, ctable=0
 		endfor
 	endif

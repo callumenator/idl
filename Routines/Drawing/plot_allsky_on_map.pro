@@ -125,7 +125,7 @@ pro plot_allsky_on_map, map, $
 	endelse
 
 	device, decom=1
-	tv, blend_image, /true
+	tv, blend_image,  /true
 	device, decomp=0
 
 end
