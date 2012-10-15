@@ -51,6 +51,8 @@ pro sdi_analysis, directory, $
 		endelse
 	endelse
 
+	;\\ Should sort by file age, to do newest ones first
+
 
 	;\\ Format the laser names
 	las_names = strarr(nlas)

@@ -31,6 +31,9 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 		snapshots = snapshots[fitted]
 
+	;\\ UT day range of interest (the current UT day for now, since obs from Alaska don't span days)
+		current_ut_day = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$')
+		ut_day_range = [current_ut_day, current_ut_day]
 
 	;\\ Fit the winds first, then plot
 	max_time_range = [100, -100]
@@ -55,84 +58,24 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if altitude eq -1 then continue
 
 
-		;\\ Get zonemap info
-			zone_radii = (*zonemaps[snapshots[i].zonemap_index].rads)*100.
-			zone_radii = zone_radii[1:*]
-			zone_sectors = (*zonemaps[snapshots[i].zonemap_index].secs)
-			rings = n_elements(zone_sectors)
-			nzones = total(zone_sectors)
+		;\\ Find contiguous data within ut_day_range
+			js2ymds, series.start_time, syear, smonth, sday, ssec
+			daynos = ymd2dn(syear, smonth, sday)
+			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+			if nsliced eq 0 then continue
+			series = series[slice]
 
-
-		;\\ Find contiguous data
 			find_contiguous, js2ut(series.start_time) mod 24, 3., blocks, n_blocks=nb, /abs
 			ts_0 = blocks[nb-1,0]
 			ts_1 = blocks[nb-1,1]
 			series = series[ts_0:ts_1]
 
-
-		;\\ Fill a metadata structure
-			case snapshots[i].site_code of
-				'PKR': meta = {site:snapshots[i].site_code, $
-							   site_code:snapshots[i].site_code, $
-							   oval_angle:23., $
-							   sky_fov_deg:68., $
-							   latitude:65.13, $
-							   longitude:-147.48, $
-							   zone_radii:zone_radii, $
-							   zone_sectors:zone_sectors, $
-							   rings:rings, $
-							   nzones:nzones, $
-							   wavelength_nm:snapshots[i].wavelength/10., $
-							   gap_mm:20.02, $
-							   scan_channels:snapshots[i].scan_channels, $
-							   rotation_from_oval:0., $
-							   start_time:series.start_time, $
-							   end_time:series.end_time, $
-							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
-				'HRP': meta = {site:snapshots[i].site_code, $
-							   site_code:snapshots[i].site_code, $
-							   oval_angle:22.7, $
-							   sky_fov_deg:80., $
-							   latitude:62.3, $
-							   longitude:-145.3, $
-							   zone_radii:zone_radii, $
-							   zone_sectors:zone_sectors, $
-							   rings:rings, $
-							   nzones:nzones, $
-							   wavelength_nm:snapshots[i].wavelength/10., $
-							   gap_mm:18.6, $
-							   scan_channels:snapshots[i].scan_channels, $
-							   rotation_from_oval:0., $
-							   start_time:series.start_time, $
-							   end_time:series.end_time, $
-							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
-				'TLK': meta = {site:snapshots[i].site_code, $
-							   site_code:snapshots[i].site_code, $
-							   oval_angle:24, $
-							   sky_fov_deg:75., $
-							   latitude:68.63, $
-							   longitude:-149.63, $
-							   zone_radii:zone_radii, $
-							   zone_sectors:zone_sectors, $
-							   rings:rings, $
-							   nzones:nzones, $
-							   wavelength_nm:snapshots[i].wavelength/10., $
-							   gap_mm:20, $
-							   scan_channels:snapshots[i].scan_channels, $
-							   rotation_from_oval:0., $
-							   start_time:series.start_time, $
-							   end_time:series.end_time, $
-							   path:sdi_monitor_get_directory(snapshots[i].site_code)}
-				else: meta = -1
-			endcase
-			if size(meta, /type) ne 8 then continue
-
-
-		get_zone_locations, meta, zones=zinfo, altitude=altitude
-		zcen = [[zinfo.x], [zinfo.y]]
+			sdi_monitor_format, {metadata:meta, series:series}, metadata=meta, spek=var, zone_centers=zcen
+			if meta.latitude lt 0 then continue
 
 		;\\ Flatfield
 			sdi3k_auto_flat, meta, flat_field, /use_database
+			for iix = 0, n_elements(var) - 1 do var[iix].velocity -= flat_field
 
 
 		;\\ Windfit settings
@@ -144,51 +87,26 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	                   		 assumed_height: altitude, $
 	                         geometry: 'none'}
 
-			;\\ Drift
-			cnv = 3E8*(meta.wavelength_nm)*1E-9/(2.*meta.gap_mm*(1E-3)*meta.scan_channels)
-
-			var = replicate({start_time:0.0, $
-							 end_time:0.0, $
-							 scans:0, $
-							 velocity:fltarr(snapshots[i].nzones), $
-							 sigma_velocity:fltarr(snapshots[i].nzones), $
-							 temperature:fltarr(snapshots[i].nzones), $
-							 signal2noise:fltarr(snapshots[i].nzones), $
-							 chi_squared:fltarr(snapshots[i].nzones)}, ts_1-ts_0+1)
-
-			var.velocity = series.fits.position
-			var.sigma_velocity = series.fits.sigma_position
-			var.temperature = series.fits.width
-			var.signal2noise = series.fits.snr
-			var.chi_squared = series.fits.chi
-			var.start_time = series.start_time
-			var.end_time = series.end_time
-			var.scans = series.scans
-
-			for iix = 0, n_elements(var) - 1 do var[iix].velocity -= flat_field
-
-			last_idx = n_elements(var)-1
-
 			nobs = n_elements(var)
 			if nobs lt 5 then continue
 			sdi3k_drift_correct, var, meta, /data_based, /force
 			sdi3k_remove_radial_residual, meta, var, parname='VELOCITY'
-    		var.velocity *= cnv
-    		var.sigma_velocity *= cnv
+    		var.velocity *= meta.channels_to_velocity
+    		var.sigma_velocity *= meta.channels_to_velocity
     		posarr = var.velocity
     		sdi3k_timesmooth_fits,  posarr, 1.1, meta
     		sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
     		var.velocity = posarr
     		var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
-    		;windfit_modified, var, meta, /dvdx_zero, windfit, wind_settings, zcen, /no_vz
     		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
 
-			zonalWind = reform((windfit.zonal_wind)[*,last_idx])
-			meridWind = reform((windfit.meridional_wind)[*,last_idx])
+			zonalWind = reform((windfit.zonal_wind)[*,nobs-1])
+			meridWind = reform((windfit.meridional_wind)[*,nobs-1])
 
 			angle = (-1.0)*meta.oval_angle*!DTOR
 			geoZonalWind = zonalWind*cos(angle) - meridWind*sin(angle)
 			geoMeridWind = zonalWind*sin(angle) + meridWind*cos(angle)
+
 
 			medZonal = median(windfit.zonal_wind, dim=1)
 			zonalHi = max(windfit.zonal_wind, dim=1)
@@ -227,6 +145,15 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if min(time) lt max_time_range[0] then max_time_range[0] = min(time) - .5
 			if max(time) gt max_time_range[1] then max_time_range[1] = max(time) + .5
 
+			get_zone_locations, meta, zones=zinfo, altitude = altitude
+
+			;\\ Make the latest winds available via global.shared.recent_monostatic_winds
+				append, geoZonalWind, allMonoZonal
+				append, geoMeridWind, allMonoMerid
+				append, zinfo.lat, allMonoLat
+				append, zinfo.lon, allMonoLon
+
+
 			wind_struc = {meta:meta, $
 						  zinfo:zinfo, $
 						  start_time:snapshots[i].start_time, $
@@ -243,6 +170,14 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 			winds[i] = ptr_new(wind_struc)
 	endfor
+
+	;\\ Share the monostatic winds
+	if size(allMonoZonal, /type) ne 0 then begin
+		*global.shared.recent_monostatic_winds = {geoZonal:allMonoZonal, $
+												  geoMerid:allMonoMerid, $
+												  lat:allMonoLat, $
+												  lon:allMonoLon }
+	endif
 
 
 	;########### Begin geo-mapped windfields #########
@@ -277,7 +212,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			site_count = 0
 			!p.font = 0
 			device, set_font='Ariel*17*Bold'
-			xyouts, 5, winy - 15*(site_count+1), 'Vector Wind', /device, color=255
+			xyouts, 5, winy - 15*(site_count+1), 'Vector Wind ' + dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
 			time = time_str_from_decimalut(total((bin_date(systime(/ut)))[[3,4,5]] * [1, 1./60., 1./3600.]))
 			xyouts, 5, winy - 15*(site_count+2), 'Current Time: ' + time + ' UT', /device, color=255
 
@@ -497,7 +432,12 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 	for pass = 0, 1 do begin
 
-		bounds = [.1, .27, .98, .47]
+		bounds = [.1, .27, .98, .46]
+		!p.font = 0
+		device, set_font='Ariel*17*Bold'
+		xyouts, 5, .485*winy, 'Median Wind Timeseries ' + $
+			dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
+		!p.font = -1
 		if pass eq 0 then begin
 			plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, $
 				  ytitle = 'Mag. Zonal (m/s)' , xtickname = blank, yticklen=.003, chars=1.5
@@ -538,7 +478,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				loadct, ctable, /silent
 
 				!p.font = 0
-				device, set_font='Ariel*18*Bold'
+				device, set_font='Ariel*17*Bold'
 				xyouts, max_time_range[0] + site_count*0.05*(max_time_range[1]-max_time_range[0]), $
 						yrange[1] + 0.03*(yrange[1]-yrange[0]), wnd.meta.site, color=color, /data
 				!p.font = -1

@@ -513,6 +513,7 @@ pro sdi_monitor_event, event
 		ftp = 0
 		image_names = 0
 		draw_ids = ''
+
 		;\\ Plot the current snapshots
 		status = sdi_monitor_job_status('snapshots')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 60) then begin
@@ -522,6 +523,7 @@ pro sdi_monitor_event, event
 			append, global.draw_id[0], draw_ids
 			ftp = 1
 		endif
+
 		;\\ Plot the current timeseries
 		status = sdi_monitor_job_status('timeseries')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 120) then begin
@@ -533,6 +535,7 @@ pro sdi_monitor_event, event
 			append, global.draw_id[2], draw_ids
 			ftp = 1
 		endif
+
 		;\\ Plot the current windfields
 		status = sdi_monitor_job_status('windfields')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 120) then begin
@@ -542,10 +545,10 @@ pro sdi_monitor_event, event
 			append, global.draw_id[3], draw_ids
 			ftp = 1
 		endif
+
 		;\\ Run multistatic analyses
 		status = sdi_monitor_job_status('multistatic')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
-
 			sdi_monitor_job_timeupdate, 'multistatic'
 			sdi_monitor_multistatic
 			append, 'sdi_multistatic', image_names
@@ -604,14 +607,13 @@ pro sdi_monitor_cleanup, arg
 end
 
 
-
 ;\\ Main routine
 pro sdi_monitor
 
 	common sdi_monitor_common, global, persistent
 
+
 	in_dir = 'C:\FTP\'
-	;home_dir = 'C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\'
 	whoami, home_dir, file
 	out_dir = home_dir
 
@@ -659,7 +661,7 @@ pro sdi_monitor
 	base = widget_base(col = 1, title='SDI Monitor', /TLB_SIZE_EVENTS, mbar=menu )
 	tab = widget_tab(base)
 	tab_status_base = widget_base(tab, title = 'Status', col = 1, /base_align_left)
-	tab_0_base = widget_base(tab, title = 'Spnashots', col = 1)
+	tab_0_base = widget_base(tab, title = 'Snapshots', col = 1)
 	tab_1_base = widget_base(tab, title = 'Timeseries', col = 1)
 	tab_2_base = widget_base(tab, title = 'ForMark', col = 1)
 	tab_3_base = widget_base(tab, title = 'Windfields', col = 1)
@@ -695,6 +697,8 @@ pro sdi_monitor
 				     buffer_length:500, $
 					 free_list:replicate(1, 20) }
 
+	shared = {recent_monostatic_winds:ptr_new(/alloc)}
+
 	global = {persistent_file:persistent_file, $
 			  in_dir:in_dir, $
 			  out_dir:out_dir, $
@@ -719,7 +723,10 @@ pro sdi_monitor
 			  email_list:email_list, $
 			  log_email_sent_at:0D, $
 			  data_directories:data_directories, $
-			  job_status:job_status}
+			  job_status:job_status, $
+			  shared:shared}
+
+
 
 	xmanager, 'sdi_monitor', base, event = 'sdi_monitor_event', $
 			  cleanup = 'sdi_monitor_cleanup', /no_block
