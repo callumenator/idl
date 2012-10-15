@@ -18,11 +18,32 @@ pro plot_allsky_on_map, map, $
 	COMMON Allsky_Plot, cached_map
 
 	dim = size(image, /dimensions)
+
+	if (n_elements(dim) gt 2) then begin
+		xdim = dim[1]
+		ydim = dim[2]
+		nchann = dim[0]
+
+		if keyword_set(azi_plus) then begin
+			image[0,*,*] = rot(reform(image[0,*,*]), azi_plus)
+			image[1,*,*] = rot(reform(image[1,*,*]), azi_plus)
+			image[2,*,*] = rot(reform(image[2,*,*]), azi_plus)
+		endif
+
+	endif else begin
+		xdim = dim[0]
+		ydim = dim[1]
+		nchann = 1
+
+		if keyword_set(azi_plus) then image = rot(image, azi_plus)
+	endelse
+
+
+
 	if not keyword_set(offset) then offset = [0,0]
-	if not keyword_set(border) then border = [0,0,0,0]
+	if not keyword_set(border) then border = [0,0,xdim,ydim]
 
-
- 	zang = 360.*mc_dist(dim[0], dim[1], $
+ 	zang = 360.*mc_dist(xdim, ydim, $
  					    (border[0]+border[2])/2, $
  					    (border[1]+border[3])/2, $
  					    x=xx, y=yy)/(total(border))
@@ -32,10 +53,10 @@ pro plot_allsky_on_map, map, $
     rdist  = 100.*tan(!dtor*zang)
     xdist  = rdist*sin(!dtor*azi)
     ydist  = rdist*cos(!dtor*azi)
-    useful = where(zang lt 85.)
+    useful = where(zang lt fov)
     useord = sort(zang(useful))
     useful = useful(reverse(useord))
-    refpoints = {dims: dim, $
+    refpoints = {dims: [xdim, ydim], $
     			 horizon: [border[0], border[2], border[1], border[3]], $
     			 zang: zang, $
     			 azimuth: azi, $
@@ -72,9 +93,17 @@ pro plot_allsky_on_map, map, $
     red        = reform(screen_img(0, *, *))
     green      = reform(screen_img(1, *, *))
     blue       = reform(screen_img(2, *, *))
-    red[mapvec]   = 0.4*image[ascvec]*asc_gain < 255
-    green[mapvec] = 0.4*image[ascvec]*asc_gain < 255
-    blue[mapvec]  = image[ascvec]*asc_gain < 255
+
+	if nchann eq 3 then begin
+		red[mapvec]   = (reform(image[0, *, *]))[ascvec]*asc_gain < 255
+    	green[mapvec] = (reform(image[1, *, *]))[ascvec]*asc_gain < 255
+    	blue[mapvec]  = (reform(image[2, *, *]))[ascvec]*asc_gain < 255
+	endif else begin
+    	red[mapvec]   = 0.4*image[ascvec]*asc_gain < 255
+    	green[mapvec] = 0.4*image[ascvec]*asc_gain < 255
+    	blue[mapvec]  = image[ascvec]*asc_gain < 255
+    endelse
+
     screen_img[0, *, *] = red
     screen_img[1, *, *] = green
     screen_img[2, *, *] = blue
