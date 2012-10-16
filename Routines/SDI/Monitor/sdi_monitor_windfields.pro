@@ -36,6 +36,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		ut_day_range = [current_ut_day, current_ut_day]
 
 	;\\ Fit the winds first, then plot
+	count_valid = 0
 	max_time_range = [100, -100]
 	winds = ptrarr(n_fitted)
 	for i = 0, n_fitted - 1 do begin
@@ -169,6 +170,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 						  time:time }
 
 			winds[i] = ptr_new(wind_struc)
+			count_valid ++
 	endfor
 
 	;\\ Share the monostatic winds
@@ -178,6 +180,9 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 												  lat:allMonoLat, $
 												  lon:allMonoLon }
 	endif
+
+	if count_valid eq 0 then goto, MONITOR_WINDFIELDS_END
+
 
 
 	;########### Begin geo-mapped windfields #########
@@ -535,11 +540,13 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				if n_elements(wnd.time) gt 1 then $
 					oplot, wnd.time, wnd.medMerid, color=color, psym=-6, sym=.2, thick=0.5
 
-				ptr_free, winds[i]
 			endelse
 		endfor
 
 	endfor ;\\ pass loop
+
+	MONITOR_WINDFIELDS_END:
+	ptr_free, winds
 
 
 end

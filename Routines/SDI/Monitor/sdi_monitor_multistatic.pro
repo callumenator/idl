@@ -67,52 +67,54 @@ pro sdi_monitor_multistatic
 				js_max:max((series.start_time + series.end_time)/2.) }, allTimeInfo
 	endfor
 
-	if size(allMeta, /type) eq 0 then return
-
 	nseries = n_elements(allMeta)
+	if nseries eq 0 then return
 
-	;\\ Find a recent time that all sites can be interpolated to
-	common_time = min(allTimeInfo.js_max) - 60.
-	js2ymds, common_time, cmn_y, cmn_m, cmn_d, cmn_s
+	if nseries gt 0 then begin
 
-	allWinds = ptrarr(nseries, /alloc)
-	allWindErrs = ptrarr(nseries, /alloc)
+		;\\ Find a recent time that all sites can be interpolated to
+		common_time = min(allTimeInfo.js_max) - 60.
+		js2ymds, common_time, cmn_y, cmn_m, cmn_d, cmn_s
 
-	for i = 0, nseries - 1 do begin
+		allWinds = ptrarr(nseries, /alloc)
+		allWindErrs = ptrarr(nseries, /alloc)
 
-			series = (*allSeries[i])
-			metadata = (*allMeta[i])
-			sdi_monitor_format, {metadata:metadata, series:series}, $
-								meta = meta, $
-								spek = speks, $
-								zone_centers = zcen
+		for i = 0, nseries - 1 do begin
 
-			nobs = n_elements(speks)
-			if nobs lt 5 then goto, END_MULTISTATIC
-			sdi3k_drift_correct, speks, meta, /data_based, /force
-			sdi3k_remove_radial_residual, meta, speks, parname='VELOCITY'
-    		speks.velocity *= meta.channels_to_velocity
-    		speks.sigma_velocity *= meta.channels_to_velocity
-    		posarr = speks.velocity
-    		sdi3k_timesmooth_fits,  posarr, 1.1, meta
-    		sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
-    		speks.velocity = posarr
-    		speks.velocity -= total(speks[1:nobs-2].velocity[0])/n_elements(speks[1:nobs-2].velocity[0])
+				series = (*allSeries[i])
+				metadata = (*allMeta[i])
+				sdi_monitor_format, {metadata:metadata, series:series}, $
+									meta = meta, $
+									spek = speks, $
+									zone_centers = zcen
 
-			sdi_time_interpol, speks.velocity, $
-							   (speks.start_time + speks.end_time)/2., $
-							   common_time, $
-							   winds
+				nobs = n_elements(speks)
+				if nobs lt 5 then goto, END_MULTISTATIC
+				sdi3k_drift_correct, speks, meta, /data_based, /force
+				sdi3k_remove_radial_residual, meta, speks, parname='VELOCITY'
+	    		speks.velocity *= meta.channels_to_velocity
+	    		speks.sigma_velocity *= meta.channels_to_velocity
+	    		posarr = speks.velocity
+	    		sdi3k_timesmooth_fits,  posarr, 1.1, meta
+	    		sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
+	    		speks.velocity = posarr
+	    		speks.velocity -= total(speks[1:nobs-2].velocity[0])/n_elements(speks[1:nobs-2].velocity[0])
 
-			sdi_time_interpol, speks.sigma_velocity, $
-							   (speks.start_time + speks.end_time)/2., $
-							   common_time, $
-							   wind_errors
+				sdi_time_interpol, speks.velocity, $
+								   (speks.start_time + speks.end_time)/2., $
+								   common_time, $
+								   winds
 
-			*allMeta[i] = meta
-			*allWinds[i] = winds
-			*allWindErrs[i] = wind_errors
-	endfor
+				sdi_time_interpol, speks.sigma_velocity, $
+								   (speks.start_time + speks.end_time)/2., $
+								   common_time, $
+								   wind_errors
+
+				*allMeta[i] = meta
+				*allWinds[i] = winds
+				*allWindErrs[i] = wind_errors
+		endfor
+	endif
 
 
 	altitude = 240.
@@ -202,7 +204,8 @@ pro sdi_monitor_multistatic
 					 outlinecolor=[90,0], bounds = [0,.25,1,1]
 
 	;\\ Allsky image
-	read_jpeg, global.home_dir + '\test_image.jpeg', allsky_image
+	dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', copyfile = global.home_dir + 'latest_allsky.jpeg')
+	read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
 	plot_allsky_on_map, map, allsky_image, 80., -90 + 23, 240., 65.13, -147.48, [600,800]
 
 	overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
