@@ -97,7 +97,14 @@ pro sdi_monitor_log_manage
 	common sdi_monitor_common, global, persistent
 
 	logName = global.home_dir + '\Log\' + 'TaskLog_' + dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
-	if file_test(logName) eq 0 then return
+
+	if file_test(logName) eq 0 then begin
+		if (systime(/sec) - global.log_email_sent_at)/3600. gt 24. then begin
+			sdi_monitor_send_email, global.email_list, 'SDI Monitor Log', 'Log file is non-existent'
+			global.log_email_sent_at = systime(/sec)
+			return
+		endif
+	endif
 
 	if (systime(/sec) - global.log_email_sent_at)/3600. gt 24. then begin
 		if file_lines(logName) gt 0 then begin

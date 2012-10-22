@@ -3,6 +3,7 @@
 pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot time in days
 
 	common sdi_monitor_common, global, persistent
+	common sdi_monitor_windfields_common, lastrunId ;\\ to see if we have new data or not
 
 	if not keyword_set(oldest_snapshot) then oldest_snapshot = 1E9
 	if size(persistent, /type) eq 0 then return
@@ -39,6 +40,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	count_valid = 0
 	max_time_range = [100, -100]
 	winds = ptrarr(n_fitted)
+	thisrunId = ''
 	for i = 0, n_fitted - 1 do begin
 
 		if snapshots[i].wavelength ne 6300 then continue
@@ -57,6 +59,9 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				else: altitude = -1
 			endcase
 			if altitude eq -1 then continue
+
+
+			thisrunId += snapshots[i].site_code + string(snapshots[i].start_time, f='(i0)')
 
 
 		;\\ Find contiguous data within ut_day_range
@@ -172,6 +177,15 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			winds[i] = ptr_new(wind_struc)
 			count_valid ++
 	endfor
+
+	;\\ Do we have new data, or can we skip this run?
+		if (size(lastrunId, /type) ne 0) then begin
+			if (lastrunId eq thisrunId) then goto, MONITOR_WINDFIELDS_END
+		endif
+		lastrunId = thisrunId
+
+
+
 
 	;\\ Share the monostatic winds
 	if size(allMonoZonal, /type) ne 0 then begin
@@ -544,6 +558,15 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		endfor
 
 	endfor ;\\ pass loop
+
+	;\\ Save a copy of the image
+	datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+	timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+	toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Windfields\'
+	fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
+	file_mkdir, toplevel
+	write_png, fname, tvrd(/true)
+
 
 	MONITOR_WINDFIELDS_END:
 	ptr_free, winds

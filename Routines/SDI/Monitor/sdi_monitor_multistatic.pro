@@ -1,9 +1,29 @@
 
 @resolve_nstatic_wind
 
+;\\ Grab the latest allsky camera image
+pro sdi_monitor_grab_allsky, maxElevation
+
+	common sdi_monitor_common, global, persistent
+
+	time = bin_date(systime(/ut))
+	jd = js2jd(dt_tm_tojs(systime()))
+	ut_fraction = (time(3)*3600. + time(4)*60. + time(5)) / 86400.
+	sidereal_time = lmst(jd, ut_fraction, 0) * 24.
+	sunpos, jd, RA, Dec
+	sun_lat = Dec
+	sun_lon = RA - (15. * sidereal_time)
+	ll2rb, (station_info('pkr')).glon, (station_info('pkr')).glat, sun_lon, sun_lat, range, azimuth
+	sun_elevation = refract(90 - (range * !radeg))
+	if sun_elevation lt maxElevation then begin
+		dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', copyfile = global.home_dir + 'latest_allsky.jpeg')
+	endif
+end
+
 pro sdi_monitor_multistatic
 
 	common sdi_monitor_common, global, persistent
+	common sdi_monitor_multistatic_common, lastrunId ;\\ to see if we have new data or not
 
 	if ptr_valid(persistent.zonemaps) eq 0 then return
 	if ptr_valid(persistent.snapshots) eq 0 then return
@@ -47,7 +67,7 @@ pro sdi_monitor_multistatic
 	for i = 0, nseries - 1 do begin
 		restore, tseries[i]
 
-		;\\ Get continuous data inside ut_day_range
+		;\\ Get contiguous data inside ut_day_range
 		js2ymds, series.start_time, y, m, d, s
 		daynos = ymd2dn(y, m, d)
 		slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
@@ -68,13 +88,20 @@ pro sdi_monitor_multistatic
 	endfor
 
 	nseries = n_elements(allMeta)
-	if nseries eq 0 then return
+	if nseries eq 0 then goto, END_MULTISTATIC
 
 	if nseries gt 0 then begin
 
 		;\\ Find a recent time that all sites can be interpolated to
 		common_time = min(allTimeInfo.js_max) - 60.
 		js2ymds, common_time, cmn_y, cmn_m, cmn_d, cmn_s
+
+		;\\ Do we have new data, or can we skip this run?
+		if (size(lastrunId, /type) ne 0) then begin
+			if (lastrunId eq common_time) then goto, END_MULTISTATIC
+		endif
+		lastrunId = common_time
+
 
 		allWinds = ptrarr(nseries, /alloc)
 		allWindErrs = ptrarr(nseries, /alloc)
@@ -140,7 +167,7 @@ pro sdi_monitor_multistatic
 
 		;\\ Append the vertical wind data to the multistatic timeseries
 		bivz = where(max(bistaticFits.overlap, dim=1) gt .1 and $
-					 bistaticFits.obsdot lt .7 and $
+					 bistaticFits.obsdot lt .6 and $
 					 bistaticFits.mangle lt 3, nbivz)
 
 		if nbivz gt 0 then begin
@@ -198,20 +225,18 @@ pro sdi_monitor_multistatic
 
 
 	wset, wset_id
+	tvlct, red, gre, blu, /get
 	erase, 0
 	plot_simple_map, midLat, midLon, 8, 1, 1, map=map, $
 					 backcolor=[0,0], continentcolor=[50,0], $
 					 outlinecolor=[90,0], bounds = [0,.25,1,1]
 
-	;\\ Allsky image
-	dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', copyfile = global.home_dir + 'latest_allsky.jpeg')
+	;\\ Allsky image (only get if sun elevation is below -15 t oavoid saturation)
+	sdi_monitor_grab_allsky, -10
 	read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
-	plot_allsky_on_map, map, allsky_image, 80., -90 + 23, 240., 65.13, -147.48, [600,800]
+	plot_allsky_on_map, map, allsky_image, 80., 180 + 23, 240., 65.13, -147.48, [600,800]
 
 	overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
-
-
-
 
 	if show_zonemaps eq 1 then begin
 		for i = 0, nseries - 1 do begin
@@ -224,14 +249,13 @@ pro sdi_monitor_multistatic
 
 
 	;\\ Plot small circles around station locations
+	loadct, 39, /silent
 	for i = 0, nseries - 1 do begin
 		xy = map_proj_forward((*allMeta[i]).longitude, (*allMeta[i]).latitude, map=map)
 		circ = findgen(361)*!DTOR
 		plots, /data, xy[0] + 1.5E4*cos(circ), xy[1] + 1.5E4*sin(circ), thick=1, color = 190
 	endfor
 
-	tvlct, red, gre, blu, /get
-	loadct, 39, /silent
 	!p.font = 0
 	device, set_font='Ariel*17*Bold'
 
@@ -318,6 +342,88 @@ pro sdi_monitor_multistatic
 	endif
 
 
+	;\\ Scale arrow
+	plot_vector_scale_on_map, [.01, .92], map, 200, scale, 0, thick = 2, headthick = 2
+	xyouts, .01, .98, 'Bistatic Winds ' + dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /normal
+	xyouts, .01, .955, time_str_from_decimalut(cmn_s/3600.) + ' UT', /normal
+	xyouts, .01, .93, '200 m/s', /normal
+
+	;\\ Explain plotting symbols
+	loadct, 0, /silent
+	xyouts, .99, .27, 'Mean Monostatic Winds', /normal, color = 100, align=1
+	loadct, 39, /silent
+	xyouts, .99, .288, 'Station Locations', /normal, color = 190, align=1
+	xyouts, .99, .252, 'Bistatic Vertical Wind Locations', /normal, color = 90, align=1
+
+
+	;\\ Testing vz timeseries
+	loadct, 0, /silent
+	bi_times = js2ut(bistatic_vz_times)
+	times = get_unique(bi_times)
+	lats = get_unique(bistatic_vz.lat)
+
+	yrange = [min(bistatic_vz.lat)-.5, max(bistatic_vz.lat)+.5]
+	trange = [min(times)-2, max(times)+1]
+	if (trange[1] - trange[0]) lt 10 then trange[1] = trange[0] + 10
+	scale = 50.
+
+	polyfill, [0,0,1,1], [0,.25,.25,0], color = 0, /normal
+
+	!p.font = -1
+	plot, trange, yrange, /nodata, xstyle=9, ystyle=9, ytitle = 'Latitude', xtitle = 'UT TIme', $
+		  pos = [.08, .05, .98, .2], /noerase
+	!p.font = 0
+
+	;\\ Plot the vertical (base-)lines at each time
+	for i = 0, n_elements(lats) - 1 do begin
+		oplot, trange, [lats[i],lats[i]], col = 50
+	endfor
+
+	device, set_font='Ariel*17*Bold'
+	xyouts, .01, .23, 'Bistatic Vertical Wind Timeseries ' + $
+				dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /normal
+
+	;\\ Plot the vz scale
+	device, set_font='Ariel*15*Bold'
+	plots, /data, trange[0] + .2 + [1,1], yrange[0] + 2 + [0, 50/scale]
+	plots, /data, trange[0] + .2 + [.9,1.1], yrange[0] + 2
+	plots, /data, trange[0] + .2 + [.9,1.1], yrange[0] + 2 + [50/scale, 50/scale]
+	xyouts, /data, trange[0] + .2 + 1, yrange[0] + 2.2 + 50/scale, '50 m/s', align=.5
+
+	;\\ Indicate location latitudes from the main map
+	loadct, 39, /silent
+	lat = bistaticFits[bivz].lat
+	order = sort(lat)
+	xyouts, trange[0] + .3 + .15*(indgen(n_elements(order)) mod 2), lat[order], $
+			string(indgen(n_elements(order)) + 1, f='(i0)'), /data, color= 90, align=.5
+
+	device, set_font='Ariel*12*Bold'
+
+	for i = 0, n_elements(lats) - 1 do begin
+		pts = where(bistatic_vz.lat eq lats[i], npts)
+		if npts gt 0 then begin
+
+			vz = bistatic_vz[pts].mcomp
+			lat = bistatic_vz[pts].lat
+			time = bi_times[pts]
+			order = sort(time)
+
+			oplot, time[order], lat[order] + vz[order]/scale, noclip=1
+			;xyouts, time[0], yrange[0] - .2, time_str_from_decimalut(time[0], /nosec), /data, align=.5
+
+		endif
+	endfor
+
+	;\\ Save a copy of the image without tristatic
+	datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+	timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+	toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
+	fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
+	file_mkdir, toplevel
+	write_png, fname, tvrd(/true)
+
+
+	;\\ Overlay tristatics last, so we can take a picture with and without...
 	;\\ Overlay Tristatic Winds
 	if show_tristatic eq 1 and size(tristaticFits, /type) ne 0 then begin
 		use = where(max(tristaticFits.overlap, dim=1) gt .2 and $
@@ -345,79 +451,15 @@ pro sdi_monitor_multistatic
 		endif
 	endif
 
-
-	;\\ Scale arrow
-	plot_vector_scale_on_map, [.01, .92], map, 200, scale, 0, thick = 2, headthick = 2
-	xyouts, .01, .98, 'Bistatic Winds ' + dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /normal
-	xyouts, .01, .955, time_str_from_decimalut(cmn_s/3600.) + ' UT', /normal
-	xyouts, .01, .93, '200 m/s', /normal
-
-	;\\ Explain plotting symbols
-	loadct, 0, /silent
-	xyouts, .99, .27, 'Mean Monostatic Winds', /normal, color = 100, align=1
-	loadct, 39, /silent
-	xyouts, .99, .288, 'Station Locations', /normal, color = 190, align=1
-	xyouts, .99, .252, 'Bistatic Vertical Wind Locations', /normal, color = 90, align=1
-
-
-	;\\ Testing vz timeseries
-	loadct, 0, /silent
-	bi_times = js2ut(bistatic_vz_times)
-	times = get_unique(bi_times)
-
-	yrange = [min(bistatic_vz.lat)-.5, max(bistatic_vz.lat)+.5]
-	trange = [min(times)-2, max(times)+1]
-	if (trange[1] - trange[0]) lt 10 then trange[1] = trange[0] + 10
-	scale = 50.
-
 	!p.font = -1
-	plot, trange, yrange, /nodata, xstyle=9, ystyle=9, ytitle = 'Latitude', xtitle = 'UT TIme', $
-		  pos = [.08, .05, .98, .2], /noerase
-	!p.font = 0
 
-	;\\ Plot the vertical (base-)lines at each time
-	for i = 0, n_elements(times) - 1 do begin
-		oplot, [times[i],times[i]], yrange, col = 150
-	endfor
+	;\\ Save a copy of the image without tristatic
+	fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
+	file_mkdir, toplevel
+	write_png, fname, tvrd(/true)
 
-	device, set_font='Ariel*17*Bold'
-	xyouts, .01, .23, 'Bistatic Vertical Wind Timeseries ' + $
-				dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /normal
-
-	;\\ Plot the vz scale
-	device, set_font='Ariel*15*Bold'
-	plots, /data, times[0] + [0, 50/scale], yrange[1] + [0,0]
-	plots, /data, times[0] + [0, 0], yrange[1] + [-.1,.1]
-	plots, /data, times[0] + [50/scale, 50/scale], yrange[1] + [-.1,.1]
-	xyouts, /data, times[0] + 25/scale, yrange[1] + .05, '50 m/s', align=.5
-
-	;\\ Indicate location latitudes from the main map
-	loadct, 39, /silent
-	lat = bistaticFits[bivz].lat
-	order = sort(lat)
-	xyouts, trange[0] + .3 + .15*(indgen(n_elements(order)) mod 2), lat[order], $
-			string(indgen(n_elements(order)) + 1, f='(i0)'), /data, color= 90, align=.5
-
-	device, set_font='Ariel*12*Bold'
-	for i = 0, n_elements(times) - 1 do begin
-		pts = where(bi_times eq times[i], npts)
-		if npts gt 0 then begin
-
-			vz = bistatic_vz[pts].mcomp
-			lat = bistatic_vz[pts].lat
-			time = bi_times[pts]
-
-			order = sort(lat)
-
-			oplot, time[order] + vz[order]/scale, lat[order], noclip=1
-			;xyouts, time[0], yrange[0] - .2, time_str_from_decimalut(time[0], /nosec), /data, align=.5
-
-		endif
-	endfor
-
-		!p.font = -1
 
 	tvlct, red, gre, blu
 	END_MULTISTATIC:
-	ptr_free, allSeries, allMeta
+	if (size(allSeries, /type) ne 0) then ptr_free, allSeries, allMeta
 end
