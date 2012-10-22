@@ -234,7 +234,7 @@ pro sdi_monitor_multistatic
 	;\\ Allsky image (only get if sun elevation is below -15 t oavoid saturation)
 	sdi_monitor_grab_allsky, -10
 	read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
-	plot_allsky_on_map, map, allsky_image, 80., 180 + 23, 240., 65.13, -147.48, [600,800]
+	plot_allsky_on_map, map, allsky_image, 80., 23, 240., 65.13, -147.48, [600,800], /webimage
 
 	overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
 

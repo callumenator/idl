@@ -74,7 +74,7 @@ pro sdi_analysis, directory, $
 	if nsky eq 0 then begin
 		for k = 0, nlas - 1 do begin
 			fname = las_list[k]
-			sdi_fit_spectra, fit_insfile = fname, only_zones = only_zones, ipc_info = ipc_info
+			sdi_fit_spectra, fit_insfile = fname, ipc_info = ipc_info
 			append, fname, files_done
 		endfor
 	endif
@@ -112,13 +112,13 @@ pro sdi_analysis, directory, $
 			if keyword_set(ipc_info) then $
 				sdi_analysis_ipc_message, ipc_info, sharedVar, 'LASER FIT: ' + las_names[best_match[0]]
 
-			sdi_fit_spectra, fit_insfile = use_laser, only_zones = only_zones, ipc_info = ipc_info
+			sdi_fit_spectra, fit_insfile = use_laser, ipc_info = ipc_info
 			append, use_laser, files_done
 
 			if keyword_set(ipc_info) then $
 				sdi_analysis_ipc_message, ipc_info, sharedVar, 'SKY FIT: ' + fname
 
-			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, only_zones = only_zones, ipc_info = ipc_info
+			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, ipc_info = ipc_info
 			append, sky_list[k], files_done
 
 			if keyword_set(ipc_info) then $
@@ -131,7 +131,8 @@ pro sdi_analysis, directory, $
 							   skip_existing = 0, $
 							   stage = 0, $
 							   drift_mode = 'data', $
-							   xy_only = 0
+							   xy_only = 0, $
+							   root_dir = 'c:\users\sdi\sdiplots\'
 
 			wait, 0.01
 	endfor

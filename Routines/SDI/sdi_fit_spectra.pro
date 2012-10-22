@@ -15,7 +15,6 @@ pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
 					 force_refit = force_refit, $	;\\ Force fitted spectra to be refit
 					 start_record = start_record, $	;\\ Start fitting at this record number
 					 recent_fits = recent_fits, $	;\\ Return the recently fitted spectra in this variable
-					 only_zones = only_zones, $
 					 ipc_info = ipc_info
 
 	if not keyword_set(start_record) then start_record = 0
@@ -75,14 +74,12 @@ pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
 			if keyword_set(fit_insfile) then begin
            		sdi3k_level1_fit, rec, (ssec + esec)/2, spex(rec).spectra, meta, sig2noise, chi_squared, $
             	              	  sigarea, sigwid, sigpos, sigbgnd, backgrounds, areas, widths, positions, $
-                	          	  insprofs, /no_temperature, min_iters=15, shiftpos = meta.scan_channels/2 - cpos, $
-                	          	  only_zones = only_zones
+                	          	  insprofs, /no_temperature, min_iters=15, shiftpos = meta.scan_channels/2 - cpos
             endif else begin
             	itmp = 700.
             	sdi3k_level1_fit, rec, (ssec + esec)/2, spex(rec).spectra, meta, sig2noise, chi_squared, $
                           		  sigarea, sigwid, sigpos, sigbgnd, backgrounds, areas, widths, positions, $
-                          		  insprofs, initial_temp=itmp, min_iters=15, shiftpos = meta.scan_channels/2 - cpos, $
-                          		  only_zones = only_zones
+                          		  insprofs, initial_temp=itmp, min_iters=15, shiftpos = meta.scan_channels/2 - cpos
 			endelse
 
            	sdi3k_write_spekfitpars, ncid, rec, sig2noise, chi_squared, sigarea, sigwid, sigpos, sigbgnd, $

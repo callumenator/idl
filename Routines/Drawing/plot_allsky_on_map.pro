@@ -13,7 +13,8 @@ pro plot_allsky_on_map, map, $
 						true=true, $
 						offset=offset, $
 						alpha=alpha, $
-						ctable=ctable
+						ctable=ctable, $
+						webimage=webimage
 
 	COMMON Allsky_Plot, cached_map
 
@@ -23,6 +24,12 @@ pro plot_allsky_on_map, map, $
 		xdim = dim[1]
 		ydim = dim[2]
 		nchann = dim[0]
+
+		if keyword_set(webimage) then begin
+			image[0,*,*] = reverse(reform(image[0,*,*]), 2)
+			image[1,*,*] = reverse(reform(image[1,*,*]), 2)
+			image[2,*,*] = reverse(reform(image[2,*,*]), 2)
+		endif
 
 		if keyword_set(azi_plus) then begin
 			image[0,*,*] = rot(reform(image[0,*,*]), azi_plus)
