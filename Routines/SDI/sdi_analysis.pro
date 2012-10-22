@@ -132,7 +132,9 @@ pro sdi_analysis, directory, $
 							   stage = 0, $
 							   drift_mode = 'data', $
 							   xy_only = 0, $
-							   root_dir = 'c:\users\sdi\sdiplots\'
+							   root_dir = 'c:\users\sdi\sdiplots\', $
+							   /msis2000, $
+							   /hwm07
 
 			wait, 0.01
 	endfor
