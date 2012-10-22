@@ -13,6 +13,7 @@ pro sdi_analysis, directory, $
 				  move_to = move_to, $
 				  only_zones = only_zones, $
 				  skylist = skylist, $
+				  files_processed = files_processed, $
 				  ipc_info = ipc_info ;\\ inter-process communication info
 
 ;	catch, error_status
@@ -139,17 +140,22 @@ pro sdi_analysis, directory, $
 			wait, 0.01
 	endfor
 
-	;\\ FIle move error handler
+	;\\ File move error handler
 	catch, error_status
 	if error_status ne 0 then goto, SKIP_MOVE
 
+	base_dir = file_dirname(files_done[0])
+	files_done = file_basename(files_done)
+	u = files_done(sort(files_done))
+	files_done = u[uniq(u)]
+
 	if keyword_set(move_to) then begin
-		u = files_done(sort(files_done))
-		files_done = u[uniq(u)]
 		for i = 0, n_elements(files_done) - 1 do begin
-			file_move, files_done[i], move_to + '\' + file_basename(files_done[i])
+			file_move, base_dir + '\' + files_done[i], move_to + '\' + files_done[i]
 		endfor
 	endif
+
+	files_processed = files_done
 
 	SKIP_MOVE:
 	catch, /cancel

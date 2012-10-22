@@ -67,18 +67,6 @@ function sdi_monitor_job_timelapse, job
 	return, systime(/sec) - global.job_status[match].last_run
 end
 
-;\\ Return the data directory for a given site code
-function sdi_monitor_get_directory, site_code
-
-	common sdi_monitor_common, global, persistent
-
-	match = where(site_code eq global.data_directories.site_code, nmatch)
-	if (nmatch eq 0) then begin
-		return, 'F:\'
-	endif else begin
-		return, global.data_directories[match].directory
-	endelse
-end
 
 ;\\ Append a message string to the log
 pro sdi_monitor_log_append, msg_string
@@ -232,10 +220,6 @@ pro sdi_monitor_event, event
 
 		;\\ Queue next timer event
 			widget_control, timer = global.timer_interval, global.base_id
-
-
-		;\\ Check on running daily analysis jobs, and start new analysis tasks
-			;sdi_monitor_analysis
 
 
 		;\\ Manage the log (check if we need to open a new one, email the current one, etc)
@@ -627,14 +611,6 @@ pro sdi_monitor
 
 	;\\ Recipient list for email updates
 	email_list = ['callumenator@gmail.com']
-
-
-	;\\ Control where analyzed data are moved to
-	data_directories = [{site_code:'MAW', directory:'F:\SDIData\Mawson\'}, $
-						{site_code:'PKR', directory:'F:\SDIData\Poker\'}, $
-						{site_code:'HRP', directory:'F:\SDIData\Gakona\'}, $
-						{site_code:'TLK', directory:'F:\SDIData\Toolik\'}, $
-						{site_code:'KTO', directory:'F:\SDIData\Kaktovik\'} ]
 
 
 	;\\ Control which jobs will be run

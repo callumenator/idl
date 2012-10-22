@@ -158,30 +158,10 @@ pro sdi_monitor_timeseries
 								good = where(abs(sub - median(sub)) lt 10*meanabsdev(sub, /median), ngood)
 								if ngood gt 3 then begin
 
-									nzones = total(meta.zonemap_info.secs)
-									var = replicate({start_time:0.0, $
-													 end_time:0.0, $
-													 velocity:fltarr(nzones), $
-													 sigma_velocity:fltarr(nzones), $
-													 temperature:fltarr(nzones), $
-													 signal2noise:fltarr(nzones), $
-													 chi_squared:fltarr(nzones)}, i1-i0+1)
-
-									var.velocity = series[i0:i1].fits.position
-									var.sigma_velocity = series[i0:i1].fits.sigma_position
-									var.temperature = series[i0:i1].fits.width
-									var.signal2noise = series[i0:i1].fits.snr
-									var.chi_squared = series[i0:i1].fits.chi
-									var.start_time = series[i0:i1].start_time
-									var.end_time = series[i0:i1].end_time
-
-									mm = {site:meta.site_code, $
-										  zone_radii:meta.zonemap_info.rads[1:*]*100., $
-										  zone_sectors:meta.zonemap_info.secs, $
-										  rings:n_elements(meta.zonemap_info.rads)-1, $
-										  nzones:nzones, $
-										  wavelength_nm:meta.wavelength/10., $
-										  rotation_from_oval:0.}
+									 sdi_monitor_format, {metadata:meta, series:series[i0:i1]},  $ ;\\ {metadata:{}, series:[{}]}
+														 metadata = mm, $
+														 spekfits = var, $
+														 zone_centers = zone_centers
 
 									sdi3k_drift_correct, var, mm, /data_based, /force
 									parameter[i0:i1] = reform(var.velocity[0]*cnv)
