@@ -5,7 +5,7 @@ function import_IPS_magnetometer, filename
 
 
 	lines = file_lines(filename)
-	data = fltarr(lines, 5)
+	data = fltarr(5, lines-1)
 
 	header = ''
 	openr, hnd, filename, /get
@@ -13,9 +13,9 @@ function import_IPS_magnetometer, filename
 	readf, hnd, data
 	free_lun, hnd
 
-	data = {ut:data[*,0] + data[*,1]/60. + data[*,2]/3600., $
-			x:data[*,3], $
-			y:data[*,4] }
+	data = {ut:reform(data[0,*] + data[1,*]/60. + data[2,*]/3600.), $
+			x:reform(data[3,*]), $
+			y:reform(data[4,*]) }
 
 	return, data
 end
