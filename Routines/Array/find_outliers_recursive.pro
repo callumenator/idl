@@ -40,6 +40,8 @@ pro find_outliers_recursive, in_data, $
 			if outliers[0] eq -1 then recurse = 0
 		endif
 
+		if n_elements(complement) eq 0 then return
+
 		if recurse ne 0 then begin
 			total_outliers += nels(outliers)
 			all_outliers = [all_outliers, indices[outliers]] ;\\ need to keep track indices, since we replace in_data each pass
