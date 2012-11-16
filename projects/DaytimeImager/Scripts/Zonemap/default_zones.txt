@@ -1,0 +1,7 @@
+
+begin: annular
+
+  rads =  [0, .2, .4, .6, .8]
+  secs =  [1,  4,  6,  10]
+
+end
