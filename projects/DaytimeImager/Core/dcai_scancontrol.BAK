@@ -233,6 +233,7 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 		'increment':begin ;\\ INCREMENT THE SCAN CHANNELS IF SCANNING
 
+			;\\ IF A STRUCTURE ARGUMENT IS SUPPLIED, USE IT TO FORCE AN ETALON TO A GIVEN CHANNEL
 			set_channel = lonarr(n_elements(dcai_global.settings.etalon))
 			set_channel[*] = -1L
 			force_channel = 0

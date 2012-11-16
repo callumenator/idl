@@ -149,8 +149,7 @@ pro DCAI_ScanCalibrate::Calibrate, event
 	endelse
 
 
-	;\\ CALCULATE CENTRAL WAVELENGTH FOR EACH ETALON, BASED ON THE PHASEMAP
-	;\\ AND ETALON GAP
+	;\\ CALCULATE CENTRAL WAVELENGTH FOR EACH ETALON, BASED ON THE PHASEMAP AND ETALON GAP
 	for k = 0, n_elements(dcai_global.settings.etalon) - 1 do begin
 		if size(*dcai_global.info.phasemap[k], /type) eq 0 then begin
 			res = dialog_message('No Phasemap for etalon ' + string(k, f='(i0)') + $
@@ -194,6 +193,8 @@ pro DCAI_ScanCalibrate::Calibrate, event
 		endelse
 	endfor
 
+	;\\ SAVE THIS LATEST DATA
+		DCAI_Control_Persistent, /save
 
 	self->UpdateInfo
 end

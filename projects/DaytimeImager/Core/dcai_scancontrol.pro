@@ -332,6 +332,7 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 
 		'getpixelwavelength':begin
+
 			pmaps = intarr(n_elements(dcai_global.info.phasemap))
 			for k = 0, n_elements(pmaps) - 1 do pmaps[k] = size(*dcai_global.info.phasemap[k], /type) ne 0
 			pts = where(pmaps ne 0, npmap)
@@ -339,12 +340,12 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 			;\\ FIND CLOSEST CALIBRATION INFO
 			cws = dcai_global.scan.center_wavelength
-			diff = abs(cws[0,*].view_wavelength_nm - argument.nominal_wavelength)
+			diff = abs(cws[0,*].view_wavelength_nm - argument.nominal_wavelength) ;\\ view_wavelength is phasemap wavelength
 			pt = (where(diff eq min(diff)))[0]
 			cws = reform(cws[*, pt])
 
 
-			;\\ COMBINE THE PHASEMAPS
+			;\\ COMBINE THE PHASEMAPS USING A WEIGHTED AVERAGE
 			if npmap eq 1 then begin
 				pmap = *dcai_global.info.phasemap[pts[0]]/cws[pts[0]].view_wavelength_nm
 				lmap = cws[pts[0]].fsr * (pmap - pmap[cws[0].center[0], cws[0].center[1]])

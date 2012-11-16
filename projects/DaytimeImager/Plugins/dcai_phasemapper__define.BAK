@@ -137,7 +137,8 @@ pro DCAI_Phasemapper::frame
 			args = 0
 			for k = 0, n_elements(self.etalons) - 1 do begin
 				if self.etalons[k] eq 1 then begin
-					arg = {caller:self, etalon:k, n_channels:self.channels, wavelength_nm:self.wavelength}
+					arg = {caller:self, etalon:k, n_channels:self.channels, wavelength_nm:self.wavelength, $
+						   start_voltage:dcai_global.settings.etalon[k].scan_voltage}
 					if size(args, /type) eq 2 then args = arg else args = [args, arg]
 				endif
 			endfor

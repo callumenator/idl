@@ -19,17 +19,25 @@ pro DCAI_InitGui, running = running
 	 		ys = 0
 	 		btn_font = 'Ariel*14'
 			if keyword_set(running) then btn_val = 'Start Script Exec.' else btn_val = 'Stop Script Exec.'
-			start_stop_button = widget_button(script_base, value = btn_val, font = btn_font, uval = {tag:'stop_start_button'}, xs=bs, ys=ys)
-			DCAI_btn = widget_button(script_base, value = 'Load Script', font = btn_font, uval = {tag:'load_script_button'}, xs=bs, ys=ys)
-			DCAI_btn = widget_button(script_base, value = 'Reset Script', font = btn_font, uval = {tag:'reset_script_button'}, xs=bs, ys=ys)
+			start_stop_button = widget_button(script_base, value = btn_val, font = btn_font, uval = {tag:'stop_start_button'}, xs=bs, ys=ys, $
+											  tooltip = 'Start/top executing the current schedule script')
+			DCAI_btn = widget_button(script_base, value = 'Load Script', font = btn_font, uval = {tag:'load_script_button'}, xs=bs, ys=ys, $
+									 tooltip = 'Load a schedule script')
+			DCAI_btn = widget_button(script_base, value = 'Reset Script', font = btn_font, uval = {tag:'reset_script_button'}, xs=bs, ys=ys, $
+									 tooltip = 'Send reset command to current schedule script')
 			sets_base = widget_base(b0_top_1, col = 3)
-			DCAI_btn = widget_button(sets_base, value = 'Load Settings', font = btn_font, uval = {tag:'load_settings_button'}, xs=bs, ys=ys)
-			DCAI_btn = widget_button(sets_base, value = 'Save Settings', font = btn_font, uval = {tag:'save_settings_button'}, xs=bs, ys=ys)
-			DCAI_btn = widget_button(sets_base, value = 'Show Settings', font = btn_font, uval = {tag:'show_settings_button'}, xs=bs, ys=ys)
+			DCAI_btn = widget_button(sets_base, value = 'Load Settings', font = btn_font, uval = {tag:'load_settings_button'}, xs=bs, ys=ys, $
+									 tooltip = 'Load a new settings file')
+			DCAI_btn = widget_button(sets_base, value = 'Save Settings', font = btn_font, uval = {tag:'save_settings_button'}, xs=bs, ys=ys, $
+									 tooltip = 'Save the current settings')
+			DCAI_btn = widget_button(sets_base, value = 'Show Settings', font = btn_font, uval = {tag:'show_settings_button'}, xs=bs, ys=ys, $
+									 tooltip = 'Display the current settings')
 			cam_base = widget_base(b0_top_1, col = 3)
-			DCAI_btn = widget_button(cam_base, value = 'Camera Driver', font = btn_font, uval = {tag:'start_camera_driver'}, xs=bs, ys=ys)
+			DCAI_btn = widget_button(cam_base, value = 'Camera Driver', font = btn_font, uval = {tag:'start_camera_driver'}, xs=bs, ys=ys, $
+									 tooltip = 'Launch an interface to the camera')
 			init_base = widget_base(b0_top_1, col = 1)
-			DCAI_btn = widget_button(init_base, value = 'Re-Init', font = btn_font, uval = {tag:'reinit'}, xs=bs, ys=ys)
+			DCAI_btn = widget_button(init_base, value = 'Re-Init', font = btn_font, uval = {tag:'reinit'}, xs=bs, ys=ys, $
+									 tooltip = 'Reinitialize etalons')
 
 		b0_top_2 = widget_base(b0_top, row = 5)
 

@@ -61,7 +61,7 @@ pro DCAI_InitGui, running = running
 
 			  	b1_2 = widget_base(b0_bottom_2, row = 2)
 			    	DCAI_list_label = widget_label(b1_2, value = 'Current Queue:', font='Ariel*17')
-			    	DCAI_queue = widget_list(b1_2, xs = 70, ys = 8, font='Ariel*14', sensitive=0)
+			    	DCAI_queue = widget_list(b1_2, xs = 70, ys = 8, font='Ariel*14')
 
 	n_etalons = n_elements(dcai_global.settings.etalon)
 	leg_wids = lonarr(n_etalons, 3)
