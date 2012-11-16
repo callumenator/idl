@@ -1,4 +1,16 @@
 
+;\\ FOR GAIN AND PARALLELISM:
+;\\ CLICK RESET ALL (GAIN CALCULATE -> RESET ALL)
+;\\ DRIVE LEGS TO LOW END OF RANGE, AND ADJUST TILT UNTIL FRINGES ARE PARALLEL
+;\\ CLICK SET REFERENCE (GAIN CALCULATE -> SET REFERENCE)
+;\\ DRIVE TO HIGH END OF RANGE, ADJUST TILT UNTIL FRINGES PARALLEL
+;\\ CLICK CALCULATE (GAIN CALCULATE -> CALCULATE)
+;\\ TO SAVE, SLICK APPLY CURRENT SETTINGS
+
+;\\ LEG TILT WILL DISPLAY THE REQUIRED OFFSETS RELATIVE TO LEG 0 AT THE REFERENCE
+;\\ POSITION. ALL THAT IS REQUIRED TO MAINTAIN PARALLELISM THROUGHOUT THE SCAN
+;\\ IS THEN A GAIN FACTOR APPLIED TO EACH LEG.
+
 function DCAI_Etalon::init
 
 	common DCAI_Control, dcai_global
@@ -134,19 +146,22 @@ function DCAI_Etalon::init
 
 					;\\ APPLY WEDGE
 					wedge_btn = widget_button(btn_base, value = 'Apply Wedge', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ApplyWedge', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ApplyWedge', etalon:i}, $
+											  tooltip = 'Apply a wedge to the plates, using values from settings file')
 
 					;\\ ADD A BUTTON TO RESET LEGS TO SCAN VOLTAGE + PARALLEL TILTS
 					reset_btn = widget_button(btn_base, value = 'Reset Legs', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ResetLegs', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ResetLegs', etalon:i}, $
+											  tooltip = 'Set legs to the current scan voltage (including parallel offsets')
 
 					;\\ ADD A BUTTON TO APPLY THE CURRENT LEG OFFSETS AND GAINS TO THE SETTINGS FILE, AND SAVE THEM
 					apply_btn = widget_button(btn_base, value = 'Apply Current Settings', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ApplySettings', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ApplySettings', etalon:i}, $
+											  tooltip = 'Save the current leg offsets, gains and tilts to the settings file')
 
 		endfor
 
-	;\\ REGISTER FOR FRAME EVENTS
+	;\\ REGISTER FOR TIMER EVENTS
 		DCAI_Control_RegisterPlugin, _base, self, /timer
 
 	for i = 0, n_etalons - 1 do begin
@@ -201,7 +216,7 @@ pro DCAI_Etalon::LegUpdate, force_slider=force_slider
 end
 
 
-;\\ APPLY THE CURRENT LEF GAINS AND OFFSETS TO THE SAVE FILE, AND SAVE THEM
+;\\ APPLY THE CURRENT LEG GAINS AND OFFSETS TO THE SAVE FILE, AND SAVE THEM
 pro DCAI_Etalon::ApplySettings, event
 
 	COMMON DCAI_Control, dcai_global

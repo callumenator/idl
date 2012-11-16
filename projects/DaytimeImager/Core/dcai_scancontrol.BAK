@@ -284,8 +284,10 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 
 						;\\ KEEP THE LEG VOLTAGES INSIDE THEIR RANGES
-						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage > dcai_global.settings.etalon[idx].voltage_range[0]
-						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage < dcai_global.settings.etalon[idx].voltage_range[1]
+						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage > $
+																	   dcai_global.settings.etalon[idx].voltage_range[0]
+						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage < $
+																	   dcai_global.settings.etalon[idx].voltage_range[1]
 
 						DCAI_Log, 'E'+string(idx, f='(i0)') + strjoin(string(dcai_global.settings.etalon[idx].leg_voltage, f='(i0)'), ','), /no_write
 

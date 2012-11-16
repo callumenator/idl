@@ -1,4 +1,16 @@
 
+;\\ FOR GAIN AND PARALLELISM:
+;\\ CLICK RESET ALL (GAIN CALCULATE -> RESET ALL)
+;\\ DRIVE LEGS TO LOW END OF RANGE, AND ADJUST TILT UNTIL FRINGES ARE PARALLEL
+;\\ CLICK SET REFERENCE (GAIN CALCULATE -> SET REFERENCE)
+;\\ DRIVE TO HIGH END OF RANGE, ADJUST TILT UNTIL FRINGES PARALLEL
+;\\ CLICK CALCULATE (GAIN CALCULATE -> CALCULATE)
+;\\ TO SAVE, SLICK APPLY CURRENT SETTINGS
+
+;\\ LEG TILT WILL DISPLAY THE REQUIRED OFFSETS RELATIVE TO LEG 0 AT THE REFERENCE
+;\\ POSITION. ALL THAT IS REQUIRED TO MAINTAIN PARALLELISM THROUGHOUT THE SCAN
+;\\ IS THEN A GAIN FACTOR APPLIED TO EACH LEG.
+
 function DCAI_Etalon::init
 
 	common DCAI_Control, dcai_global
@@ -89,11 +101,14 @@ function DCAI_Etalon::init
 					gain_set_base = widget_base(edit_base, col=1)
 					gain_label = widget_label(gain_set_base, value='Gain Calculate', font=font+'*Bold')
 						btn = widget_button(gain_set_base, value='Set Reference', font=font, $
-									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'set', etalon:i})
+									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'set', etalon:i}, $
+									tooltip = 'Use the current leg voltages and tilts as reference position')
 						btn = widget_button(gain_set_base, value='Calculate', font=font, $
-									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'calc', etalon:i})
+									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'calc', etalon:i}, $
+									tooltip = 'Calculate leg gains using current voltages and tilts, relative to reference')
 						btn = widget_button(gain_set_base, value='Reset All', font=font, $
-									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'reset', etalon:i})
+									uval={tag:'plugin_event', object:self, method:'GainCalculate', action:'reset', etalon:i}, $
+									tooltip = 'Clear all leg gains')
 
 
 					;\\ SCAN VOLTAGE
@@ -105,7 +120,8 @@ function DCAI_Etalon::init
 					;\\ LEG SLIDERS
 					together_base = widget_base(slider_base, /nonexclusive)
 					rel_move = widget_button(together_base, value = 'Maintain Relative Offsets', $
-														  uval = {tag:'plugin_event', object:self, method:'MoveTogether', etalon:i}, font=font)
+											 uval = {tag:'plugin_event', object:self, method:'MoveTogether', etalon:i}, font=font, $
+											 tooltip = 'Select this to move all legs together')
 					if self.move_together[i] eq 1 then widget_control, rel_move, /set_button
 					leg1_slider = widget_slider(slider_base, max = e.voltage_range[1], min = e.voltage_range[0], xs = 300, value = e.leg_voltage[0], font=font, $
 												/align_center, title = 'Leg 1', uval = {tag:'plugin_event', object:self, method:'LegSlider', etalon:i, leg:0}, /drag)
@@ -120,10 +136,14 @@ function DCAI_Etalon::init
 				parallel_base = widget_base(base_left, col = 1, frame=0)
 					parallel_lab = widget_label(parallel_base, value = '2-Axis Parallelism', font=font+ '*Bold', /align_center)
 					parallel_base_1 = widget_base(parallel_base, col = 5)
-						x_up = widget_button(parallel_base_1, value = 'X+', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'x+', etalon:i}, xs=47)
-						x_down = widget_button(parallel_base_1, value = 'X-', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'x-', etalon:i}, xs=47)
-						y_up = widget_button(parallel_base_1, value = 'Y+', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'y+', etalon:i}, xs=47)
-						y_down = widget_button(parallel_base_1, value = 'Y-', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'y-', etalon:i}, xs=47)
+						x_up = widget_button(parallel_base_1, value = 'X+', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'x+', etalon:i}, xs=47, $
+											 tooltip = 'Adjust tilt along x-axis')
+						x_down = widget_button(parallel_base_1, value = 'X-', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'x-', etalon:i}, xs=47, $
+											   tooltip = 'Adjust tilt along x-axis')
+						y_up = widget_button(parallel_base_1, value = 'Y+', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'y+', etalon:i}, xs=47, $
+											 tooltip = 'Adjust tilt along y-axis')
+						y_down = widget_button(parallel_base_1, value = 'Y-', font=font, uval={tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'y-', etalon:i}, xs=47, $
+											   tooltip = 'Adjust tilt along y-axis')
 
 						widget_edit_field, parallel_base_1, label = 'Step Size', font = font, start_val=string(self.parallel_step[i], f='(f0.5)'), $
 										   edit_uval = {tag:'plugin_event', object:self, method:'TwoAxisParallel', action:'step', etalon:i}, edit_xs = 10
@@ -134,15 +154,18 @@ function DCAI_Etalon::init
 
 					;\\ APPLY WEDGE
 					wedge_btn = widget_button(btn_base, value = 'Apply Wedge', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ApplyWedge', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ApplyWedge', etalon:i}, $
+											  tooltip = 'Apply a wedge to the plates, using values from settings file')
 
 					;\\ ADD A BUTTON TO RESET LEGS TO SCAN VOLTAGE + PARALLEL TILTS
 					reset_btn = widget_button(btn_base, value = 'Reset Legs', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ResetLegs', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ResetLegs', etalon:i}, $
+											  tooltip = 'Set legs to the current scan voltage (including parallelism tilts)')
 
 					;\\ ADD A BUTTON TO APPLY THE CURRENT LEG OFFSETS AND GAINS TO THE SETTINGS FILE, AND SAVE THEM
 					apply_btn = widget_button(btn_base, value = 'Apply Current Settings', font=dcai_global.gui.font, $
-											  uval = {tag:'plugin_event', object:self, method:'ApplySettings', etalon:i})
+											  uval = {tag:'plugin_event', object:self, method:'ApplySettings', etalon:i}, $
+											  tooltip = 'Save the current leg offsets, gains and tilts to the settings file')
 
 		endfor
 
@@ -201,7 +224,7 @@ pro DCAI_Etalon::LegUpdate, force_slider=force_slider
 end
 
 
-;\\ APPLY THE CURRENT LEF GAINS AND OFFSETS TO THE SAVE FILE, AND SAVE THEM
+;\\ APPLY THE CURRENT LEG GAINS AND OFFSETS TO THE SAVE FILE, AND SAVE THEM
 pro DCAI_Etalon::ApplySettings, event
 
 	COMMON DCAI_Control, dcai_global

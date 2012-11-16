@@ -41,6 +41,7 @@ pro DCAI_Drivers, command
 		'etalon_init':begin
 
 			dcai_log, 'Initialising Etalons'
+			return
 
 			for k = 0, n_elements(dcai_global.settings.etalon) - 1 do begin
 				comms_wrapper, dcai_global.settings.etalon[k].port, dcai_global.settings.external_dll, $

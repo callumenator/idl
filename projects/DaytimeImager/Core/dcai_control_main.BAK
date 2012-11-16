@@ -184,7 +184,10 @@ pro DCAI_Control_Persistent, save=save, load=load
 
 		save, filename=filename, persistent_data
 
+		return
 	endif	;\\ END SAVE
+
+
 
 
 	if keyword_set(load) then begin

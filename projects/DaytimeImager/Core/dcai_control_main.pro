@@ -184,7 +184,10 @@ pro DCAI_Control_Persistent, save=save, load=load
 
 		save, filename=filename, persistent_data
 
+		return
 	endif	;\\ END SAVE
+
+
 
 
 	if keyword_set(load) then begin
@@ -196,6 +199,7 @@ pro DCAI_Control_Persistent, save=save, load=load
 		;\\ DO WE HAVE PHASEMAP DATA?
 		tag = (where(tag_names(persistent_data) eq 'PHASEMAPS', tag_yn))[0]
 		if tag_yn eq 1 then begin
+
 			;\\ ONLY ATTEMPT TO RESTORE IF BOTH CURRENT AND SAVED SETTINGS INDICATE
 			;\\ SAME NUMBER OF ETALONS, AND SAME IMAGE SIZE
 			n_dims = size(persistent_data.phasemaps, /n_dimensions)
