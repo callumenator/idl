@@ -1,6 +1,8 @@
 
 function DCAI_SettingsTemplate
 
+	whoami, dir, file
+
 	etalon = {port:0, $
 			  gap_mm:0.0, $
 			  refractive_index:1.0, $
@@ -17,12 +19,12 @@ function DCAI_SettingsTemplate
 			  name:['one','two','three','four','five','six'], $
 			  current:0 }
 
-	paths = {log:'C:\Cal\IdlSource\DaytimeImager\Logs\', $
-			 persistent:'C:\Cal\IdlSource\DaytimeImager\Persistent\', $
-			 plugin_base:'C:\Cal\IdlSource\DaytimeImager\Plugins\', $
-			 plugin_settings:'C:\Cal\IdlSource\DaytimeImager\Plugins\Plugin_Settings\', $
-			 screen_capture:'C:\Cal\IdlSource\DaytimeImager\Plugins\ScreenCaps\', $
-			 zonemaps:'C:\Cal\IdlSource\DaytimeImager\Scripts\Zonemap\'}
+	paths = {log:dir + '..\Logs\', $
+			 persistent:dir + '..\Persistent\', $
+			 plugin_base:dir + '..\Plugins\', $
+			 plugin_settings:dir + '..\Plugins\Plugin_Settings\', $
+			 screen_capture:dir + '..\Plugins\ScreenCaps\', $
+			 zonemaps:dir + '..\Scripts\Zonemap\'}
 
 	site = {name:'', $
 			code:'', $

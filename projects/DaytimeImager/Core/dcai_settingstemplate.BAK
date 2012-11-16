@@ -21,7 +21,8 @@ function DCAI_SettingsTemplate
 			 persistent:'C:\Cal\IdlSource\DaytimeImager\Persistent\', $
 			 plugin_base:'C:\Cal\IdlSource\DaytimeImager\Plugins\', $
 			 plugin_settings:'C:\Cal\IdlSource\DaytimeImager\Plugins\Plugin_Settings\', $
-			 screen_capture:'C:\Cal\IdlSource\DaytimeImager\Plugins\ScreenCaps\'}
+			 screen_capture:'C:\Cal\IdlSource\DaytimeImager\Plugins\ScreenCaps\', $
+			 zonemaps:'C:\Cal\IdlSource\DaytimeImager\Scripts\Zonemap\'}
 
 	site = {name:'', $
 			code:'', $

@@ -136,6 +136,16 @@ pro DCAI_SettingsWrite, settings, filename, $
 		close, f
 		free_lun, f
 
+		;\\ COMPILE IT
+		catch, err
+		if err ne 0 then begin
+			catch, /cancel
+			resolve_routine, pro_name, /compile_full
+		endif else begin
+			call_procedure, file_dirname(filename) + '\' + pro_name
+		endelse
+
+
 	endif
 
 	out_text = list
