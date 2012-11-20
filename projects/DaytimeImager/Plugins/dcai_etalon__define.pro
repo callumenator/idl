@@ -146,7 +146,7 @@ function DCAI_Etalon::init
 
 		endfor
 
-	;\\ REGISTER FOR FRAME EVENTS
+	;\\ REGISTER FOR TIMER EVENTS
 		DCAI_Control_RegisterPlugin, _base, self, /timer
 
 	for i = 0, n_etalons - 1 do begin

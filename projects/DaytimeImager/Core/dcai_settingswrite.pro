@@ -136,8 +136,15 @@ pro DCAI_SettingsWrite, settings, filename, $
 		close, f
 		free_lun, f
 
-		;\\ COMPILE IT
-		resolve_routine, pro_name, /compile_full
+		;\\ COMPILE IT (THIS IS A ROUNDABOUT WAY OF DOING IT, BUT SEEMS TO BE REQUIRED)
+		catch, err
+		if err ne 0 then begin
+			catch, /cancel
+			resolve_routine, pro_name, /compile_full ;\\ THIS WILL MAKE SURE OF COMPILE
+		endif else begin
+			call_procedure, file_dirname(filename) + '\' + pro_name ;\\ THIS WILL COMPILE BUT FAIL TO CALL
+		endelse
+
 
 	endif
 

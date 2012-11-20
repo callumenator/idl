@@ -638,6 +638,15 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			result = [result, 'uSetTriggerMode: '+ string(in.triggerMode, f='(i0)') + ' - '+res]
 			out = [out, thisout]
 
+			Andor_Camera_Driver, dll, 'uSetFrameTransferMode', in.frameTransfer, thisout, res
+			result = [result, 'uSetFrameTransferMode: '+ string(in.frameTransfer, f='(i0)') + ' - '+res]
+			out = [out, thisout]
+
+			Andor_Camera_Driver, dll, 'uSetBaselineClamp', in.baselineClamp, thisout, res
+			result = [result, 'uSetBaselineClamp: '+ string(in.baselineClamp, f='(i0)') + ' - '+res]
+			out = [out, thisout]
+
+
 		    Andor_Camera_Driver, dll, 'uSetTemperature', in.settemp, thisout, res
 		    result = [result, 'uSetTemperature: '+ string(in.settemp, f='(i0)') + ' - '+res]
 		    out = [out, thisout]

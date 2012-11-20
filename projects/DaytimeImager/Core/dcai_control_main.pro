@@ -296,9 +296,10 @@ pro DCAI_Control_Main, external_dll, $
 				 timer_ticks:0, $ 			;\\ Track all timer ticks
 				 run:1, $ 					;\\ Flag to indicate that we are running
 
-				 image:ptr_new(/alloc), $ 	;\\ Most recently acquired image
-				 image_systime:0D, $		;\\ systime(/sec) at which image was acquired
-				 frame_rate:0D, $, 			;\\ Frame rate
+				 image:ptr_new(/alloc), $ 		;\\ Most recently acquired processed image
+				 raw_image:ptr_new(/alloc), $ 	;\\ Most recently acquired raw image
+				 image_systime:0D, $			;\\ systime(/sec) at which image was acquired
+				 frame_rate:0D, $, 				;\\ Frame rate
 				 phasemap:[ptr_new(/alloc), ptr_new(/alloc)], $ ;\\ Phasemap, one for each etalon, one for both etalons
 				 phasemap_systime:[0D, 0D, 0D], $ ;\\ systime(/sec) at which phasemap was acquired, for each etalon
 

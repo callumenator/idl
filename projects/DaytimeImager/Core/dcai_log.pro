@@ -16,10 +16,11 @@ pro DCAI_Log, in_string, $
 		dcai_global.log.n_entries ++
 	endif else begin
 		widget_control, get_value = curr_log, dcai_global.gui.log
-		dcai_global.log.n_entries -= 50
-		widget_control, set_value = curr_log[50:*], dcai_global.gui.log
+		sub_log = curr_log[50:*]
+		dcai_global.log.n_entries = n_elements(sub_log)
+		widget_control, set_value = sub_log, dcai_global.gui.log
 		widget_control, set_value = log_string, dcai_global.gui.log, /append
-		widget_control, set_text_top_line = (dcai_global.log.n_entries - 10) > 0,dcai_global. gui.log
+		widget_control, set_text_top_line = (dcai_global.log.n_entries - 10) > 0, dcai_global. gui.log
 		dcai_global.log.n_entries ++
 	endelse
 

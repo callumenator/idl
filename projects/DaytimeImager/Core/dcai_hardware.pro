@@ -48,6 +48,7 @@ pro DCAI_Hardware, init = init, $
 			imageMode = dcai_global.info.camera_settings.imageMode
 			Andor_Camera_Driver, dcai_global.settings.external_dll, 'uGrabFrame', {mode:-1, imageMode:imageMode}, out, res
 			*dcai_global.info.image = out.image
+			*dcai_global.info.raw_image = out.image
 
 		;\\ INIT THE ETALON(S)
 			call_procedure, dcai_global.info.drivers, {device:'etalon_init'}

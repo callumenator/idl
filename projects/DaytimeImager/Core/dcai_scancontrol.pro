@@ -154,12 +154,8 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 					;\\ CALCULATE WHERE THE SCAN NEEDS TO START
 					del_lambda = argument.wavelength_range_nm[0] - cws[etz_idx,cws_idx].center_wavelength_nm
-
-					;\\ CONVERT TO # ORDERS
-					del_orders = (del_lambda / cws[etz_idx,cws_idx].fsr) mod 1
-
-					;\\ CONVERT TO 'VOLTAGE'
-					del_volts = del_orders * etz.steps_per_order * dcai_global.scan.wavelength_nm
+					del_orders = (del_lambda / cws[etz_idx,cws_idx].fsr) mod 1    					;\\ CONVERT TO # ORDERS
+					del_volts = del_orders * etz.steps_per_order * dcai_global.scan.wavelength_nm 	;\\ CONVERT TO 'VOLTAGE'
 
 					;\\ SET THE STARTING NOMINAL VOLTAGE
 					home_volts = cws[etz_idx,cws_idx].home_voltage
@@ -288,8 +284,10 @@ function DCAI_ScanControl, command, scan_type, argument, $
 
 
 						;\\ KEEP THE LEG VOLTAGES INSIDE THEIR RANGES
-						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage > dcai_global.settings.etalon[idx].voltage_range[0]
-						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage < dcai_global.settings.etalon[idx].voltage_range[1]
+						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage > $
+																	   dcai_global.settings.etalon[idx].voltage_range[0]
+						dcai_global.settings.etalon[idx].leg_voltage = dcai_global.settings.etalon[idx].leg_voltage < $
+																	   dcai_global.settings.etalon[idx].voltage_range[1]
 
 						DCAI_Log, 'E'+string(idx, f='(i0)') + strjoin(string(dcai_global.settings.etalon[idx].leg_voltage, f='(i0)'), ','), /no_write
 

@@ -56,7 +56,9 @@ pro DCAI_LoadCameraSetting_Readback, exposureTime = exposureTime, $
 	endif
 
 	if keyword_set(vsSpeed) then begin
-		vshift = (*dcai_global.info.camera_caps).vsspeeds[dcai_global.info.camera_settings.vsspeedi]
+		vsspeedi = dcai_global.info.camera_settings.vsspeedi < (n_elements((*dcai_global.info.camera_caps).vsspeeds) - 1)
+		vsspeedi = vsspeedi > 0
+		vshift = (*dcai_global.info.camera_caps).vsspeeds[vsspeedi]
 		dcai_global.info.camera_settings.vsspeed = vshift
 	endif
 

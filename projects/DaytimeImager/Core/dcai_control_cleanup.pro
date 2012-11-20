@@ -81,6 +81,7 @@ pro DCAI_Control_Cleanup, id, object=object
 		;\\ CLEAN UP THE HEAP VARIABLES
 			ptr_free, dcai_global.info.camera_caps
 			ptr_free, dcai_global.info.image
+			ptr_free, dcai_global.info.raw_image
 			ptr_free, dcai_global.info.phasemap
 			ptr_free, dcai_global.info.current_queue
 			ptr_free, dcai_global.info.plugins

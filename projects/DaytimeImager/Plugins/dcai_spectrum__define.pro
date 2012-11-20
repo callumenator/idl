@@ -106,17 +106,18 @@ pro DCAI_Spectrum::frame
 		;\\ DISPLAY THE ACCUMULATED IMAGE
 			loadct, 0, /silent
 			wset, self.lambdas[id].window_ids[0]
+			idim = size(image, /dimensions)
 			wdim = reform(self.lambdas[id].window_dims[0,*])
 			accum = *self.lambdas[id].accumulated_image
 			imsrt = accum[sort(accum)]
 			nels = n_elements(imsrt)
-			tv, bytscl(accum, min=imsrt[nels*.01], max=imsrt[nels*.99])
+			tv, congrid(bytscl(accum, min=imsrt[nels*.01], max=imsrt[nels*.99]), wdim[0], wdim[1], /interp)
 
-
-		;\\ STORE SOME INFO
-			(*self.lambdas[id].snr_history)[scan] = snr
-			(*self.lambdas[id].bgr_history)[scan] = bgr
-			self.lambdas[id].current_scan ++
+		;\\ PLOT ZONE BOUNDARIES
+			plot_zone_bounds, wdim[0], (*self.lambdas[id].zone_info).rads, $
+									   (*self.lambdas[id].zone_info).secs, $
+									   thick=1, color=255, ctable=0, $
+									   offset=((*self.lambdas[id].zone_info).center - (idim/2)) * (float(wdim)/idim)
 
 		;\\ CALCULATE BACKGROUND AND SNR, AND PLOT SPECTRA
 
@@ -131,13 +132,15 @@ pro DCAI_Spectrum::frame
 								{nominal_wavelength:self.lambdas[id].wavelength, $
 								 center_wavelength:0.0, pixel:[-1,-1]})
 
-				zc = *self.lambdas[id].zone_centers
+				zc = (*self.lambdas[id].zone_info).zone_centers
 				blank = replicate(' ', 20)
-
-				defined = where(*self.lambdas[id].zonemap ne -1)
-				lrange = self.lambdas[id].wavelength_range + ([-1, 1]*max(abs(offsets[defined])))
-				del_l = (lrange[1]-lrange[0])/float(spec_dims[1]-1)
-				xaxis = findgen(spec_dims[1])*del_l + lrange[0]
+				min_l = self.lambdas[id].wavelength_range[0] - $
+						abs(self.lambdas[id].wavelength_range_full[1]-$
+							self.lambdas[id].wavelength_range[1])
+				dl = (self.lambdas[id].wavelength_range_full[1] - $
+					  self.lambdas[id].wavelength_range_full[0]) / $
+					  (self.lambdas[id].n_scan_channels - 1)
+				xaxis = findgen(spec_dims[1])*dl + min_l
 
 			;\\ loop
 				for z = 0, spec_dims[0] - 1 do begin
@@ -150,7 +153,6 @@ pro DCAI_Spectrum::frame
 				    bgr  += spec_dims[1]*min(smooth(spx[use],7))
 				    power = (abs(fft(spx[use])))^2
 					signal_noise[z] = power[1]/median(power[(n_chann*3./8.):(n_chann/2.)])
-					zone_power[z] = power[1]
 
 				;\\ now plot
 					sn = norm(sort(norm))
@@ -163,24 +165,30 @@ pro DCAI_Spectrum::frame
 
 					plot, xaxis, xaxis, color = 255, /nodata, yrange = [0, max(spx)], $
 						  /noerase, xtickname=blank, xstyle=5, ystyle=5, $
-						  pos=[zc[zidx,0],zc[zidx,1],zc[zidx,0],zc[zidx,1]] + [-.07,-.07,.07,.07]
+						  pos=[zc[z,0],zc[z,1],zc[z,0],zc[z,1]] + [-.07,-.07,.07,.07]
 					oplot, self.lambdas[id].wavelength_range[[0,0]], [0,max(spx)], color = 100, line=1
 					oplot, self.lambdas[id].wavelength_range[[1,1]], [0,max(spx)], color = 100, line=1
 					oplot, xaxis[use], spx
 
 					;\\ TEMPORARY - FOR TESTING
-					if zidx eq 0 then begin
+					if z eq -1 then begin
 						window, 0
 						dell = (self.lambdas[id].wavelength_range_full[1]-$
 								self.lambdas[id].wavelength_range_full[0]) / $
 								(self.lambdas[id].n_scan_channels-1)
-						plot, (xaxis*dell + lrange[0]), float(reform((*self.lambdas[id].spectra)[zidx, *])), $
+						plot, xaxis, float(reform((*self.lambdas[id].spectra)[z, *])), $
 								psym=-1, sym=.5
 						wset, self.lambdas[id].window_ids[0]
 					endif
 				endfor
 
 				snr = median(signal_noise)
+
+		;\\ STORE SOME INFO
+			(*self.lambdas[id].snr_history)[scan] = snr
+			(*self.lambdas[id].bgr_history)[scan] = bgr
+			self.lambdas[id].current_scan ++
+
 
 
 		;\\ CHECK TO SEE IF THE EXPOSURE IS FINISHED
@@ -550,7 +558,7 @@ pro DCAI_Spectrum::NewSpectrum, info
 	self.lambdas[index].wavelength_range = [info.start_lambda, info.stop_lambda]
 	self.lambdas[index].etalons = info.etalons
 	self.lambdas[index].zonemap = ptr_new(zonemap.zonemap)
-	self.lambdas[index].zone_centers = ptr_new(zonemap.zone_centers)
+	self.lambdas[index].zone_info = ptr_new(zonemap)
 	self.lambdas[index].num_exposures = 1
 
 	;\\ MAKE SURE WE HAVE ALL THE PHASEMAPS REQUIRED
@@ -840,7 +848,7 @@ pro DCAI_Spectrum::RemoveSpectrum, event, index=index, no_confirm=no_confirm
 			ptr_free, self.lambdas[index].spectra
 			ptr_free, self.lambdas[index].zonemap
 			ptr_free, self.lambdas[index].normmap
-			ptr_free, self.lambdas[index].zone_centers
+			ptr_free, self.lambdas[index].zone_info
 			ptr_free, self.lambdas[index].phasemap
 			ptr_free, self.lambdas[index].snr_history
 			ptr_free, self.lambdas[index].bgr_history
@@ -983,6 +991,9 @@ function DCAI_Spectrum::BuildZonemap, filename, dimensions, center
 			zone_centers[*,0] /= float(dimensions[0])
 			zone_centers[*,1] /= float(dimensions[1])
 			return, {error:'none', $
+					 rads:rads, $
+					 secs:secs, $
+					 center:center, $
 					 zonemap:zonemap, $
 					 n_zones:max(zonemap)+1, $
 					 zone_centers:zone_centers}
@@ -1003,7 +1014,7 @@ pro DCAI_Spectrum::Cleanup
 		ptr_free, self.lambdas[j].spectra
 		ptr_free, self.lambdas[j].zonemap
 		ptr_free, self.lambdas[j].normmap
-		ptr_free, self.lambdas[j].zone_centers
+		ptr_free, self.lambdas[j].zone_info
 		ptr_free, self.lambdas[j].phasemap
 		ptr_free, self.lambdas[j].snr_history
 		ptr_free, self.lambdas[j].bgr_history
@@ -1046,7 +1057,7 @@ pro DCAI_Spectrum__define
 				  spectra:ptr_new(/alloc), $
 				  zonemap:ptr_new(/alloc), $
 				  normmap:ptr_new(/alloc), $
-				  zone_centers:ptr_new(/alloc), $
+				  zone_info:ptr_new(/alloc), $
 				  phasemap:ptr_new(/alloc), $
 				  accumulated_image:ptr_new(/alloc), $
 				  snr_history:ptr_new(/alloc), $

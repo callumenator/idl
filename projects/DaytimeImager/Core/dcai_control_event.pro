@@ -12,6 +12,7 @@ pro DCAI_Control_Event, event
 	if tag_names(event, /structure_name) eq 'WIDGET_TIMER' then begin
 
 
+		;\\ INDICATE THE CURRENT SCHEDULE COMMAND IN THE WIDGET LIST
 		if size(*dcai_global.info.current_queue, /type) ne 0 then begin
 			if dcai_global.info.current_command_index ne -1 and $
 			   strlen((*dcai_global.info.current_queue)[dcai_global.info.current_command_index]) gt 0 then $
@@ -19,7 +20,7 @@ pro DCAI_Control_Event, event
 		endif
 
 
-		;\\ INIT THE NEXT GUI TIMER TICK
+		;\\ SET UP THE NEXT GUI TIMER TICK
 			widget_control, dcai_global.gui.base, timer = dcai_global.info.timer_tick_interval
 			dcai_global.info.timer_ticks ++
 
@@ -55,14 +56,22 @@ pro DCAI_Control_Event, event
 
 			;\\ CHECK FOR A NEW CAMERA FRAME
 				if dcai_global.info.simulate_frames eq 0 then begin
+
+					;\\ NOT SIMULATING CAMERA IMAGES, TRY TO GET A REAL IMAGE
 					grab_settings = {mode:dcai_global.info.camera_settings.acqMode, $
 									 imageMode:dcai_global.info.camera_settings.imageMode, $
 									 startAndWait:1 }
 									 ;exptime:dcai_global.info.camera_settings.exptime_set}
+
 					;help, grab_settings.imagemode, /str
+
 					Andor_Camera_Driver, dcai_global.settings.external_dll, 'uGrabFrame', $
 										 grab_settings, out, image_result
+
 				endif else begin
+
+
+					;\\ SIMULATNG CAMERA IMAGES FOR TESTING
 
 					dims = size(*dcai_global.info.image, /dimensions)
 
@@ -103,7 +112,9 @@ pro DCAI_Control_Event, event
 							if max_diff gt .4 then image_b *= 0
 
 					endif else begin
+
 						image_b = image_a
+
 					endelse
 
 					noise = randomu(systime(/sec)*100L, dims[0], dims[1]) - .5
@@ -111,13 +122,14 @@ pro DCAI_Control_Event, event
 			        image = long(image) > 0
 			        image_result = 'image'
 			        out = {image:image}
+
 				endelse
 
 
 				;\\ IF WE GOT A NEW FRAME, PROCESS IT AND ALERT THE FRAME LISTENERS
 					if image_result eq 'image' then begin
 
-						;\\ CALCULATE FRAME RA TE
+						;\\ CALCULATE FRAME RATE
 							frameTime = systime(/sec)
 							dcai_global.info.frame_rate = 1.0 / (frameTime - dcai_global.info.image_systime)
 
@@ -125,6 +137,7 @@ pro DCAI_Control_Event, event
 							processed_image = dcai_process_image(out.image)
 
 						;\\ STORE THE IMAGE IN THE GLOBAL BUFFER
+							*dcai_global.info.raw_image = out.image
 							*dcai_global.info.image = processed_image
 							dcai_global.info.image_systime = frameTime
 
