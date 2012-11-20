@@ -49,7 +49,9 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				  '_' + string(snapshots[i].wavelength, f='(i04)') + '_timeseries.idlsave'
 
 		if file_test(ts_name) eq 0 then continue
+
 		restore, ts_name
+		oMeta = meta ;\\ save a copy of this, for when we save winds back to time series file
 
 
 		;\\ Deduce altitude
@@ -80,7 +82,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if meta.latitude lt 0 then continue
 
 		;\\ Flatfield
-			sdi3k_auto_flat, meta, flat_field, /use_database
+			sdi3k_auto_flat, meta, flat_field, /use_database, use_path = 'c:\rsi\idl\routines\sdi\monitor\timeseries\offsets\'
 			for iix = 0, n_elements(var) - 1 do var[iix].velocity -= flat_field
 
 
@@ -106,6 +108,11 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
     		var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
     		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
 
+			;\\ Save data back into time series file
+			series.winds.zonal = windfit.zonal_wind
+			series.winds.merid = windfit.meridional_wind
+			save, ts_name, oMeta, series
+
 			zonalWind = reform((windfit.zonal_wind)[*,nobs-1])
 			meridWind = reform((windfit.meridional_wind)[*,nobs-1])
 
@@ -121,6 +128,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			meridHi = max(windfit.meridional_wind, dim=1)
 			meridLo = min(windfit.meridional_wind, dim=1)
 			time = js2ut(0.5*(var.start_time + var.end_time))
+
 
 
 			;\\ ------------------------- Dial plot info -------------------------
@@ -240,7 +248,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 				wnd = *winds[i]
 
-				case wnd.meta.site of
+				case wnd.meta.site_code of
 					'PKR': begin
 						color = 150
 						ctable = 39
@@ -292,7 +300,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				use = where(missing ne 1, n_use)
 				if n_use eq 0 then continue
 
-				case wnd.meta.site of
+				case wnd.meta.site_code of
 					'xPKR': begin
 						radii = [0, .2, .4, .6, .8, .99]
 						azis =  [1,  6,  8, 15, 20, 25]
@@ -451,6 +459,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 	for pass = 0, 1 do begin
 
+
+
 		bounds = [.1, .27, .98, .46]
 		!p.font = 0
 		device, set_font='Ariel*17*Bold'
@@ -471,7 +481,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 			wnd = *winds[i]
 
-			case wnd.meta.site of
+			case wnd.meta.site_code of
 				'PKR': begin
 					color = 150
 					ctable = 39
@@ -499,7 +509,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 				!p.font = 0
 				device, set_font='Ariel*17*Bold'
 				xyouts, max_time_range[0] + site_count*0.05*(max_time_range[1]-max_time_range[0]), $
-						yrange[1] + 0.03*(yrange[1]-yrange[0]), wnd.meta.site, color=color, /data
+						yrange[1] + 0.03*(yrange[1]-yrange[0]), wnd.meta.site_code, color=color, /data
 				!p.font = -1
 			endif else begin
 				loadct, ctable, /silent
@@ -526,7 +536,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 			wnd = *winds[i]
 
-			case wnd.meta.site of
+			case wnd.meta.site_code of
 				'PKR': begin
 					color = 150
 					ctable = 39
@@ -566,6 +576,17 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
 	file_mkdir, toplevel
 	write_png, fname, tvrd(/true)
+
+	;\\ Save a copy of the dial plot
+	img = tvrd(/true)
+	dims = size(img, /dimensions)
+	portion = img[*,dims[1]/2:dims[1]-1, dims[2]/2:dims[2]-1]
+	year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
+	fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Wind_Dial_Plot\'
+	date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
+	fname += 'Wind_Dial_Plot_AllStations_' + date + '_6300.png'
+	file_mkdir, file_dirname(fname)
+	write_png, fname, portion
 
 
 	MONITOR_WINDFIELDS_END:

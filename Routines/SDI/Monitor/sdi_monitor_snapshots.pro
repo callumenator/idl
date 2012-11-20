@@ -112,6 +112,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 							sdi3k_spacesmooth_fits, parameter, 0.09, {nzones:snapshot.nzones}, centers/float(zmap_size)
 							case snapshot.wavelength of
 								5577: scale = [200, 700]
+								5890: scale = [800, 1600]
 								6300: scale = [600, 1400]
 								8430: scale = [100, 400]
 								else: scale = [600, 1200]

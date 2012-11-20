@@ -14,6 +14,7 @@ function where_is, what
 		'gakona_data': path = data_prefix+'Gakona\'
 		'pfisr_data': path = data_prefix+'PFISR\'
 		'zone_overlaps': path = data_prefix+'MultiStatic\Overlaps\'
+		'multistatic_data': path = data_prefix+'MultiStatic\'
 		else:
 	end
 
