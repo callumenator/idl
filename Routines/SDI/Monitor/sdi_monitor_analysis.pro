@@ -45,6 +45,7 @@ pro sdi_monitor_analysis, ignore_checksum = ignore_checksum
 			received_sum = get_md5_checksum('c:\FTP\instrument_incomming\' + parts[0], exe = 'c:\rsi\gitsdi\bin\md5sums')
 			if (not keyword_set(ignore_checksum)) and (sent_sum ne received_sum) then begin
 				;\\ If it is a laser, skip all files...
+				print, 'Checksum mismatch - ' + list[ii]
 				if strmatch(parts[0], '*_CAL_*') ne 0 then goto, SKIP_FILE_GROUP
 				;\\ Else, simply don't append it to the do-list
 			endif else begin

@@ -76,6 +76,8 @@ pro sdi_monitor_log_manage
 	logName = 'c:\rsi\idl\routines\sdi\monitor\Log\' + 'AnalysisLog_' + $
 				dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
 
+	return
+
 	if file_test(logName) eq 0 then begin
 		if (systime(/sec) - global.log_email_sent_at)/3600. gt 24. then begin
 			sdi_monitor_send_email, global.email_list, 'SDI Monitor Log', 'Log file is non-existent'
@@ -399,8 +401,8 @@ pro sdi_monitor_event, event
 
 
 				;\\ Save the current persistent data
-					log_sent_at = global.log_email_sent_at
-					save, filename = global.persistent_file, persistent, log_sent_at
+					log_emailed = global.log_emailed
+					save, filename = global.persistent_file, persistent, log_emailed
 
 			endfor
 
@@ -618,7 +620,7 @@ pro sdi_monitor
 	zmap_size = 200.
 	min_file_age = 5 ;\\ age in seconds
 	timer_interval = 2
-	max_timeseries_length = 1000 ;\\ number of exposures to keep in timeseries save files
+	max_timeseries_length = 1500 ;\\ number of exposures to keep in timeseries save files
 	timeseries_chop = 100 ;\\ how many of the oldest exposures are chopped off the timeseries when it gets full
 	oldest_snapshot = 10 ;\\ in days, snapshots older than this are greyed out
 
@@ -630,7 +632,7 @@ pro sdi_monitor
 			persistent = {snapshots:ptr_new(), $
 					  	  zonemaps:ptr_new(), $
 					  	  calibrations:ptr_new()}
-			log_sent_at = 0D
+			log_emailed = ''
 		endelse
 
 
@@ -689,7 +691,7 @@ pro sdi_monitor
 			  free_index_0:0L, $
 			  font:font, $
 			  email_list:email_list, $
-			  log_email_sent_at:log_sent_at, $
+			  log_emailed:log_emailed, $
      		  job_status:job_status, $
 			  shared:shared}
 
