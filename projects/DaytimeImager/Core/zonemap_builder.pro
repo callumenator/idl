@@ -1,4 +1,20 @@
 
+;\\ A FUNCTION TO CALCULATE DISTANCE FROM A GIVEN CENTER, IN A 2D ARRAY
+function zonemap_distance, zmap, center ;\\ center is [x center, y center]
+	dims = float(size(zmap, /dimensions))
+	idx = findgen(n_elements(zmap))
+	xx = (idx mod dims[0]) - center[0]
+	yy = fix(idx / dims[0]) - center[1]
+	x = fltarr(dims[0],dims[1])
+	x[*] = xx
+	y = x
+	y[*] = yy
+	dist = sqrt(x*x + y*y)
+	dist = dist / float(dims[0]/2.)
+	return, dist
+end
+
+
 ;\\ BUILD A ZONEMAP FROM EITHER ANNULAR SEGMENTS OR A REGULAR GRID
 ;\\ annular = {xsize:0, ysize:0, xcenter:0, ycenter:0, radii:[], sectors:[]}
 ;\\ grid = {xsize:0, ysize:0, xwidth:0, ywidth:0, xcenter:0, ycenter:0, max_radius:0.0}
@@ -29,15 +45,7 @@ function zonemap_builder, annular=annular, $
 			zone_pixel_count = [-1]
 
 			;\\ Make a distance map from [cent(0),cent(1)]
-				calidx = findgen(n_elements(zone))
-				calxx = (calidx mod nx) - cent(0)
-				calyy = fix(calidx / nx) - cent(1)
-				calx = fltarr(nx,ny)
-				calx(*) = calxx
-				caly = calx
-				caly(*) = calyy
-				caldist = sqrt(calx*calx + caly*caly)
-				caldist = caldist / float(nx/2.)
+				caldist = zonemap_distance(zone, cent)
 
 			;\\ Make an angle map
 				calang = atan(caly,calx)
@@ -129,9 +137,10 @@ function zonemap_builder, annular=annular, $
 
 		endfor
 
+		zone = congrid(zone, nx, ny)
+		caldist = zonemap_distance(zone, cent)
 		pts = where(caldist gt grid.max_radius, npts, complement=in_pts)
 		if npts gt 0 then zone[pts] = -1
-		zone = congrid(zone, nx, ny)
 
 		return, zone
 
