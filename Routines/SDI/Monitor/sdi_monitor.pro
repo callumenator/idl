@@ -67,36 +67,16 @@ function sdi_monitor_job_timelapse, job
 	return, systime(/sec) - global.job_status[match].last_run
 end
 
-;\\ Return the data directory for a given site code
-function sdi_monitor_get_directory, site_code
-
-	common sdi_monitor_common, global, persistent
-
-	match = where(site_code eq global.data_directories.site_code, nmatch)
-	if (nmatch eq 0) then begin
-		return, 'F:\'
-	endif else begin
-		return, global.data_directories[match].directory
-	endelse
-end
-
-;\\ Append a message string to the log
-pro sdi_monitor_log_append, msg_string
-
-	common sdi_monitor_common, global, persistent
-
-	logName = global.home_dir + '\Log\' + 'TaskLog_' + dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
-	openw, hnd, logName, /get, /append
-	printf, hnd, systime() + ' -> ' + msg_string
-	free_lun, hnd
-end
 
 ;\\ Check to see if we need to email the current log (once per day)
 pro sdi_monitor_log_manage
 
 	common sdi_monitor_common, global, persistent
 
-	logName = global.home_dir + '\Log\' + 'TaskLog_' + dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
+	logName = 'c:\rsi\idl\routines\sdi\monitor\Log\' + 'AnalysisLog_' + $
+				dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
+
+	return
 
 	if file_test(logName) eq 0 then begin
 		if (systime(/sec) - global.log_email_sent_at)/3600. gt 24. then begin
@@ -232,10 +212,6 @@ pro sdi_monitor_event, event
 
 		;\\ Queue next timer event
 			widget_control, timer = global.timer_interval, global.base_id
-
-
-		;\\ Check on running daily analysis jobs, and start new analysis tasks
-			;sdi_monitor_analysis
 
 
 		;\\ Manage the log (check if we need to open a new one, email the current one, etc)
@@ -425,7 +401,8 @@ pro sdi_monitor_event, event
 
 
 				;\\ Save the current persistent data
-					save, filename = global.persistent_file, persistent
+					log_emailed = global.log_emailed
+					save, filename = global.persistent_file, persistent, log_emailed
 
 			endfor
 
@@ -453,9 +430,7 @@ pro sdi_monitor_event, event
 		snapshots = *persistent.snapshots
 		fit_these = where(ptr_valid(snapshots.fits) eq 0 and $
 						  snapshots.wavelength ne 6328 and $
-						  snapshots.wavelength ne 5435 and $
-						  snapshots.wavelength ne 7320 and $
-						  snapshots.wavelength ne 5890, n_fit)
+						  snapshots.wavelength ne 5435, n_fit)
 
 		for k = 0, n_fit - 1 do begin
 
@@ -467,12 +442,12 @@ pro sdi_monitor_event, event
 			if n_matching eq 1 then begin
 				ip_snapshot = calibrations[match[0]]
 				fits = sdi_monitor_fitspex(snapshots[fit_these[k]], ip_snapshot)
-				ptr_free, (*persistent.snapshots)[fit_these[k]].fits ;\\ this should be redundant
+				ptr_free, (*persistent.snapshots)[fit_these[k]].fits
 				(*persistent.snapshots)[fit_these[k]].fits = ptr_new(fits)
 
 				;\\ Once they have been fit, new snapshots can be added to the timeseries
-				if (snapshots[fit_these[k]].wavelength eq 5577 or $
-				    snapshots[fit_these[k]].wavelength eq 6300) then begin
+				;if (snapshots[fit_these[k]].wavelength eq 5577 or $
+				;    snapshots[fit_these[k]].wavelength eq 6300) then begin
 
 					save_name = global.home_dir + '\Timeseries\' + snapshots[fit_these[k]].id + '_timeseries.idlsave'
 					if file_test(save_name) eq 1 then begin
@@ -486,7 +461,10 @@ pro sdi_monitor_event, event
 					zone_dims = snap.nzones
 					chann_dims = snap.scan_channels
 
-					new_entry = {fits:*snap.fits, $
+					new_entry = {spectra:*snap.spectra, $
+								 fits:*snap.fits, $
+								 winds:{zonal:fltarr(zone_dims), $
+								 		merid:fltarr(zone_dims)}, $
 								 start_time:snap.start_time, $
 								 end_time:snap.end_time, $
 								 scans:snap.scans }
@@ -513,7 +491,7 @@ pro sdi_monitor_event, event
 
 					save, filename = save_name, series, meta
 
-				endif ;\\ matching wavelengths for time series
+				;endif ;\\ matching wavelengths for time series
 			endif ;\\ found insprofs
 		endfor ;\\ loop over snapshots
 
@@ -576,22 +554,22 @@ pro sdi_monitor_event, event
 				;\\ Write out the file
 				crtime = convert_js(dt_tm_tojs(systime(/ut)))
 				tstamp = string(crtime.sec, f='(i05)')
-				image_name = global.out_dir + '\' + image_names[j] + '_' + tstamp + '.png'
+				image_name = global.out_dir + '\Plots\' + image_names[j] + '.png'
 				write_png, image_name, image
 
-				;\\ FTP it
-				openw, hnd, global.home_dir + 'ftp_batch.bat', /get
-				for k = 0, n_elements(global.ftp_batch) - 1 do printf, hnd, global.ftp_batch[k]
-				printf, hnd, 'put ' + image_name + ' ' + image_names[j] + '.png'
-				printf, hnd, 'quit'
-				free_lun, hnd
+				;\\ FTP it - not any more
+				;openw, hnd, global.home_dir + 'ftp_batch.bat', /get
+				;for k = 0, n_elements(global.ftp_batch) - 1 do printf, hnd, global.ftp_batch[k]
+				;printf, hnd, 'put ' + image_name + ' ' + image_names[j] + '.png'
+				;printf, hnd, 'quit'
+				;free_lun, hnd
 
-				openw, hnd, global.home_dir + 'command_batch.bat', /get
-				printf, hnd, 'ftp -s:' + global.home_dir + 'ftp_batch.bat'
-				printf, hnd, 'del ' + image_name
-				free_lun, hnd
+				;openw, hnd, global.home_dir + 'command_batch.bat', /get
+				;printf, hnd, 'ftp -s:' + global.home_dir + 'ftp_batch.bat'
+				;printf, hnd, 'del ' + image_name
+				;free_lun, hnd
 
-				spawn, global.home_dir + '\command_batch.bat', /hide
+				;spawn, global.home_dir + '\command_batch.bat', /hide
 			endfor
 		endif
 
@@ -626,15 +604,8 @@ pro sdi_monitor
 
 
 	;\\ Recipient list for email updates
-	email_list = ['callumenator@gmail.com']
-
-
-	;\\ Control where analyzed data are moved to
-	data_directories = [{site_code:'MAW', directory:'F:\SDIData\Mawson\'}, $
-						{site_code:'PKR', directory:'F:\SDIData\Poker\'}, $
-						{site_code:'HRP', directory:'F:\SDIData\Gakona\'}, $
-						{site_code:'TLK', directory:'F:\SDIData\Toolik\'}, $
-						{site_code:'KTO', directory:'F:\SDIData\Kaktovik\'} ]
+	email_list = ['callumenator@gmail.com', $
+				  'mark.conde@gi.alaska.edu']
 
 
 	;\\ Control which jobs will be run
@@ -643,14 +614,14 @@ pro sdi_monitor
 				  {name:'windfields', active:1, last_run:0D}, $
 				  {name:'multistatic', active:1, last_run:0D} ]
 
-
+	;\\ This was for transferring files to fulcrum, not used now...
 	ftp_batch = ['o fulcrum.gi.alaska.edu', 'callum', 'B1_static', 'cd ../Downrange_SDI/sdi_monitor']
 
 	zmap_size = 200.
 	min_file_age = 5 ;\\ age in seconds
 	timer_interval = 2
-	max_timeseries_length = 1000
-	timeseries_chop = 100
+	max_timeseries_length = 1500 ;\\ number of exposures to keep in timeseries save files
+	timeseries_chop = 100 ;\\ how many of the oldest exposures are chopped off the timeseries when it gets full
 	oldest_snapshot = 10 ;\\ in days, snapshots older than this are greyed out
 
 	;\\ Restore persistent data if any
@@ -660,7 +631,8 @@ pro sdi_monitor
 		endif else begin
 			persistent = {snapshots:ptr_new(), $
 					  	  zonemaps:ptr_new(), $
-					  	  calibrations:ptr_new() }
+					  	  calibrations:ptr_new()}
+			log_emailed = ''
 		endelse
 
 
@@ -686,7 +658,6 @@ pro sdi_monitor
 		monitor_jobs_label = 'None'
 	endelse
 	label = widget_label(tab_status_base, value = 'Monitor Jobs Running: ' + monitor_jobs_label, font=font, uname='status_jobs_running', ysize = 15*(njobs+1), xs=500)
-	label = widget_label(tab_status_base, value = 'Analysis Processes Running: 0', font=font, uname='status_analyses_running', xs=500)
 
 	draw0 = widget_draw(tab_0_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
 	draw1 = widget_draw(tab_1_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
@@ -696,13 +667,6 @@ pro sdi_monitor
 
 	widget_control, /realize, base
 	widget_control, timer = timer_interval, base
-
-	analysis_jobs = {site_codes:strarr(20), $
-					 file_lists:ptrarr(20), $
-					 shmids:strarr(20), $
-				     process_ids:lonarr(20), $
-				     buffer_length:500, $
-					 free_list:replicate(1, 20) }
 
 	shared = {recent_monostatic_winds:ptr_new(/alloc)}
 
@@ -723,14 +687,12 @@ pro sdi_monitor
 			  draw_id:[draw0, draw1, draw2, draw3, draw4], $
 			  tab_id:[tab_0_base, tab_1_base, tab_2_base, tab_3_base, tab_4_base], $
 			  status_base:tab_status_base, $
-			  label_id:label, $
+     		  label_id:label, $
 			  free_index_0:0L, $
-			  analysis_jobs:analysis_jobs, $
 			  font:font, $
 			  email_list:email_list, $
-			  log_email_sent_at:0D, $
-			  data_directories:data_directories, $
-			  job_status:job_status, $
+			  log_emailed:log_emailed, $
+     		  job_status:job_status, $
 			  shared:shared}
 
 

@@ -1,11 +1,4 @@
 
-pro sdi_analysis_ipc_message, ipc_info, sharedVar, msg_string
-	time = string(long(systime(/sec)), f='(i10)')
-	msg_string = byte(time + msg_string)
-	sharedVar[0] = bytarr(ipc_info.maxlength)
-	sharedVar[0] = msg_string[0: n_elements(msg_string) - 1 < (ipc_info.maxlength - 1)]
-end
-
 
 pro sdi_analysis, directory, $
 				  filter = filter, $
@@ -13,28 +6,13 @@ pro sdi_analysis, directory, $
 				  move_to = move_to, $
 				  only_zones = only_zones, $
 				  skylist = skylist, $
-				  ipc_info = ipc_info ;\\ inter-process communication info
-
-;	catch, error_status
-;	if error_status ne 0 then begin
-;		if keyword_set(ipc_info) then begin
-;			sdi_analysis_ipc_message, ipc_info, sharedVar, 'finished'
-;			sharedVar = 0
-;			shmunmap, ipc_info.shmid
-;		endif
-;		;\\ Should log the error here
-;		catch, /cancel
-;		return
-;	endif
+				  files_processed = files_processed, $
+				  no_plots = no_plots, $
+				  no_ascii = no_ascii
 
 
-	if keyword_set(ipc_info) then begin
-		shmmap, ipc_info.shmid, /byte, ipc_info.maxlength
-		sharedVar = shmvar(ipc_info.shmid)
-		sdi_analysis_ipc_message, ipc_info, sharedVar, 'Entered SDI Analysis'
-	endif
+	if keyword_set(plot_to) then plot_dir = plot_to else plot_dir = 'c:\users\sdi\sdiplots\'
 
-	if keyword_set(plot_to) then plot_dir = plot_to
 
 	if keyword_set(skylist) then begin
 		sky_list = skylist
@@ -98,9 +76,11 @@ pro sdi_analysis, directory, $
 			match = intarr(nlas)
 			for j = 0, nlas - 1 do begin
 				cmp = las_names[j]
+				cmp_split = strsplit(cmp, '_', /extract)
 				for n = 0, n_elements(split) - 1 do begin
-					match[j] += strmatch(cmp, '*_' + split[n] + '_*', /fold)
+					match[j] += strmatch(cmp, '*' + split[n] + '*', /fold)
 				endfor
+				if cmp_split[0] ne split[0] then match[j] = 0
 			endfor
 			best_match = where(match eq max(match), n_best)
 			if n_best gt 1 then stop	;\\ HMMM?
@@ -109,55 +89,74 @@ pro sdi_analysis, directory, $
 
 			print, fname, las_names[best_match[0]]
 
-			if keyword_set(ipc_info) then $
-				sdi_analysis_ipc_message, ipc_info, sharedVar, 'LASER FIT: ' + las_names[best_match[0]]
-
 			sdi_fit_spectra, fit_insfile = use_laser, ipc_info = ipc_info
 			append, use_laser, files_done
-
-			if keyword_set(ipc_info) then $
-				sdi_analysis_ipc_message, ipc_info, sharedVar, 'SKY FIT: ' + fname
 
 			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, ipc_info = ipc_info
 			append, sky_list[k], files_done
 
-			if keyword_set(ipc_info) then $
-				sdi_analysis_ipc_message, ipc_info, sharedVar, 'WIND FIT: ' + fname
-
 			sdi3k_batch_windfitz, sky_list[k]
 
-			;\\ Marks Plotter
-			sdi3k_batch_plotz, sky_list[k], $
-							   skip_existing = 0, $
-							   stage = 0, $
-							   drift_mode = 'data', $
-							   xy_only = 0, $
-							   root_dir = 'c:\users\sdi\sdiplots\', $
-							   /msis2000, $
-							   /hwm07
+			if not keyword_set(no_plots) then begin
+				sdi3k_batch_plotz, sky_list[k], $
+								   skip_existing = 0, $
+								   stage = 0, $
+								   drift_mode = 'data', $
+								   xy_only = 0, $
+								   root_dir = plot_dir, $
+								   /msis2000, $
+								   /hwm07
+			endif
+
+
+			if not keyword_set(no_ascii) then begin
+
+				sdi3k_read_netcdf_data, sky_list[k], meta=mm
+		       	year      = strcompress(string(fix(mm.year)),             /remove_all)
+		       	lamstring = strcompress(string(fix(10*mm.wavelength_nm)), /remove_all)
+		       	scode     = strcompress(mm.site_code, /remove_all)
+		       	if strupcase(scode) eq 'PF' then scode = 'PKR'
+		       	md_err = 0
+		       	catch, md_err
+		       	if md_err ne 0 then goto, keep_going
+		       	folder = plot_dir + year + '_' + scode + '_' + lamstring + '\' + 'ASCII_Data' + '\'
+		       	if !version.release ne '5.2' then file_mkdir, folder else spawn, 'mkdir ' + folder
+
+			keep_going:
+		       	catch, /cancel
+
+		       	stp = {export_allsky: 1, $
+		         	   export_skymaps: 1, $
+		           	   export_spectra: 0, $
+		           	   apply_smoothing: 1, $
+		           	   time_smoothing: 1.1, $
+		           	   space_smoothing: 0.09}
+
+		    	sdi3k_ascii_export, setup = stp, files = sky_list[k], outpath = folder
+
+		    endif
 
 			wait, 0.01
 	endfor
 
-	;\\ FIle move error handler
+	;\\ File move error handler
 	catch, error_status
 	if error_status ne 0 then goto, SKIP_MOVE
 
+	base_dir = file_dirname(files_done[0])
+	files_done = file_basename(files_done)
+	u = files_done(sort(files_done))
+	files_done = u[uniq(u)]
+
 	if keyword_set(move_to) then begin
-		u = files_done(sort(files_done))
-		files_done = u[uniq(u)]
 		for i = 0, n_elements(files_done) - 1 do begin
-			file_move, files_done[i], move_to + '\' + file_basename(files_done[i])
+			file_move, base_dir + '\' + files_done[i], move_to + '\' + files_done[i]
 		endfor
 	endif
 
+	files_processed = files_done
+
 	SKIP_MOVE:
 	catch, /cancel
-
-	if keyword_set(ipc_info) then begin
-		sdi_analysis_ipc_message, ipc_info, sharedVar, 'finished'
-		sharedVar = 0
-		shmunmap, ipc_info.shmid
-	endif
 
 end

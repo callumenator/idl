@@ -1,165 +1,113 @@
 
-@sdi_monitor
+pro sdi_monitor_analysis_log, msg_string
 
-pro sdi_monitor_analysis
+	logName = 'c:\rsi\idl\routines\sdi\monitor\Log\' + 'AnalysisLog_' + $
+				dt_tm_fromjs(dt_tm_tojs(systime()), format='Y$_doy$') + '.txt'
+	openw, hnd, logName, /get, /append
+	printf, hnd, systime() + ' -> ' + msg_string + string([13B,10B])
+	free_lun, hnd
+end
 
-	common sdi_monitor_common, global, persistent
+pro sdi_monitor_analysis, ignore_checksum = ignore_checksum
 
-	cmd_str_0 = 'start /b /min c:\rsi\idl62\bin\bin.x86\idlde -IDL_WDE_SPLASHSCREEN 0 -e ' + '"' + 'sdi_analysis'
-	in_files = file_search(global.in_dir + '{HRP,PKR,MAW,TLK,KTO}*SKY*.nc', count = n_in)
+	;\\ Control where analyzed data are moved to
+	data_directories = [{site_code:'MAW', directory:'F:\SDIData\Mawson\'}, $
+						{site_code:'PKR', directory:'F:\SDIData\Poker\'}, $
+						{site_code:'HRP', directory:'F:\SDIData\Gakona\'}, $
+						{site_code:'TLK', directory:'F:\SDIData\Toolik\'}, $
+						{site_code:'KTO', directory:'F:\SDIData\Kaktovik\'} ]
 
+	;\\ Check to see if we can start any new jobs -- look for _incomming files
+	in_files = file_search('c:\ftp\instrument_incomming\{HRP,PKR,MAW,TLK,KTO}*_incomming.txt', count = n_in)
 
-	;\\ First check to see if any current analysis jobs have finished
-	running = where(global.analysis_jobs.free_list eq 0, nrunning)
-	for i = 0, nrunning - 1 do begin
-		index = running[i]
-		var = shmvar(global.analysis_jobs.shmids[index])
-		var = string(var)
-		status = strmid(var, 10, strlen(var))
-		last_time = strmid(var, 0, 10)
-		task_age = long(systime(/sec)) - long(last_time)
+	for i = 0, n_in - 1 do begin
+		lines = file_lines(in_files[i])
+		if lines eq 0 then continue
 
-		;\\ Get widget label id
-		uname = global.analysis_jobs.site_codes[index]
-		id_base = widget_info(global.status_base, find_by_uname = uname + '_base')
-		id_status = widget_info(global.status_base, find_by_uname = uname + '_status')
+		list = strarr(lines)
+		openr, handle, in_files[i], /get
+		readf, handle, list
+		close, handle
+		free_lun, handle
 
+		;\\ First make sure ENDOFFILE is present
+		if (list[n_elements(list)-1] ne 'ENDOFFILE') then continue
+		if (n_elements(list) eq 1) then continue ;\\ no file names
 
-		task_killed = 0
-		;\\ If the task is too old, kill it
-		if task_age/3600. gt 3 then begin ;\\ older than 3 hours, kill it
-			spawn, 'taskkill /PID ' + string(global.analysis_jobs.process_ids[index], f='(i0)') + ' /T /F'
-			status = 'finished'
-			task_killed = 1
+		;\\ Now make sure all checksums match
+		do_files = 0
+		do_file_count = 0
+		for ii = 0, n_elements(list) - 2 do begin
+			parts = strsplit(list[ii], ',', /extract)
+			if file_test('c:\FTP\instrument_incomming\' + parts[0]) eq 0 then continue
 
-			;\\ Log this problem
-			sdi_monitor_log_append, 'Killed process because it was too old: ' + file_basename(global.analysis_jobs.site_codes[index])
+			sent_sum = parts[1]
+			received_sum = get_md5_checksum('c:\FTP\instrument_incomming\' + parts[0], exe = 'c:\rsi\gitsdi\bin\md5sums')
+			if (not keyword_set(ignore_checksum)) and (sent_sum ne received_sum) then begin
+				;\\ If it is a laser, skip all files...
+				print, 'Checksum mismatch - ' + list[ii]
+				if strmatch(parts[0], '*_CAL_*') ne 0 then goto, SKIP_FILE_GROUP
+				;\\ Else, simply don't append it to the do-list
+			endif else begin
+				append, parts[0], do_files
+				do_file_count ++
+			endelse
+		endfor
+
+		;\\ If we got to here, everything is OK, so create a job for these files
+		if do_file_count gt 0 then begin
+			site_code = strmid(file_basename(in_files[i]),0,3)
+			for ii = 0, n_elements(do_files) - 1 do begin
+				res = execute('append, "' + 'c:\FTP\instrument_incomming\' + do_files[ii] + '", ' + site_code + '_files')
+			end
+			append, site_code, site_codes
 		endif
 
-		if status eq 'finished' then begin
-			;\\ Analysis job has finished running
+		SKIP_FILE_GROUP:
+	endfor
 
 
-			;\\ Unmap the shared memory
-			var = 0
-			shmunmap, global.analysis_jobs.shmids[index]
-
-
-			;\\ Log job finished
-			if task_killed eq 0 then begin
-				newLine = string([13B,10B])
-				sdi_monitor_log_append, 'Finished daily analysis of ' + file_basename(global.analysis_jobs.site_codes[index]) + $
-										' data:' + newLine + '      Sky files processed:' + newLine + $
-										strjoin('        ' + *global.analysis_jobs.file_lists[index], newLine)
-			endif
-
-
-			;\\ Edit the free list
-			global.analysis_jobs.free_list[index] = 1
-			global.analysis_jobs.shmids[index] = ''
-			global.analysis_jobs.site_codes[index] = ''
-			global.analysis_jobs.process_ids[index] = 0
-			ptr_free, global.analysis_jobs.file_lists[index]
-
-
-			;\\ Destroy the label
-			widget_control, id_base, /destroy
-			widget_control, id_status, /destroy
-
-
-			;\\ Do other stuff here
-
-
+	;\\ Grab the list of processed files
+		lines = file_lines('c:\ftp\instrument_incomming\_processed.txt')
+		openr, handle, 'c:\ftp\instrument_incomming\_processed.txt', /get
+		if lines ne 0 then begin
+			done = strarr(lines)
+			readf, handle, done
 		endif else begin
-
-			;\\ If not finished, update the status
-			widget_control, set_value = '   Status: ' + status + $
-							' (Age: ' + string(task_age, f='(i0)') + ' secs)', id_status
-
+			done = ['']
 		endelse
+		close, handle
+		free_lun, handle
 
-	endfor
-
-	;\\ Update the jobs running label
-	running = where(global.analysis_jobs.free_list eq 0, nrunning)
-	widget_control, set_value = 'Analysis Processes Running: ' + string(nrunning, f='(i0)'), $
-					widget_info(global.status_base, find_by_uname = 'status_analyses_running')
-
-	;\\ Now check to see if we can start any new jobs
-
-	;\\ Separate by site code
-	for i = 0, n_in - 1 do begin
-		sdi3k_read_netcdf_data, in_files[i], meta = meta
-		res = execute('append, "' + in_files[i] + '", ' + meta.site_code + '_files')
-		append, meta.site_code, site_codes
-	endfor
-
-
+	;\\ Run through the list of sites to analyze
 	for i = 0, n_elements(site_codes) - 1 do begin
-
-		match = where(site_codes[i] eq global.analysis_jobs.site_codes, nmatch)
-		if nmatch ne 0 then continue
-
 
 		;\\ List of sky files to analyze, call it 'files_arr'
 		res = execute('files_arr = ' + site_codes[i] + '_files')
 
-
 		;\\ Where to move files once analyzed
-		 move_to_dir = sdi_monitor_get_directory(site_codes[i])
+		match = where(site_code eq data_directories.site_code, nmatch)
+		if (nmatch eq 0) then begin
+			move_to_dir = 'F:\'
+		endif else begin
+			move_to_dir = data_directories[match].directory
+		endelse
 
+		sky_files = where(strmatch(files_arr, '*CAL*') eq 0, n_sky)
+		if (n_sky gt 0) then begin
+			sdi_analysis, '', skylist = files_arr[sky_files], move_to = move_to_dir, files_processed = processed
+		endif
+		;sdi_analysis, '', skylist = files_arr, files_processed = processed
 
-		;\\ Find the first free index
-		freeidx = where(global.analysis_jobs.free_list eq 1, nfree)
-		if (nfree eq 0) then continue
-		freeidx = min(freeidx)
-
-
-		;\\ Unset this free index
-		global.analysis_jobs.free_list[freeidx] = 0
-
-
-		;\\ Enter the current site code and file list
-		global.analysis_jobs.site_codes[freeidx] = site_codes[i]
-		global.analysis_jobs.file_lists[freeidx] = ptr_new(files_arr)
-
-
-		;\\ Create a shared memory id and map it
-		shmid = 'analysis_job_' + string(freeidx, f='(i0)')
-		global.analysis_jobs.shmids[freeidx] = shmid
-		shmmap, shmid, /byte, global.analysis_jobs.buffer_length
-
-
-		;\\ Spawn the new process to analyse the files
-		ipc_info_str = '{shmid:' + "'" + shmid + "'" + ', maxlength:' + string(global.analysis_jobs.buffer_length, f='(i0)') + '}'
-		skylist_str = "[" + strjoin("'" + files_arr + "'", ', ') + "]"
-		move_to_str = 'move_to = '  + "'" + move_to_dir + "'"
-		cmd_str = cmd_str_0 + ', ' + "''" + ', skylist = ' + skylist_str + ', ipc_info = ' + ipc_info_str + ', ' + move_to_str + '"'
-
-
-		;\\ Get current tasks running
-		curr_tasks = get_tasklist(image = 'idlde.exe')
-		spawn, cmd_str, /nowait, /hide ;, pid=pid returns wrong PID
-
-		;\\ Compare with tasks now to find PID of new process
-		now_tasks = get_tasklist(image = 'idlde.exe')
-		for ii = 0, n_elements(now_tasks) - 1 do begin
-			match = where(now_tasks[ii].name eq curr_tasks.name and $
-						  now_tasks[ii].pid eq curr_tasks.pid, nmatch)
-			if nmatch eq 0 then begin
-				pid = now_tasks[ii].pid
-				break
-			endif
+		openw, handle, 'c:\ftp\instrument_incomming\_processed.txt', /get, /append
+		for ff = 0, n_elements(processed) - 1 do begin
+			thisFile = strupcase(file_basename(processed[ff]))
+			match = where(thisFile eq done, nmatch)
+			if nmatch eq 0 then printf, handle, thisFile
+			sdi_monitor_analysis_log, 'Processed ' + file_basename(processed[ff])
 		endfor
-		global.analysis_jobs.process_ids[freeidx] = pid
-
-
-		;\\ Create a widget label
-		uname = site_codes[i]
-		name = 'Job ' + string(freeidx, f='(i0)') + ', ' + site_codes[i] + ' (PID = ' + string(pid, f='(i0)') + ')'
-		label = widget_label(global.status_base, value = name, font=global.font, uname = uname + '_base')
-		label = widget_label(global.status_base, value = '   Status:', font=global.font, uname = uname + '_status', xs = 500)
-
+		close, handle
+		free_lun, handle
 
 	endfor
 

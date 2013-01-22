@@ -2,10 +2,11 @@
 @resolve_nstatic_wind
 
 ;\\ Grab the latest allsky camera image
-pro sdi_monitor_grab_allsky, maxElevation
+pro sdi_monitor_grab_allsky, maxElevation, error=error
 
 	common sdi_monitor_common, global, persistent
 
+	error = 0
 	time = bin_date(systime(/ut))
 	jd = js2jd(dt_tm_tojs(systime()))
 	ut_fraction = (time(3)*3600. + time(4)*60. + time(5)) / 86400.
@@ -16,7 +17,20 @@ pro sdi_monitor_grab_allsky, maxElevation
 	ll2rb, (station_info('pkr')).glon, (station_info('pkr')).glat, sun_lon, sun_lat, range, azimuth
 	sun_elevation = refract(90 - (range * !radeg))
 	if sun_elevation lt maxElevation then begin
-		dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', copyfile = global.home_dir + 'latest_allsky.jpeg')
+
+		catch, error_status
+
+	   ;\\ Catch errors retrieving allsky image
+	   	if error_status ne 0 then begin
+	    	print, 'Error retrieving allsky image'
+	    	catch, /cancel
+	    	error = 1
+	    	return
+	   	endif
+
+		;\\ Copy the allsky image from the URL to a local file
+		dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', $
+						copyfile = global.home_dir + 'latest_allsky.jpeg')
 	endif
 end
 
@@ -62,7 +76,7 @@ pro sdi_monitor_multistatic
 	endif
 
 	tseries = file_search(global.home_dir + '\timeseries\*' + $
-						  ['HRP','PKR','TLK'] + '*6300*', count = nseries)
+						  ['HRP','PKR','TLK'] + '*6300*timeseries*', count = nseries)
 
 	for i = 0, nseries - 1 do begin
 		restore, tseries[i]
@@ -232,8 +246,12 @@ pro sdi_monitor_multistatic
 					 outlinecolor=[90,0], bounds = [0,.25,1,1]
 
 	;\\ Allsky image (only get if sun elevation is below -15 t oavoid saturation)
-	sdi_monitor_grab_allsky, -10
-	read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
+	sdi_monitor_grab_allsky, -8, error=error
+	if (error eq 1) or file_test(global.home_dir + '\latest_allsky.jpeg') eq 0 then begin
+		allsky_image = fltarr(3,512,512)
+	endif else begin
+		read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
+	endelse
 	plot_allsky_on_map, map, allsky_image, 80., 23, 240., 65.13, -147.48, [600,800], /webimage
 
 	overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
@@ -392,27 +410,30 @@ pro sdi_monitor_multistatic
 
 	;\\ Indicate location latitudes from the main map
 	loadct, 39, /silent
-	lat = bistaticFits[bivz].lat
-	order = sort(lat)
-	xyouts, trange[0] + .3 + .15*(indgen(n_elements(order)) mod 2), lat[order], $
-			string(indgen(n_elements(order)) + 1, f='(i0)'), /data, color= 90, align=.5
+	if show_bistatic eq 1 and size(bistaticFits, /type) ne 0 then begin
+		lat = bistaticFits[bivz].lat
+		order = sort(lat)
+		xyouts, trange[0] + .3 + .15*(indgen(n_elements(order)) mod 2), lat[order], $
+				string(indgen(n_elements(order)) + 1, f='(i0)'), /data, color= 90, align=.5
 
-	device, set_font='Ariel*12*Bold'
 
-	for i = 0, n_elements(lats) - 1 do begin
-		pts = where(bistatic_vz.lat eq lats[i], npts)
-		if npts gt 0 then begin
+		device, set_font='Ariel*12*Bold'
 
-			vz = bistatic_vz[pts].mcomp
-			lat = bistatic_vz[pts].lat
-			time = bi_times[pts]
-			order = sort(time)
+		for i = 0, n_elements(lats) - 1 do begin
+			pts = where(bistatic_vz.lat eq lats[i], npts)
+			if npts gt 0 then begin
 
-			oplot, time[order], lat[order] + vz[order]/scale, noclip=1
-			;xyouts, time[0], yrange[0] - .2, time_str_from_decimalut(time[0], /nosec), /data, align=.5
+				vz = bistatic_vz[pts].mcomp
+				lat = bistatic_vz[pts].lat
+				time = bi_times[pts]
+				order = sort(time)
 
-		endif
-	endfor
+				oplot, time[order], lat[order] + vz[order]/scale, noclip=1
+				;xyouts, time[0], yrange[0] - .2, time_str_from_decimalut(time[0], /nosec), /data, align=.5
+
+			endif
+		endfor
+	endif
 
 	;\\ Save a copy of the image without tristatic
 	datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')

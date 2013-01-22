@@ -2,20 +2,25 @@
 ;\\ Plot the current snapshots
 pro sdi_monitor_timeseries
 
+	print, 'PROCESSING TIMESERIES...'
+
 	common sdi_monitor_common, global, persistent
 
 	if ptr_valid(persistent.zonemaps) eq 0 then return
 	if ptr_valid(persistent.snapshots) eq 0 then return
 
 	;\\ Things to plot...
-		show = [{tag:'width', site:'all', wavelength:'6300', range:[700., 1400.], zone:-1, title:'630nm Temperature (K)', thick:1}, $
-				{tag:'width', site:'all', wavelength:'5577', range:[200., 700.], zone:-1, title:'558nm Temperature (K)', thick:1}, $
-				{tag:'snr', site:'all', wavelength:'6300', range:[0.,1E4], zone:-1, title:'630nm SNR/Scan', thick:1}, $
-				{tag:'snr', site:'all', wavelength:'5577', range:[0.,1E5], zone:-1, title:'558nm SNR/Scan', thick:1}, $
-				{tag:'position', site:'all', wavelength:'6300', range:[-100.,100.], zone:0, title:'630nm Vz (m/s)', thick:1}, $
-				{tag:'position', site:'all', wavelength:'5577', range:[-100.,100.], zone:0, title:'558nm Vz (m/s)', thick:1}, $
-				{tag:'position', site:'all', wavelength:'6300', range:[-100.,100.], zone:0, title:'5 Minute Time-Smoothed 630nm Vz (m/s)', thick:1}, $
-				{tag:'position', site:'all', wavelength:'5577', range:[-100.,100.], zone:0, title:'5 Minute Time-Smoothed 558nm Vz (m/s)', thick:1}]
+		show = [{tag:'width', site:'all', wavelength:'6300', range:[700., 1400.], zone:-1, title:'630nm Temperature (K)', thick:.5}, $
+				{tag:'width', site:'all', wavelength:'5577', range:[200., 700.], zone:-1, title:'558nm Temperature (K)', thick:.5}, $
+				{tag:'snr', site:'all', wavelength:'6300', range:[0.,1E4], zone:-1, title:'630nm SNR/Scan', thick:.5}, $
+				{tag:'snr', site:'all', wavelength:'5577', range:[0.,1E5], zone:-1, title:'558nm SNR/Scan', thick:.5}, $
+				{tag:'position', site:'all', wavelength:'6300', range:[-100.,100.], zone:0, title:'630nm Vz (m/s)', thick:.5}, $
+				{tag:'position', site:'all', wavelength:'5577', range:[-100.,100.], zone:0, title:'558nm Vz (m/s)', thick:.5}, $
+				{tag:'position', site:'all', wavelength:'6300', range:[-100.,100.], zone:0, title:'15 Minute Time-Smoothed 630nm Vz (m/s)', thick:.5}, $
+				{tag:'position', site:'all', wavelength:'5577', range:[-100.,100.], zone:0, title:'15 Minute Time-Smoothed 558nm Vz (m/s)', thick:.5}]
+
+	;\\ BAD VALUE
+		bad_value_temp = 600.
 
 	;\\ Store the current color table
 		tvlct, store_red, store_green, store_blue, /get
@@ -37,10 +42,35 @@ pro sdi_monitor_timeseries
 		ts_files = file_search(global.home_dir + '\Timeseries\' + '*_timeseries.idlsave', count = n_series)
 		if n_series eq 0 then return
 
+	;\\ Use this to get a maximal time range for the current days' data
+		current_ut_day = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$')
+		ut_day_range = [current_ut_day, current_ut_day]
+		current_day_ut_range = [24, 0]
+
 	;\\ Restore them all at once
 		data = ptrarr(n_series)
 		for k = 0, n_series - 1 do begin
 			restore, ts_files[k]
+
+			js2ymds, series.start_time, y, m, d, s
+			daynos = ymd2dn(y, m, d)
+			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+			if (nsliced ge 2) then begin
+				temp_ut = s[slice]/3600.
+				if (min(temp_ut) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(temp_ut)
+				if (max(temp_ut) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(temp_ut)
+			endif
+
+			if (size(series.fits.width, /type) ne 0) then begin
+				good = where(median(series.fits.width, dim=1) gt 80 and $
+							 median(series.fits.width, dim=1) ne 600 and $
+							 median(series.fits.width, dim=1) ne 700 and $
+							 min(series.fits.chi, dim=1) gt 0, ngood)
+				if ngood gt 0 then series = series[good]
+			endif
+
+
+
 			cnv_series = convert_js(series.start_time)
 			xaxis = cnv_series.dayno + cnv_series.sec/(24.*3600.)
 
@@ -56,6 +86,7 @@ pro sdi_monitor_timeseries
 			data[k] = ptr_new({series:series, meta:meta, xaxis:xaxis, color:color, ctable:ctable})
 		endfor
 
+
 	;\\ Split up the page
 		bounds = split_page(n_elements(show), 1, bounds=[.05, .05, .98, .99], row_gap=.06)
 
@@ -63,9 +94,9 @@ pro sdi_monitor_timeseries
 		!x.tickinterval = 1/24.
 		cnv_current = convert_js(dt_tm_tojs(systime(/ut)))
 		frac_day = cnv_current.dayno + cnv_current.sec/(24.*3600.)
-		time_range = frac_day + [-20, 2]/24.
+		time_range = frac_day + [-3*24, 6]/24.
 		blank = replicate(' ', 30)
-		plot, time_range, [0,1], /nodata, xstyle=5, ystyle=5, xtick_get = xvals, xtickint = 2./24., xminor=8
+		plot, time_range, [0,1], /nodata, xstyle=5, ystyle=5, xtick_get = xvals, xtickint = 6./24., xminor=8
 		xtickname = time_str_from_decimalut((xvals mod 1) * 24., /noseconds)
 
 		for p = 0, n_elements(show) - 1 do begin
@@ -75,7 +106,7 @@ pro sdi_monitor_timeseries
 			loadct, 0, /silent
 			yrange = show[p].range
 			plot, time_range, yrange, /nodata, /xstyle, /ystyle, $
-				  xtickname=xtickname, title = show[p].title, noerase=noerase, xtickint = 2./24., xminor=8, $
+				  xtickname=xtickname, title = show[p].title, noerase=noerase, xtickint = 6./24., xminor=8, $
 				  pos=bounds[p,0,*], yticklen=.003, xtitle = 'Time (UT)', ytick_get=yvals
 
 			plots, [frac_day, frac_day], yrange, line=1
@@ -158,30 +189,10 @@ pro sdi_monitor_timeseries
 								good = where(abs(sub - median(sub)) lt 10*meanabsdev(sub, /median), ngood)
 								if ngood gt 3 then begin
 
-									nzones = total(meta.zonemap_info.secs)
-									var = replicate({start_time:0.0, $
-													 end_time:0.0, $
-													 velocity:fltarr(nzones), $
-													 sigma_velocity:fltarr(nzones), $
-													 temperature:fltarr(nzones), $
-													 signal2noise:fltarr(nzones), $
-													 chi_squared:fltarr(nzones)}, i1-i0+1)
-
-									var.velocity = series[i0:i1].fits.position
-									var.sigma_velocity = series[i0:i1].fits.sigma_position
-									var.temperature = series[i0:i1].fits.width
-									var.signal2noise = series[i0:i1].fits.snr
-									var.chi_squared = series[i0:i1].fits.chi
-									var.start_time = series[i0:i1].start_time
-									var.end_time = series[i0:i1].end_time
-
-									mm = {site:meta.site_code, $
-										  zone_radii:meta.zonemap_info.rads[1:*]*100., $
-										  zone_sectors:meta.zonemap_info.secs, $
-										  rings:n_elements(meta.zonemap_info.rads)-1, $
-										  nzones:nzones, $
-										  wavelength_nm:meta.wavelength/10., $
-										  rotation_from_oval:0.}
+									 sdi_monitor_format, {metadata:meta, series:series[i0:i1]},  $ ;\\ {metadata:{}, series:[{}]}
+														 metadata = mm, $
+														 spekfits = var, $
+														 zone_centers = zone_centers
 
 									sdi3k_drift_correct, var, mm, /data_based, /force
 									parameter[i0:i1] = reform(var.velocity[0]*cnv)
@@ -199,7 +210,7 @@ pro sdi_monitor_timeseries
 									good = where(abs(sub - median(sub)) lt 8*meanabsdev(sub, /median) and $
 												 abs(sub_e - median(sub_e)) lt 8*meanabsdev(sub_e, /median), ngood)
 									if ngood gt 5 then begin
-										sm = smooth_in_time((xaxis[i0:i1])[good], (parameter[i0:i1])[good], 500, 5./(60.*24.), /gconvol)
+										sm = smooth_in_time((xaxis[i0:i1])[good], (parameter[i0:i1])[good], 500, 15./(60.*24.), /gconvol)
 										parameter[i0:i1] = interpol(sm, (xaxis[i0:i1])[good], (xaxis[i0:i1]))
 									endif
 								endif
@@ -264,8 +275,12 @@ pro sdi_monitor_timeseries
 
 		for k = 0, n_elements(second_pass) - 1 do begin
 
-			plot, time_range, (*second_pass[k]).yrange, /nodata, xstyle=5, ystyle=5, $
-				  /noerase, pos=(*second_pass[k]).bounds, xtickint = 2./24., xminor=8
+			;plot, time_range, (*second_pass[k]).yrange, /nodata, /xstyle=5, ystyle=5, $
+			;	  /noerase, pos=(*second_pass[k]).bounds, xtickint = 2./24., xminor=8
+
+			plot, time_range, (*second_pass[k]).yrange, /nodata, /xstyle, ystyle=5, /noerase, $
+				  xtickname=xtickname, xtickint = 6./24., xminor=8, $
+				  pos=(*second_pass[k]).bounds
 
 			x = (*second_pass[k]).x
 			y = (*second_pass[k]).y
@@ -274,16 +289,20 @@ pro sdi_monitor_timeseries
 				sub_x = x[blocks[j,0]:blocks[j,1]]
 				sub_y = y[blocks[j,0]:blocks[j,1]]
 				if n_elements(sub_x) ge 2 then begin
-					oplot, sub_x, sub_y, color=(*second_pass[k]).color, psym=-6, sym=.3, thick=(*second_pass[k]).thick
+					oplot, sub_x, sub_y, color=(*second_pass[k]).color, thick=(*second_pass[k]).thick
 					;plots, sub_x, sub_y, color=(*second_pass[k]).color, psym=6, sym=.3, thick=1.55
 				endif else begin
-					plots, sub_x, sub_y, color=(*second_pass[k]).color, psym=6, sym=.3, thick=1.5
+					plots, sub_x, sub_y, color=(*second_pass[k]).color, thick=(*second_pass[k]).thick
 				endelse
 			endfor
 			ptr_free, second_pass[k]
 		endfor
 
+
+
 	;\\ Draw overplot temperatures for Mark
+
+		if current_day_ut_range[1] lt current_day_ut_range[0] then goto, MONITOR_TSERIES_END
 
 		;\\ Set draw geometry
 			base_geom = widget_info(global.tab_id[2], /geometry)
@@ -298,7 +317,17 @@ pro sdi_monitor_timeseries
 			!x.tickinterval = 1/24.
 			cnv_current = convert_js(dt_tm_tojs(systime(/ut)))
 			frac_day = cnv_current.dayno + cnv_current.sec/(24.*3600.)
-			time_range = frac_day + [-15, 1.5]/24.
+			if (current_day_ut_range[1] - current_day_ut_range[0]) lt 5 then $
+				current_day_ut_range[0] -= 5
+
+			current_day_ut_range[1] += 1
+
+			if current_day_ut_range[1] lt current_day_ut_range[0] then begin
+				time_range = current_ut_day + [0,5]/24.
+			endif else begin
+				time_range = current_ut_day + current_day_ut_range/24.
+			endelse
+
 			blank = replicate(' ', 30)
 
 			plot, time_range, [0,1], /nodata, /xstyle, /ystyle, yrange=yrange, xtick_get = xvals, xtickint = 2./24., xminor=8, $
@@ -309,12 +338,16 @@ pro sdi_monitor_timeseries
 				  xtickint = 2./24., xminor=8, chars = 1.5
 
 			loadct, 0, /silent
-			plots, [frac_day, frac_day], yrange, line=1
-			xyouts, frac_day, yrange[1] - .07*(yrange[1]-yrange[0]), 'Current UTC', align=-.03, /data, color=255
+			;plots, [frac_day, frac_day], yrange, line=1
+			;xyouts, frac_day, yrange[1] - .07*(yrange[1]-yrange[0]), 'Current UTC', align=-.03, /data, color=255
 			for jj = 1, n_elements(yvals) - 2 do oplot, time_range, fix([yvals[jj], yvals[jj]]), color = 80
 
 			for k = 0, n_series - 1 do begin
 				dat = *data[k]
+
+				if dat.meta.wavelength ne '5577' and $
+				   dat.meta.wavelength ne '6300' then continue
+
 				case dat.meta.site_code of
 					'HRP':color = [39, 100]
 					'PKR':color = [39, 150]
@@ -326,6 +359,7 @@ pro sdi_monitor_timeseries
 				loadct, color[0], /silent
 				x = dat.xaxis
 				y = median(dat.series.fits.width, dim=1)
+
 				find_contiguous, x, 3/24., blocks
 
 				for j = 0, n_elements(blocks[*,0]) - 1 do begin
@@ -357,6 +391,16 @@ pro sdi_monitor_timeseries
 				endfor
 				!p.font = -1
 			endif
+
+		;\\ Save a copy of the temp timeseries
+			year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
+			fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Median_Temperature\'
+			date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
+			fname += 'Median_Temperature_AllStations_' + date + '_6300.png'
+			file_mkdir, file_dirname(fname)
+			write_png, fname, tvrd(/true)
+
+MONITOR_TSERIES_END:
 
 	;\\ Restore the current color table
 		tvlct, store_red, store_green, store_blue
