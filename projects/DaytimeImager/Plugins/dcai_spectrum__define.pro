@@ -620,8 +620,8 @@ pro DCAI_Spectrum::NewSpectrum, info
 
 
 
-		;\\ SINCE EACH SPECTAL BIN IN EACH ZONE HAS A DIFFERENT NUMBER OF
-		;\\ PIXELS CONTRIBUTING. CALCULATE A NORMALIZING MAP FOR EACH ZONE (n_zones x n_spectral_channels)
+		;\\ SINCE EACH SPECTRAL BIN IN EACH ZONE'S SPECTRUM CAN HAVE A DIFFERENT NUMBER OF PIXELS CONTRIBUTING
+		;\\ TO IT, CALCULATE A NORMALIZING MAP FOR EACH ZONE (n_zones x n_spectral_channels)
 		norm = lonarr(self.lambdas[index].n_zones, self.lambdas[index].n_spectral_channels)
 		for zidx = 0, self.lambdas[index].n_zones - 1 do begin
 			pix = where(*self.lambdas[index].zonemap eq zidx, n_pix)
@@ -1031,37 +1031,37 @@ pro DCAI_Spectrum__define
 
 	n_etalons = n_elements(dcai_global.settings.etalon)
 
-	per_lambda = {lambda_struc, $ ;\\ Has to be a named structure to appear in an object structure
-				  uid:'', $ ;\\ String allowing unique id for each wavelength, zonemap, etlaon, etc.
-				  etalons:intarr(n_etalons), $ ;\\ Will be initialized to -1 for each etalon
-				  wavelength:0.0, $	;\\ Wavelength of this spectrum
-				  scanning:0, $ ;\\ Flag to indicate that this wavelength is currently scanning
-				  n_zones:0, $ ;\\ Number of zones in the zonemap
-				  n_scan_channels:0, $ ;\\ Number of scan channels
-				  n_spectral_channels:0, $ ;\\ Number of spectral channels
+	per_lambda = {lambda_struc, $ 				;\\ Has to be a named structure to appear in an object structure
+				  uid:'', $ 					;\\ String allowing unique id for each wavelength, zonemap, etlaon, etc.
+				  etalons:intarr(n_etalons), $ 	;\\ Will be initialized to -1 for each etalon
+				  wavelength:0.0, $				;\\ Wavelength of this spectrum
+				  scanning:0, $ 				;\\ Flag to indicate that this wavelength is currently scanning
+				  n_zones:0, $ 					;\\ Number of zones in the zonemap
+				  n_scan_channels:0, $ 			;\\ Number of scan channels
+				  n_spectral_channels:0, $ 		;\\ Number of spectral channels
 				  wavelength_range:[0.0, 0.0], $ ;\\ Wavelength range of interest
 				  wavelength_range_full:[0.0, 0.0], $ ;\\ Wavelength range required at fringe center to give wavelength_range in each zone
-				  scan_type:'', $	;\\ Scan type: 'wavelength' (dual etalon) or 'order' (single etalon)
-				  window_ids:[0,0,0], $
-				  window_dims:intarr(3,2), $
-				  edit_ids:{spex_edit_ids, n_channels:0L, minscans:0L, maxscans:0L, minsnr:0L, numexposures:0L}, $
-				  base_id:0L, $
-				  finalize:0, $ ;\\ Flag to indicate that acquisition will be finalized, regardless of snr or # scans
-				  min_snr:0., $ ;\\ Minimum snr to reach
-				  min_scans:0., $ ;\\ Minimum number of scans to do
-				  max_scans:0., $ ;\\ Maximum number of scans to do
-				  current_scan:0, $ ;\\ The current scan number
-				  num_exposures:0, $ ;\\ Number of exposures to do consecutively
-				  current_exposure:0, $ ;\\ The current exposure number
-				  sizes:intarr(4), $	;\\ Information for the spectra accumulator
-				  spectra:ptr_new(/alloc), $
-				  zonemap:ptr_new(/alloc), $
-				  normmap:ptr_new(/alloc), $
+				  scan_type:'', $				;\\ Scan type: 'wavelength' (dual etalon) or 'order' (single etalon)
+				  window_ids:[0,0,0], $			;\\ User-interface widget id's
+				  window_dims:intarr(3,2), $	;\\ User-interface info
+				  edit_ids:{spex_edit_ids, n_channels:0L, minscans:0L, maxscans:0L, minsnr:0L, numexposures:0L}, $ ;\\ Widget id's
+				  base_id:0L, $					;\\ A widget id
+				  finalize:0, $ 				;\\ Flag to indicate that acquisition will be finalized, regardless of snr or # scans
+				  min_snr:0., $ 				;\\ Minimum snr to reach
+				  min_scans:0., $ 				;\\ Minimum number of scans to do
+				  max_scans:0., $ 				;\\ Maximum number of scans to do
+				  current_scan:0, $ 			;\\ The current scan number
+				  num_exposures:0, $ 			;\\ Number of exposures to do consecutively
+				  current_exposure:0, $ 		;\\ The current exposure number
+				  sizes:intarr(4), $			;\\ Information for the spectra accumulator
+				  spectra:ptr_new(/alloc), $	;\\ Dimensions will be [zones, spectral channels]
+				  zonemap:ptr_new(/alloc), $	;\\ Dimensions will be [xpixels, ypixels]
+				  normmap:ptr_new(/alloc), $	;\\ Dimensions will be [zones, spectral channels]
 				  zone_info:ptr_new(/alloc), $
-				  phasemap:ptr_new(/alloc), $
-				  accumulated_image:ptr_new(/alloc), $
-				  snr_history:ptr_new(/alloc), $
-				  bgr_history:ptr_new(/alloc) $
+				  phasemap:ptr_new(/alloc), $	;\\ Dimensions will be [xpixels, ypixels]
+				  accumulated_image:ptr_new(/alloc), $ ;\\ Dimensions will be [xpixels, ypixels]
+				  snr_history:ptr_new(/alloc), $ ;\\ Dimensions will be [nscans]
+				  bgr_history:ptr_new(/alloc) $  ;\\ Dimensions will be [nscans]
 				 }
 
 	state = {DCAI_Spectrum, tab_base:0L, $
