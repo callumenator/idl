@@ -96,7 +96,7 @@ pro meta_loader, out, $
 
 	if date_yn eq 0 then return
 
-	if not keyword_set(filter) then filter = ['*630*', '*NZ0115*']
+	if not keyword_set(filter) then filter = ['*630*'] ;\\ , '*NZ0115*'
 
 
 ;\\ SEARCH FOR FILES

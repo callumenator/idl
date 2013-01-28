@@ -676,7 +676,7 @@ pro Andor_Camera_Driver_GUI, dll, embed_in_widget = embed_in_widget, $
 	common ASC_CameraDriverGUI, gui, misc
 
 	if size(dll, /type) eq 0 then $
-		dll = 'SDI_External_ASC.dll'
+		dll = 'SDI_External.dll'
 		;dll = 'C:\Users\sdi3000\ControlSoftware\SDI_External\sdi_external.dll'
 
 	;\\ Fill the capabilities structure...

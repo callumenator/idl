@@ -63,7 +63,7 @@ function DCAI_ScanCalibrate::init
 		if self.auto_scale eq 1 then widget_control, auto_scale_check, /set_button
 
 		btn_base = widget_base(left_base, col=2)
-		apply_button = widget_button(btn_base, value = 'Calculate Calibrate Info', font=dcai_global.gui.font + '*Bold', $
+		apply_button = widget_button(btn_base, value = 'Calculate Calibration Info', font=dcai_global.gui.font + '*Bold', $
 									 uval={tag:'plugin_event', object:self, method:'Calibrate'}, xs = 200)
 		clear_button = widget_button(btn_base, value = 'Clear Calibration Data', font=dcai_global.gui.font + '*Bold', $
 									 uval={tag:'plugin_event', object:self, method:'Clear'}, xs = 200)
@@ -149,8 +149,7 @@ pro DCAI_ScanCalibrate::Calibrate, event
 	endelse
 
 
-	;\\ CALCULATE CENTRAL WAVELENGTH FOR EACH ETALON, BASED ON THE PHASEMAP
-	;\\ AND ETALON GAP
+	;\\ CALCULATE CENTRAL WAVELENGTH FOR EACH ETALON, BASED ON THE PHASEMAP AND ETALON GAP
 	for k = 0, n_elements(dcai_global.settings.etalon) - 1 do begin
 		if size(*dcai_global.info.phasemap[k], /type) eq 0 then begin
 			res = dialog_message('No Phasemap for etalon ' + string(k, f='(i0)') + $
@@ -370,15 +369,15 @@ pro DCAI_ScanCalibrate__define
 	COMMON DCAI_Control, dcai_global
 
 	state = {DCAI_ScanCalibrate, draw_window:0, $
-						   draw_id:0L, $
-						   edit_ids:{scancalibrate_edit_ids, zoom:0L, center:0L, radius:0L}, $
-						   info_ids:lonarr(n_elements(dcai_global.settings.etalon)), $
-						   zoom:0.0, $
-						   draw_size:[0,0], $
-						   color_table:0, $
-						   auto_scale:0, $
-						   manual_scale_factor:0.0, $
-						   center:[0,0], $
-						   radius:0, $
-						   INHERITS DCAI_Plugin}
+								 draw_id:0L, $
+								 edit_ids:{scancalibrate_edit_ids, zoom:0L, center:0L, radius:0L}, $
+								 info_ids:lonarr(n_elements(dcai_global.settings.etalon)), $
+								 zoom:0.0, $
+								 draw_size:[0,0], $
+								 color_table:0, $
+								 auto_scale:0, $
+								 manual_scale_factor:0.0, $
+								 center:[0,0], $
+								 radius:0, $
+								 INHERITS DCAI_Plugin}
 end

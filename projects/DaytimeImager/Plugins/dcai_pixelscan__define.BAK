@@ -148,7 +148,7 @@ pro DCAI_PixelScan::WaveEdit, event
 	case uval.field of
 		'StartWavelength': self.wave_start = fix(val, type=4)
 		'StopWavelength': self.wave_stop = fix(val, type=4)
-		'Channels': self.wave_channels = fix(val, type=3) > 0
+		'Channels': self.wave_channels = fix(val, type=3) > 1
 		'Etalon': self.wave_etalons[uval.etalon] = event.select
 		'Pixel': begin
 			split = strtrim(strcompress(strsplit(val, ',', /extract), /remove), 2)
@@ -190,6 +190,8 @@ pro DCAI_PixelScan::Scan, event, struc=struc
 		'Start': begin
 
 			if self.scanning eq 0 then begin
+
+				if self.wave_channels le 0 then break
 
 				etalons = where(self.wave_etalons eq 1, netalons)
 				if netalons ne 0 then begin

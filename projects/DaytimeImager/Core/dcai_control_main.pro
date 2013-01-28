@@ -184,7 +184,10 @@ pro DCAI_Control_Persistent, save=save, load=load
 
 		save, filename=filename, persistent_data
 
+		return
 	endif	;\\ END SAVE
+
+
 
 
 	if keyword_set(load) then begin
@@ -196,6 +199,7 @@ pro DCAI_Control_Persistent, save=save, load=load
 		;\\ DO WE HAVE PHASEMAP DATA?
 		tag = (where(tag_names(persistent_data) eq 'PHASEMAPS', tag_yn))[0]
 		if tag_yn eq 1 then begin
+
 			;\\ ONLY ATTEMPT TO RESTORE IF BOTH CURRENT AND SAVED SETTINGS INDICATE
 			;\\ SAME NUMBER OF ETALONS, AND SAME IMAGE SIZE
 			n_dims = size(persistent_data.phasemaps, /n_dimensions)
@@ -259,23 +263,39 @@ end
 ;\\
 ;\\ Schedule [optional] = a file containing a schedule script.
 ;\\
-pro DCAI_Control_Main, external_dll, $
-					   camera_profile, $
+pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
+					   camera_settings=camera_settings, $ 	;\\ required
+					   external_dll=external_dll, $			;\\ required
 					   drivers=drivers, $
 					   schedule_script=schedule_script, $
-					   simulate_frames=simulate_frames, $
-					   settings_file=settings_file
-
+					   simulate_frames=simulate_frames
 
 	COMMON DCAI_Control, dcai_global
 
-	if not keyword_set(settings_file) then settings_file = 'dcai_settings.pro'
-
 	;PROFILER
 
-	if not keyword_set(drivers) then drivers = 'DCAI_NullDrivers'
+	if not keyword_set(settings_file) then begin
+		res = dialog_message('No settings file was provided. Exiting.')
+		return
+	endif
+
+	if not keyword_set(camera_settings) then begin
+		res = dialog_message('No camera settings file was provided. Exiting.')
+		return
+	endif
+
+	if not keyword_set(external_dll) then begin
+		res = dialog_message('No external DLL was provided. Exiting.')
+		return
+	endif
+
+	if not keyword_set(drivers) then begin
+		drivers = 'DCAI_NullDrivers'
+		print, 'No hardware drivers provided, a null-driver will be used (no hardware)'
+	endif
+
 	if not keyword_set(schedule_script) then schedule_script = ''
-	if file_basename(settings_file) eq '.' then settings_file = (routine_info(settings_file, /source)).path
+
 
 	;\\ GRAB A DUMMY CAMERA SETTINGS STRUCTURE
 		Andor_Camera_Driver, camera_dll, 'uGetSettingsStructure', 0, cam_settings, result
@@ -284,7 +304,7 @@ pro DCAI_Control_Main, external_dll, $
 		info = { drivers:drivers, $					;\\ Hardware driver code
 				 schedule_script:schedule_script, $ ;\\ Current schedule script
 				 settings_file:settings_file, $ 	;\\ Name of the current settings file
-				 camera_profile:camera_profile, $ 	;\\ The camera settings to use on startup
+				 camera_profile:camera_settings, $ 	;\\ The camera settings to use on startup
 				 camera_caps:ptr_new(/alloc), $ 	;\\ Structure of camera capabilities, returned by the driver
 				 camera_settings:cam_settings, $ 	;\\ Structure of camera settings, returned by the driver
 

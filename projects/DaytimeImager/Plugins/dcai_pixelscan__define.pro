@@ -191,6 +191,8 @@ pro DCAI_PixelScan::Scan, event, struc=struc
 
 			if self.scanning eq 0 then begin
 
+				if self.wave_channels le 0 then break
+
 				etalons = where(self.wave_etalons eq 1, netalons)
 				if netalons ne 0 then begin
 					arg = {caller:self, etalons:etalons, n_channels:self.wave_channels, $

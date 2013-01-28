@@ -12,4 +12,4 @@
 DCAI_Control_Main, 'SDI_External.dll', $
 				   'DCAI_CameraProfile', $
 				   drivers='DCAI_Drivers', $
-				   schedule = ''
+				   schedule = '', /simulate

@@ -129,14 +129,15 @@ pro DCAI_Control_Event, event
 				;\\ IF WE GOT A NEW FRAME, PROCESS IT AND ALERT THE FRAME LISTENERS
 					if image_result eq 'image' then begin
 
-						;\\ CALCULATE FRAME RA TE
+						;\\ CALCULATE FRAME RATE
 							frameTime = systime(/sec)
 							dcai_global.info.frame_rate = 1.0 / (frameTime - dcai_global.info.image_systime)
 
 						;\\ PERFORM IMAGE PROCESSING
 							processed_image = dcai_process_image(out.image)
 
-						;\\ STORE THE IMAGE IN THE GLOBAL BUFFER
+						;\\ STORE THE IMAGES IN THE GLOBAL BUFFER
+							*dcai_global.info.raw_image = out.image
 							*dcai_global.info.image = processed_image
 							dcai_global.info.image_systime = frameTime
 
@@ -147,7 +148,6 @@ pro DCAI_Control_Event, event
 									if obj_valid(frame_list[j]) then call_method, 'frame', frame_list[j]
 								endfor
 							endif
-
 
 						;\\ INCREMENT SCAN CHANNELS (IF SCANNING)
 							success = DCAI_ScanControl('increment', 'dummy', 0, messages=messages)
@@ -300,15 +300,15 @@ pro DCAI_Control_Event, event
 				'plugin_base': begin
 					tags = strlowcase(tag_names(uval))
 					match = where(tags eq 'method', nmatch)
-					;\\ REROUTE TO THE PLUGIN'S CHOSEN METHOD
+					;\\ RE-ROUTE TO THE PLUGIN'S CHOSEN METHOD
 					if nmatch eq 1 then call_method, uval.method, uval.object, 0, index=uval.index
 				end
 
-				;\\ CHILD BASES ARE FREE (TOP LEVEL BASES) WHICH ARE CHILDREN OF PLUGINS
+				;\\ CHILD BASES ARE FREE (TOP LEVEL) BASES WHICH ARE CHILDREN OF PLUGINS
 				'plugin_child_base': begin
 					tags = strlowcase(tag_names(uval))
 					match = where(tags eq 'method', nmatch)
-					;\\ REROUTE TO THE PARENT PLUGIN'S CHOSEN METHOD
+					;\\ RE-ROUTE TO THE PARENT PLUGIN'S CHOSEN METHOD
 					if nmatch eq 1 then call_method, uval.method, uval.object, 0, index=uval.index
 				end
 
