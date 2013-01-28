@@ -49,6 +49,8 @@ pro sdi_fit_spectra, fit_skyfile = fit_skyfile, $
 
 	if not keyword_set(fit_skyfile) and not keyword_set(fit_insfile) then return
 
+	if n_elements(spex) lt 2 then return
+
 	sdi3k_load_insprofs, insfile, insprofs
 	sdi3k_zenav_peakpos, spex, meta, cpos, widths=widths
 	ncid = sdi3k_nc_get_ncid(file, write_allowed=1)

@@ -53,6 +53,12 @@ pro sdi_monitor_timeseries
 			restore, ts_files[k]
 
 			js2ymds, series.start_time, y, m, d, s
+
+			curr_year =float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
+			keep = where(y eq curr_year, nkeep)
+			if nkeep gt 0 then series = series[keep] else continue
+
+
 			daynos = ymd2dn(y, m, d)
 			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
 			if (nsliced ge 2) then begin
@@ -64,8 +70,7 @@ pro sdi_monitor_timeseries
 			if (size(series.fits.width, /type) ne 0) then begin
 				good = where(median(series.fits.width, dim=1) gt 80 and $
 							 median(series.fits.width, dim=1) ne 600 and $
-							 median(series.fits.width, dim=1) ne 700 and $
-							 min(series.fits.chi, dim=1) gt 0, ngood)
+							 median(series.fits.width, dim=1) ne 700, ngood)
 				if ngood gt 0 then series = series[good]
 			endif
 
@@ -118,6 +123,8 @@ pro sdi_monitor_timeseries
 
 
 			for k = 0, n_series - 1 do begin
+
+				if ptr_valid(data[k]) eq 0 then continue
 
 				series = (*data[k]).series
 				meta = (*data[k]).meta
@@ -212,7 +219,7 @@ pro sdi_monitor_timeseries
 									if ngood gt 5 then begin
 										sm = smooth_in_time((xaxis[i0:i1])[good], (parameter[i0:i1])[good], 500, 15./(60.*24.), /gconvol)
 										parameter[i0:i1] = interpol(sm, (xaxis[i0:i1])[good], (xaxis[i0:i1]))
-									endif
+				 					endif
 								endif
 								sdevs[*] = 0
 							endif
@@ -343,6 +350,9 @@ pro sdi_monitor_timeseries
 			for jj = 1, n_elements(yvals) - 2 do oplot, time_range, fix([yvals[jj], yvals[jj]]), color = 80
 
 			for k = 0, n_series - 1 do begin
+
+				if ptr_valid(data[k]) eq 0 then continue
+
 				dat = *data[k]
 
 				if dat.meta.wavelength ne '5577' and $

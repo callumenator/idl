@@ -37,10 +37,14 @@ end
 pro sdi_monitor_multistatic
 
 	common sdi_monitor_common, global, persistent
-	common sdi_monitor_multistatic_common, lastrunId ;\\ to see if we have new data or not
+	common sdi_monitor_multistatic_common, lastrunId, $ ;\\ to see if we have new data or not
+										   lastSaveTime0, $ ;\\ allow low freq. saving of images
+										   lastSaveTime1 ;\\ ditto
 
 	if ptr_valid(persistent.zonemaps) eq 0 then return
 	if ptr_valid(persistent.snapshots) eq 0 then return
+	if size(lastSaveTime0, /type) eq 0 then lastSaveTime0 = systime(/sec) - 1E5
+	if size(lastSaveTime1, /type) eq 0 then lastSaveTime1 = systime(/sec) - 1E5
 
 	;\\ Multistatic time-series save file
 	saved_data = global.home_dir + '\timeseries\Multistatic_timeseries.idlsave'
@@ -245,7 +249,7 @@ pro sdi_monitor_multistatic
 					 backcolor=[0,0], continentcolor=[50,0], $
 					 outlinecolor=[90,0], bounds = [0,.25,1,1]
 
-	;\\ Allsky image (only get if sun elevation is below -15 t oavoid saturation)
+	;\\ Allsky image (only get if sun elevation is below -8 to avoid saturation)
 	sdi_monitor_grab_allsky, -8, error=error
 	if (error eq 1) or file_test(global.home_dir + '\latest_allsky.jpeg') eq 0 then begin
 		allsky_image = fltarr(3,512,512)
@@ -328,6 +332,8 @@ pro sdi_monitor_multistatic
 		use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
 					bistaticFits.obsdot lt .8 and $
 					bistaticFits.mangle gt 25 and $
+					abs(bistaticFits.mcomp) lt 500 and $
+					abs(bistaticFits.lcomp) lt 500 and $
 					bistaticFits.merr/bistaticFits.mcomp lt .3 and $
 					bistaticFits.lerr/bistaticFits.lcomp lt .3, nuse )
 
@@ -436,12 +442,15 @@ pro sdi_monitor_multistatic
 	endif
 
 	;\\ Save a copy of the image without tristatic
-	datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
-	timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
-	toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
-	fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
-	file_mkdir, toplevel
-	write_png, fname, tvrd(/true)
+	if systime(/sec) - lastSaveTime0 gt 15*60. then begin
+		datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+		timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+		toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
+		fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
+		file_mkdir, toplevel
+		write_png, fname, tvrd(/true)
+		lastSaveTime0 = systime(/sec)
+	endif
 
 
 	;\\ Overlay tristatics last, so we can take a picture with and without...
@@ -474,10 +483,13 @@ pro sdi_monitor_multistatic
 
 	!p.font = -1
 
-	;\\ Save a copy of the image without tristatic
-	fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
-	file_mkdir, toplevel
-	write_png, fname, tvrd(/true)
+	;\\ Save a copy of the image with tristatic
+	if systime(/sec) - lastSaveTime1 gt 15*60. then begin
+		fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
+		file_mkdir, toplevel
+		write_png, fname, tvrd(/true)
+		lastSaveTime1 = systime(/sec)
+	endif
 
 
 	tvlct, red, gre, blu

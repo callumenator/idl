@@ -3,12 +3,14 @@
 pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot time in days
 
 	common sdi_monitor_common, global, persistent
-	common sdi_monitor_windfields_common, lastrunId ;\\ to see if we have new data or not
+	common sdi_monitor_windfields_common, lastrunId, $ ;\\ to see if we have new data or not
+										  lastSaveTime ;\\ for low freq saves
 
 	if not keyword_set(oldest_snapshot) then oldest_snapshot = 1E9
 	if size(persistent, /type) eq 0 then return
 	if ptr_valid(persistent.zonemaps) eq 0 then return
 	if ptr_valid(persistent.snapshots) eq 0 then return
+	if size(lastSaveTime, /type) eq 0 then lastSaveTime = systime(/sec) - 1E5
 
 	;\\ Color map
 		color_map = {wavelength:[5577, 6300, 6328, 7320, 8430], $
@@ -85,6 +87,26 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			sdi3k_auto_flat, meta, flat_field, /use_database, use_path = 'c:\rsi\idl\routines\sdi\monitor\timeseries\offsets\'
 			for iix = 0, n_elements(var) - 1 do var[iix].velocity -= flat_field
 
+		;\\ Replace any spectral fits with really bad fits with interpolated data:
+		    chilim = 1.8
+		    if abs(meta.wavelength_nm - 557.7) lt 1. then chilim = 5.
+		    posarr = var.velocity
+		    bads  = where(var.chi_squared ge chilim or  var.signal2noise le 200. or abs(var.velocity) ge 1200., nn)
+		    if nn gt 0 then begin
+		       setweight = 0.*posarr + 1.
+		       setweight[bads] = 0.
+		       smarr = posarr
+		       sdi3k_spacesmooth_fits, smarr, 0.10, meta, zcen, setweight=setweight
+		       sdi3k_timesmooth_fits,  smarr, 2.50, meta, setweight=setweight
+;		       bads  = where(var.chi_squared ge chilim or  var.signal2noise le 200., nn)
+		       posarr[bads] = smarr[bads]
+               smdif = posarr - smarr
+               dummy = moment(smdif, sdev=stdv)
+               bads  = where(abs(smdif) gt 4.*stdv, nnbb)
+		       if nnbb gt 0 then posarr[bads] = smarr[bads]
+		       var.velocity = posarr
+		    endif
+; if meta.site eq 'HAARP' then stop
 
 		;\\ Windfit settings
 			dvdx_assumption = 'dv/dx=zero'
@@ -99,14 +121,29 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if nobs lt 5 then continue
 			sdi3k_drift_correct, var, meta, /data_based, /force
 			sdi3k_remove_radial_residual, meta, var, parname='VELOCITY'
+
     		var.velocity *= meta.channels_to_velocity
     		var.sigma_velocity *= meta.channels_to_velocity
     		posarr = var.velocity
-    		sdi3k_timesmooth_fits,  posarr, 1.1, meta
-    		sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
-    		var.velocity = posarr
-    		var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
+
+
+			sdi3k_timesmooth_fits,  posarr, 1.1, meta
+		    pos2arr = posarr
+
+		    sdi3k_spacesmooth_fits, posarr,      0.03, meta, zcen
+		    sdi3k_spacesmooth_fits, pos2arr, 1.5*0.03, meta, zcen
+		    var.velocity = posarr
+		    var.velocity(0) = reform(pos2arr(0,*))
+			var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
+
+
+    		;sdi3k_timesmooth_fits,  posarr, 1.1, meta
+    		;sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
+    		;var.velocity = posarr
+    		;var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity())
+
     		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
+
 
 			;\\ Save data back into time series file
 			series.winds.zonal = windfit.zonal_wind
@@ -365,6 +402,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 		if size(allMlt, /type) ne 0 then begin
 
+			polyfill, [.5, .5, 1, 1], [.5, 1, 1, .5], /normal, color=0
 
 			!p.font = 0
 			device, set_font='Ariel*15*Bold'
@@ -570,21 +608,34 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	endfor ;\\ pass loop
 
 	;\\ Save a copy of the image
-	datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
-	timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
-	toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Windfields\'
-	fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
-	file_mkdir, toplevel
-	write_png, fname, tvrd(/true)
+	if systime(/sec) - lastSaveTime gt 15.*60. then begin
+		datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+		timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+		toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Windfields\'
+		fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
+		file_mkdir, toplevel
+		write_png, fname, tvrd(/true)
+		lastSaveTime = systime(/sec)
+	endif
 
-	;\\ Save a copy of the dial plot
 	img = tvrd(/true)
 	dims = size(img, /dimensions)
+
+	;\\ Save a copy of the dial plot
 	portion = img[*,dims[1]/2:dims[1]-1, dims[2]/2:dims[2]-1]
 	year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
 	fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Wind_Dial_Plot\'
 	date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
 	fname += 'Wind_Dial_Plot_AllStations_' + date + '_6300.png'
+	file_mkdir, file_dirname(fname)
+	write_png, fname, portion
+
+	;\\ Save a copy of the wind time series
+	portion = img[*,*,0:dims[2]/2]
+	year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
+	fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Wind_Summary\'
+	date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
+	fname += 'Wind_Summary_Plot_AllStations_' + date + '_6300.png'
 	file_mkdir, file_dirname(fname)
 	write_png, fname, portion
 

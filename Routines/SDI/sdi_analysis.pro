@@ -70,15 +70,16 @@ pro sdi_analysis, directory, $
 			fname = string(byte_name)
 
 		;\\ Match up a laser calibration file for this sky file
-			split = strsplit(fname, '_', /extract)
+			split = strsplit(strlowcase(fname), '_', /extract)
 
 		;\\ Find best laser match
 			match = intarr(nlas)
 			for j = 0, nlas - 1 do begin
 				cmp = las_names[j]
-				cmp_split = strsplit(cmp, '_', /extract)
+				cmp_split = strsplit(strlowcase(cmp), '_', /extract)
 				for n = 0, n_elements(split) - 1 do begin
-					match[j] += strmatch(cmp, '*' + split[n] + '*', /fold)
+					;match[j] += strmatch(cmp, '*' + split[n] + '*', /fold)
+					match[j] += cmp_split[n] eq split[n] ;\\ names must have same number of fields
 				endfor
 				if cmp_split[0] ne split[0] then match[j] = 0
 			endfor
@@ -112,28 +113,31 @@ pro sdi_analysis, directory, $
 			if not keyword_set(no_ascii) then begin
 
 				sdi3k_read_netcdf_data, sky_list[k], meta=mm
-		       	year      = strcompress(string(fix(mm.year)),             /remove_all)
-		       	lamstring = strcompress(string(fix(10*mm.wavelength_nm)), /remove_all)
-		       	scode     = strcompress(mm.site_code, /remove_all)
-		       	if strupcase(scode) eq 'PF' then scode = 'PKR'
-		       	md_err = 0
-		       	catch, md_err
-		       	if md_err ne 0 then goto, keep_going
-		       	folder = plot_dir + year + '_' + scode + '_' + lamstring + '\' + 'ASCII_Data' + '\'
-		       	if !version.release ne '5.2' then file_mkdir, folder else spawn, 'mkdir ' + folder
+				if size(mm, /type) eq 8 then begin
+			       	year      = strcompress(string(fix(mm.year)),             /remove_all)
+			       	lamstring = strcompress(string(fix(10*mm.wavelength_nm)), /remove_all)
+			       	scode     = strcompress(mm.site_code, /remove_all)
+			       	if strupcase(scode) eq 'PF' then scode = 'PKR'
+			       	md_err = 0
+			       	catch, md_err
+			       	if md_err ne 0 then goto, keep_going
+			       	folder = plot_dir + year + '_' + scode + '_' + lamstring + '\' + 'ASCII_Data' + '\'
+			       	if !version.release ne '5.2' then file_mkdir, folder else spawn, 'mkdir ' + folder
 
-			keep_going:
-		       	catch, /cancel
+				keep_going:
+			       	catch, /cancel
 
-		       	stp = {export_allsky: 1, $
-		         	   export_skymaps: 1, $
-		           	   export_spectra: 0, $
-		           	   apply_smoothing: 1, $
-		           	   time_smoothing: 1.1, $
-		           	   space_smoothing: 0.09}
+			       	stp = {export_allsky: 1, $
+			         	   export_skymaps: 1, $
+			           	   export_spectra: 0, $
+			           	   export_wind_gradients: 0, $
+			           	   apply_smoothing: 1, $
+			           	   time_smoothing: 1.1, $
+			           	   space_smoothing: 0.09}
 
-		    	sdi3k_ascii_export, setup = stp, files = sky_list[k], outpath = folder
+			    	sdi3k_ascii_export, setup = stp, files = sky_list[k], outpath = folder
 
+			    endif
 		    endif
 
 			wait, 0.01

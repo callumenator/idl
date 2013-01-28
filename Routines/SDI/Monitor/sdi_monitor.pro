@@ -40,6 +40,24 @@ pro sdi_monitor_make_snapshot, index = index
 
 end
 
+;\\ Clear the calibration data for given site (force it to refresh when the
+;\\ next calibration snapshot arrives). Clears all calibration for all zonemaps.
+pro sdi_monitor_clear_calibration, site ;\\ site code
+
+	common sdi_monitor_common, global, persistent
+
+	if ptr_valid(persistent.snapshots) eq 0 then return
+
+	snaps = *persistent.snapshots
+	match = where(strlowcase(snaps.site_code) eq strlowcase(site) and $
+				  snaps.wavelength eq 6328, nm)
+	if nm eq 0 then return
+
+	new_snaps = delete_elements(snaps, match)
+	*persistent.snapshots = new_snaps
+
+end
+
 ;\\ Return the status structure for a given job
 function sdi_monitor_job_status, job
 
