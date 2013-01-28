@@ -80,11 +80,14 @@ function DCAI_Vidshow::init
 
 			cap_base_1 = widget_base(cap_base, col=3)
 				scr_capture = widget_button(cap_base_1, value = 'Capture Frame', font=dcai_global.gui.font, /align_center, $
-											uval = {tag:'plugin_event', object:self, method:'Capture'})
+											uval = {tag:'plugin_event', object:self, method:'Capture'}, $
+											tooltip = 'Capture the current frame')
 				seq_cap_start = widget_button(cap_base_1, value = 'Start Sequence Capture', font=dcai_global.gui.font, /align_center, $
-											uval = {tag:'plugin_event', object:self, method:'CaptureSequence', action:'start'})
+											uval = {tag:'plugin_event', object:self, method:'CaptureSequence', action:'start'}, $
+											tooltip = 'Start capturing frames')
 				seq_cap_stop = widget_button(cap_base_1, value = 'Stop Sequence Capture', font=dcai_global.gui.font, /align_center, $
-											uval = {tag:'plugin_event', object:self, method:'CaptureSequence', action:'stop'})
+											uval = {tag:'plugin_event', object:self, method:'CaptureSequence', action:'stop'}, $
+											tooltip = 'Stop capturing frames')
 
 
 

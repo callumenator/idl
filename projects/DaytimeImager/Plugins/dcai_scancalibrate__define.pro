@@ -63,7 +63,7 @@ function DCAI_ScanCalibrate::init
 		if self.auto_scale eq 1 then widget_control, auto_scale_check, /set_button
 
 		btn_base = widget_base(left_base, col=2)
-		apply_button = widget_button(btn_base, value = 'Calculate Calibrate Info', font=dcai_global.gui.font + '*Bold', $
+		apply_button = widget_button(btn_base, value = 'Calculate Calibration Info', font=dcai_global.gui.font + '*Bold', $
 									 uval={tag:'plugin_event', object:self, method:'Calibrate'}, xs = 200)
 		clear_button = widget_button(btn_base, value = 'Clear Calibration Data', font=dcai_global.gui.font + '*Bold', $
 									 uval={tag:'plugin_event', object:self, method:'Clear'}, xs = 200)

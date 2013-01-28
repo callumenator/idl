@@ -136,7 +136,7 @@ pro DCAI_Control_Event, event
 						;\\ PERFORM IMAGE PROCESSING
 							processed_image = dcai_process_image(out.image)
 
-						;\\ STORE THE IMAGE IN THE GLOBAL BUFFER
+						;\\ STORE THE IMAGES IN THE GLOBAL BUFFER
 							*dcai_global.info.raw_image = out.image
 							*dcai_global.info.image = processed_image
 							dcai_global.info.image_systime = frameTime
@@ -148,7 +148,6 @@ pro DCAI_Control_Event, event
 									if obj_valid(frame_list[j]) then call_method, 'frame', frame_list[j]
 								endfor
 							endif
-
 
 						;\\ INCREMENT SCAN CHANNELS (IF SCANNING)
 							success = DCAI_ScanControl('increment', 'dummy', 0, messages=messages)
@@ -301,15 +300,15 @@ pro DCAI_Control_Event, event
 				'plugin_base': begin
 					tags = strlowcase(tag_names(uval))
 					match = where(tags eq 'method', nmatch)
-					;\\ REROUTE TO THE PLUGIN'S CHOSEN METHOD
+					;\\ RE-ROUTE TO THE PLUGIN'S CHOSEN METHOD
 					if nmatch eq 1 then call_method, uval.method, uval.object, 0, index=uval.index
 				end
 
-				;\\ CHILD BASES ARE FREE (TOP LEVEL BASES) WHICH ARE CHILDREN OF PLUGINS
+				;\\ CHILD BASES ARE FREE (TOP LEVEL) BASES WHICH ARE CHILDREN OF PLUGINS
 				'plugin_child_base': begin
 					tags = strlowcase(tag_names(uval))
 					match = where(tags eq 'method', nmatch)
-					;\\ REROUTE TO THE PARENT PLUGIN'S CHOSEN METHOD
+					;\\ RE-ROUTE TO THE PARENT PLUGIN'S CHOSEN METHOD
 					if nmatch eq 1 then call_method, uval.method, uval.object, 0, index=uval.index
 				end
 
@@ -334,7 +333,6 @@ pro DCAI_Control_Event, event
          		DCAI_Control_ScriptStartStop
 			end
 
-
 			;\\ LOAD UP A NEW SCRIPT
 			'load_script_button': begin
 				dcai_global.info.current_command_index = -1
@@ -352,7 +350,6 @@ pro DCAI_Control_Event, event
 				endelse
 			end
 
-
 			;\\ SEND THE RESET COMMAND TO THE CURRENT SCRIPT
 			'reset_script_button': begin
 		        dcai_global.info.current_command_index = -1
@@ -360,7 +357,6 @@ pro DCAI_Control_Event, event
 		          	res = call_function(dcai_global.info.schedule_script, /reset)
 		        endif
 	      	end
-
 
 			;\\ LOAD SETTINGS
 			'load_settings_button': begin
@@ -384,7 +380,6 @@ pro DCAI_Control_Event, event
 				widget_control, /realize, base
 	      	end
 
-
 			;\\ LOAD UP THE CAMERA INTERFACE/GUI
 			'start_camera_driver': begin
 				;\\ Create a base widget to embed the driver gui in
@@ -393,13 +388,11 @@ pro DCAI_Control_Event, event
 											 initial_settings = dcai_global.info.camera_settings, update_settings_callback = 'DCAI_Control_Driver_Callback'
 			end
 
-
 			;\\ SELECT A FILTER
 			'command_filter': begin
 				new_filt = event.index
 				DCAI_Command, 'filter, ' + string(new_filt, f='(i0)')
 			end
-
 
 			;\\ LAUNCH A NEW PLUGIN
 			'plugin': begin
@@ -414,7 +407,6 @@ pro DCAI_Control_Event, event
 
 			;\\ REINIT ETALON
 			'reinit': call_procedure, dcai_global.info.drivers, {device:'etalon_init'}
-
 
 			;\\ RE-ROUTE AN EVENT GENERATED WITHIN A PLUGIN
 			'plugin_event': begin

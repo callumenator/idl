@@ -335,7 +335,7 @@ pro DCAI_Spectrum::Scan, event, command=command
 		end
 
 		'unpause':begin
-		;\\ CHECK TO SEE IF THE CALLER IS THE CURRENT SCANNER
+			;\\ CHECK TO SEE IF THE CALLER IS THE CURRENT SCANNER
 			if self.lambdas[id].scanning eq 0 then return
 
 			etz = where(self.lambdas[id].etalons eq 1, n_etz)

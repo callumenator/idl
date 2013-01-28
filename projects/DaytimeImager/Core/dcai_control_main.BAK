@@ -199,6 +199,7 @@ pro DCAI_Control_Persistent, save=save, load=load
 		;\\ DO WE HAVE PHASEMAP DATA?
 		tag = (where(tag_names(persistent_data) eq 'PHASEMAPS', tag_yn))[0]
 		if tag_yn eq 1 then begin
+
 			;\\ ONLY ATTEMPT TO RESTORE IF BOTH CURRENT AND SAVED SETTINGS INDICATE
 			;\\ SAME NUMBER OF ETALONS, AND SAME IMAGE SIZE
 			n_dims = size(persistent_data.phasemaps, /n_dimensions)
@@ -262,12 +263,12 @@ end
 ;\\
 ;\\ Schedule [optional] = a file containing a schedule script.
 ;\\
-pro DCAI_Control_Main, external_dll, $
-					   camera_profile, $
+pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
+					   camera_settings=camera_settings, $ 	;\\ required
+					   external_dll=external_dll, $			;\\ required
 					   drivers=drivers, $
 					   schedule_script=schedule_script, $
-					   simulate_frames=simulate_frames, $
-					   settings_file=settings_file
+					   simulate_frames=simulate_frames
 
 
 	COMMON DCAI_Control, dcai_global
@@ -278,7 +279,7 @@ pro DCAI_Control_Main, external_dll, $
 
 	if not keyword_set(drivers) then drivers = 'DCAI_NullDrivers'
 	if not keyword_set(schedule_script) then schedule_script = ''
-	if file_basename(settings_file) eq '.' then settings_file = (routine_info(settings_file, /source)).path
+
 
 	;\\ GRAB A DUMMY CAMERA SETTINGS STRUCTURE
 		Andor_Camera_Driver, camera_dll, 'uGetSettingsStructure', 0, cam_settings, result

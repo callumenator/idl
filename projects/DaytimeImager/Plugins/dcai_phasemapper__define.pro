@@ -20,6 +20,7 @@ function DCAI_Phasemapper::init
 
 	;\\ RESTORE SAVED SETTINGS
 		self->load_settings
+		if total(self.etalons) eq 0 then self.etalons[0] = 1
 
 
 	;\\ CREATE THE GUI
@@ -56,7 +57,7 @@ function DCAI_Phasemapper::init
 									edit_uval = {tag:'plugin_event', object:self, method:'SetCenter'}, edit_xs = 10, ids=ids
 			self.edit_ids.center = ids.text
 
-		etalon_base = widget_base(_base, /nonexclusive, col=2)
+		etalon_base = widget_base(_base, /exclusive, col=2)
 		for k = 0, n_elements(dcai_global.settings.etalon) - 1 do begin
 			btn = widget_button(etalon_base, value = 'Etalon ' + string(k, f='(i0)'), font=dcai_global.gui.font, $
 								uval={tag:'plugin_event', object:self, method:'EtalonSelect', etalon:k})
@@ -289,6 +290,16 @@ pro DCAI_Phasemapper::ShowCurrent, event
 
 	COMMON DCAI_Control, dcai_global
 
+	pmap = dcai_global.info.phasemap[(where(self.etalons eq 1))[0]]
+	if ptr_valid(pmap)eq 0 then begin
+		res = dialog_message('Phasemap ' + string((where(self.etalons eq 1))[0], f='(i0)') + $
+							 ' is not valid!')
+		return
+	endif
+
+	pmap = *pmap
+	wset, self.draw_window
+	tv, congrid(bytscl(pmap), self.draw_size[0], self.draw_size[1])
 end
 
 

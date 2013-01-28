@@ -335,7 +335,7 @@ pro DCAI_Spectrum::Scan, event, command=command
 		end
 
 		'unpause':begin
-		;\\ CHECK TO SEE IF THE CALLER IS THE CURRENT SCANNER
+			;\\ CHECK TO SEE IF THE CALLER IS THE CURRENT SCANNER
 			if self.lambdas[id].scanning eq 0 then return
 
 			etz = where(self.lambdas[id].etalons eq 1, n_etz)
@@ -820,8 +820,10 @@ pro DCAI_Spectrum::RemoveSpectrum, event, index=index, no_confirm=no_confirm
 				return
 			endif
 
-			confirm = dialog_message('Confirm: Close ALL Spectrum Objects?', /question)
-			if confirm eq 'No' then return
+			if self.n_lambdas gt 0 then begin
+				confirm = dialog_message('Confirm: Close ALL Spectrum Objects?', /question)
+				if confirm eq 'No' then return
+			endif
 
 			;\\ DESTROY THE WIDGET
 			if widget_info(self.id, /valid) then widget_control, /destroy, self.id

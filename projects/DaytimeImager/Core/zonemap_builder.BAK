@@ -1,16 +1,20 @@
 
-;\\ A FUNCTION TO CALCULATE DISTANCE FROM A GIVEN CENTER, IN A 2D ARRAY
-function zonemap_distance, zmap, center ;\\ center is [x center, y center]
+;\\ A FUNCTION TO CALCULATE FRACTIONAL DISTANCE FROM A GIVEN CENTER TO EDGE IN A 2D ARRAY
+function zonemap_distance, zmap, center, $ ;\\ center is [x center, y center]
+						   xarr=xarr, $
+						   yarr=yarr
 	dims = float(size(zmap, /dimensions))
 	idx = findgen(n_elements(zmap))
-	xx = (idx mod size[0]) - center[0]
-	yy = fix(idx / size[0]) - center[1]
-	x = fltarr(size[0],size[1])
+	xx = (idx mod dims[0]) - center[0]
+	yy = fix(idx / dims[0]) - center[1]
+	x = fltarr(dims[0],dims[1])
 	x[*] = xx
 	y = x
 	y[*] = yy
 	dist = sqrt(x*x + y*y)
-	dist = dist / float(size[0]/2.)
+	dist = dist / float(dims[0]/2.)
+	xarr = x
+	yarr = y
 	return, dist
 end
 
@@ -45,7 +49,7 @@ function zonemap_builder, annular=annular, $
 			zone_pixel_count = [-1]
 
 			;\\ Make a distance map from [cent(0),cent(1)]
-				caldist = zonemap_distance(zone, cent)
+				caldist = zonemap_distance(zone, cent, xarr=calx, yarr=caly)
 
 			;\\ Make an angle map
 				calang = atan(caly,calx)
