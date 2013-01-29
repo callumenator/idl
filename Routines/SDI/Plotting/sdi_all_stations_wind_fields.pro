@@ -7,6 +7,7 @@
 ;\\								  monostatic=monostatic, $ ;\\ do monostatic plots
 ;\\								  bistatic=bistatic ;\\ do bistatic plots
 ;\\								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
+;\\								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 ;\\								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
 ;\\								  output_path=output_path, $ ;\\ root directory for output, a
 ;\\															 ;\\ date subdir will be created
@@ -375,6 +376,30 @@ end
 ;\\ --------------------------------------------------------------------------------------------------
 
 
+;\\ OVERLAY AN ALLSKY IMAGE ONTO THE MAP
+pro sdi_all_stations_wind_fields_plotpfisr, map, $
+											map_opts, $
+											pfisr, $
+											this_time, $
+											this_dayno
+
+	keep = where(pfisr.time.doy eq this_dayno, nkeep)
+	if nkeep eq 0 then return
+
+	ut = (total(pfisr.time.decimal, 1)/2.)[keep] ;\\ mean start-end time
+	if (this_time lt min(ut)) or (this_time gt max(ut)) then return
+
+	nt = n_elements(ut)
+	for i = 0, n_elements(pfisr.vels.emag[*,0]) - 1 do begin
+		vel_e = interpol(reform(pfisr.vels.emag[i,keep]), ut, this_time)
+		vel_v = interpol(reform(pfisr.vels.vmag[i,keep]), ut, this_time)
+		stop
+	endfor
+	stop
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
 ;\\ MAIN ENTRY POINT
 pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  data_paths=data_paths, $
@@ -382,15 +407,19 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  time_resolution=time_resolution, $ ;\\ in minutes
 								  monostatic=monostatic, $ ;\\ do monostatic plots
 								  bistatic=bistatic, $ ;\\ also make bistatic plots
-								  allsky_image_path=allsky_image_path, $
+								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
+								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
 								  output_path=output_path ;\\ root directory for output, a date subdir will be created
 
 	device, decompose=0
+	set_plot, 'win'
+
 	if not keyword_set(plot_type) then plot_type = 'png'
 	if plot_type ne 'eps' and plot_type ne 'png' then plot_type = 'png'
 	if not keyword_set(monostatic) and not keyword_set(bistatic) then return
 
+	;\\ GET SDI DATA
 	meta_loader, data, ydn=ydn, raw_paths=data_paths
 
 	sites = ['PKR', 'HRP', 'TLK']
@@ -398,6 +427,13 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	nsites = total( [total(strmatch(tags, sites[0])), $
 					 total(strmatch(tags, sites[1])), $
 					 total(strmatch(tags, sites[2])) ] )
+
+	;\\ GET PFISR DATA (IF REQUESTED)
+	if keyword_set(pfisr_convection) then begin
+		if file_test(pfisr_convection) then begin
+			pfisr_hdf_read, pfisr_convection, pfisr_convection_data, /convection
+		endif
+	endif
 
 	if keyword_set(bistatic) then begin
 		allMeta = ptrarr(nsites, /alloc)
@@ -435,7 +471,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 				output_subdir:output_subdir, $
 				output_name:'', $
 				bistatic_color:[255, 0], $
-				blend_color:[100, 0] }
+				blend_color:[100, 0], $
+				pfisr_color:[50, 39]}
 
 
 	;\\ For PNG, store a copy of the map (since it is slow). EPS needs to redo each time
@@ -492,7 +529,6 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 				sdi_all_stations_wind_fields_plotmonostatic, map, map_opts, zonal, merid, $
 															 zinfo, ctable, color
 
-
 			;\\ STORE MULTISTATIC INFO IF DOING THESE
 			if keyword_set(bistatic) then begin
 				sdi_time_interpol, speks.velocity, time, this_time, _winds
@@ -504,13 +540,17 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 		endfor ;\\ loop over sites
 
+		;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
+		if size(pfisr_convection_data, /type) ne 0 then $
+				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+
 		if keyword_set(monostatic) then begin
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
 		endif
 
 
-		;\\ PLOT MULTISTATIC IF REQUESTED
+		;\\ OVER-PLOT MULTISTATIC IF REQUESTED
 		if keyword_set(bistatic) then begin
 			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + time_str_from_decimalut(this_time, /forfile) $
 						 		 + '.' + plot_type
@@ -529,7 +569,14 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
+
+			;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
+			if size(pfisr_convection_data, /type) ne 0 then $
+				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
 		endif
+
+
+
 
 
 		;\\ CLEAR SOME APPENDER ARRAYS
