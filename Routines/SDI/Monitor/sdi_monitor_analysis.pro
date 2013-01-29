@@ -8,7 +8,9 @@ pro sdi_monitor_analysis_log, msg_string
 	free_lun, hnd
 end
 
-pro sdi_monitor_analysis, ignore_checksum = ignore_checksum
+pro sdi_monitor_analysis, ignore_checksum = ignore_checksum, $
+						  force_all = force_all ;\\ create incomming file for all sites,
+						  						;\\ do analysis regardless of checksums
 
 	;\\ Control where analyzed data are moved to
 	data_directories = [{site_code:'MAW', directory:'F:\SDIData\Mawson\'}, $
@@ -17,7 +19,14 @@ pro sdi_monitor_analysis, ignore_checksum = ignore_checksum
 						{site_code:'TLK', directory:'F:\SDIData\Toolik\'}, $
 						{site_code:'KTO', directory:'F:\SDIData\Kaktovik\'} ]
 
-	;\\ Check to see if we can start any new jobs -- look for _incomming files
+	if keyword_set(force_all) then begin
+		force_sites = ['HRP', 'PKR', 'MAW', 'TLK', 'KTO']
+		for i = 0, n_elements(force_sites) - 1 do $
+			create_incomming_file, site=force_sites[i], dir='c:\ftp\instrument_incomming\'
+		ignore_checksum = 1
+	endif
+
+	;\\ Look for _incomming files
 	in_files = file_search('c:\ftp\instrument_incomming\{HRP,PKR,MAW,TLK,KTO}*_incomming.txt', count = n_in)
 
 	for i = 0, n_in - 1 do begin
