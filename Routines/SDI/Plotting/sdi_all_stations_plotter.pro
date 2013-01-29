@@ -22,6 +22,10 @@ pro sdi_all_stations_plotter
 				pfisr_color:[50, 39]}		;\\ color of pfisr convection vectors (color, color table)
 
 
+	;\\ Example - generate monostatic, bistatic and tristatic png's for 2012 335,
+	;\\ save images in root dir c:\users\sdi\AllStationPlots\. Automatically calculate
+	;\\ time range and resolution
+
 	ydn = '2012335'
 	opts = options
 	plot_type = 'png'
