@@ -29,7 +29,15 @@ pro plot_allsky_on_map, map, $
 			image[0,*,*] = reverse(reform(image[0,*,*]), 2)
 			image[1,*,*] = reverse(reform(image[1,*,*]), 2)
 			image[2,*,*] = reverse(reform(image[2,*,*]), 2)
-		endif
+		endif else begin
+			image[0,*,*] = rot(reform(image[0,*,*]), 90)
+			image[1,*,*] = rot(reform(image[1,*,*]), 90)
+			image[2,*,*] = rot(reform(image[2,*,*]), 90)
+
+			image[0,*,*] = reverse(reform(image[0,*,*]), 1)
+			image[1,*,*] = reverse(reform(image[1,*,*]), 1)
+			image[2,*,*] = reverse(reform(image[2,*,*]), 1)
+		endelse
 
 		if keyword_set(azi_plus) then begin
 			image[0,*,*] = rot(reform(image[0,*,*]), azi_plus)

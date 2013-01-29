@@ -103,7 +103,7 @@ pro meta_loader, out, $
 	obs_date = '*' + year + '_' + dayn + '*'
 	obs_files = ['']
 	for j = 0, n_elements(obs_data_path) - 1 do begin
-		obs_files = [obs_files, file_search(obs_data_path[j] + obs_date + '*sky*' + ['*.nc', '*.sky'], count = nobs)]
+		obs_files = [obs_files, file_search(obs_data_path[j] + '\' + obs_date + '*sky*' + ['*.nc', '*.sky'], count = nobs)]
 	endfor
 	if n_elements(obs_files) gt 0 then begin
 		obs_files = obs_files[1:*]
