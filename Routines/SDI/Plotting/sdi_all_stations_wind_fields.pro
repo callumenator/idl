@@ -1,17 +1,21 @@
 
 ;\\ THE MAIN ENTRY POINT IS:
 ;\\ sdi_all_stations_wind_fields, ydn=ydn, $ ;\\ year daynumber e.g. '2012013'
+;\\								  options=options, $ ;\\ struct of plot options, see code
 ;\\								  data_paths=data_paths, $ ;\\ array of paths to data
 ;\\								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
 ;\\								  time_resolution=time_resolution, $ ;\\ in minutes
-;\\								  monostatic=monostatic, $ ;\\ do monostatic plots
-;\\								  bistatic=bistatic ;\\ do bistatic plots
+;\\								  monostatic=monostatic, $ ;\\ make monostatic plots
+;\\								  bistatic=bistatic ;\\ make bistatic plots
+;\\								  tristatic=tristatic ;\\ make tristatic plots
 ;\\								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 ;\\								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 ;\\								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
-;\\								  output_path=output_path, $ ;\\ root directory for output, a
-;\\															 ;\\ date subdir will be created
+;\\								  output_path=output_path ;\\ root directory for output, a
+;\\														  ;\\ date subdir will be created
 
+
+@resolve_nstatic_wind
 
 ;\\ GENERATE IN INTERPOLATED TIME AXIS - ASK FOR TIME RANGE IF DOING EPS
 pro sdi_all_stations_wind_fields_timeset, sites, $
@@ -116,6 +120,23 @@ pro sdi_all_stations_wind_fields_pageset, plot_type, $
 	endelse
 end
 ;\\ --------------------------------------------------------------------------------------------------
+
+
+pro sdi_all_stations_wind_fields_coords, save=save, restore=restore
+	common sdi_all_stations_wind_fields_coords, map, x, y, plt
+	if keyword_set(save) then begin
+		map = !map
+		x = !x
+		y = !y
+		plt = !p
+	endif
+	if keyword_set(restore) then begin
+		!map = map
+		!x = x
+		!y = y
+		!p = plt
+	endif
+end
 
 
 ;\\ GENERATE THE MAP AND DO THE GEOMAGNETIC CONTOUR OVERLAY
@@ -297,17 +318,17 @@ end
 ;\\ --------------------------------------------------------------------------------------------------
 
 
-;\\ PLOT BISTATIC WIND VECTORS OVERLAID ONTO AN AVERAGE BLEND OF MONOSTATIC WINDS
-pro sdi_all_stations_wind_fields_plotbistatic, map, $
-											   map_opts, $
-											   altitude, $
-											   allMeta, $
-											   allWinds, $
-											   AllWindErrs
+;\\ FIT BISTATIC WIND VECTORS
+function sdi_all_stations_wind_fields_fitbistatic, altitude, $
+									 	   		   allMeta, $
+											   	   allWinds, $
+											   	   AllWindErrs
+
+	sdi_all_stations_wind_fields_coords, /save
 	nsites = n_elements(allMeta)
 	bistaticFits = 0
-	if nsites ge 2 then begin
 
+	if nsites ge 2 then begin
 		;\\ Do the bistatic fitting
 		for stn0 = 0, nsites - 1 do begin
 		for stn1 = stn0 + 1, nsites - 1 do begin
@@ -323,6 +344,17 @@ pro sdi_all_stations_wind_fields_plotbistatic, map, $
 		endfor
 		endfor
 	endif
+
+	sdi_all_stations_wind_fields_coords, /restore
+	return, bistaticFits
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ PLOT BISTATIC WIND VECTORS OVERLAID ONTO AN AVERAGE BLEND OF MONOSTATIC WINDS
+pro sdi_all_stations_wind_fields_plotbistatic, map, $
+											   map_opts, $
+											   bistaticFits
 
 	use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
 			bistaticFits.obsdot lt .8 and $
@@ -352,6 +384,78 @@ pro sdi_all_stations_wind_fields_plotbistatic, map, $
 			   /data
 	endfor
 
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ FIT TRISTATIC WIND VECTORS
+function sdi_all_stations_wind_fields_fittristatic, altitude, $
+												    allMeta, $
+												    allWinds, $
+												    AllWindErrs
+
+	sdi_all_stations_wind_fields_coords, /save
+	nsites = n_elements(allMeta)
+	tristaticFits = 0
+
+	if nsites ge 3 then begin
+		;\\ Tristatic fitting
+		for stn0 = 0, nsites - 1 do begin
+		for stn1 = stn0 + 1, nsites - 1 do begin
+		for stn2 = stn1 + 1, nsites - 1 do begin
+
+			fit_tristatic, *allMeta[stn0], *allMeta[stn1], *allMeta[stn2], $
+					  	   *allWinds[stn0], *allWinds[stn1], *allWinds[stn2], $
+					  	   *allWindErrs[stn0], *allWindErrs[stn1], *allWindErrs[stn2], $
+					  	   altitude, $
+					  	   fit = fit
+
+			append, fit, tristaticFits
+			append, {stn0:(*allMeta[stn0]).site_code, $
+					 stn1:(*allMeta[stn1]).site_code, $
+					 stn2:(*allMeta[stn2]).site_code }, tristaticPairs
+
+		endfor
+		endfor
+		endfor
+	endif
+
+	sdi_all_stations_wind_fields_coords, /restore
+	return, tristaticFits
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ PLOT TRISTATIC WIND VECTORS OVERLAID ONTO AN AVERAGE BLEND OF MONOSTATIC WINDS
+pro sdi_all_stations_wind_fields_plottristatic, map, $
+											    map_opts, $
+											    tristaticFits
+
+	use = where(max(tristaticFits.overlap, dim=1) gt .2 and $
+				tristaticFits.obsdot lt .7 and $
+				sqrt(tristaticFits.v*tristaticFits.v + tristaticFits.u*tristaticFits.u) lt 300 and $
+				tristaticFits.uerr/tristaticFits.u lt .3 and $
+				tristaticFits.verr/tristaticFits.v lt .3, nuse )
+
+	use = where(max(tristaticFits.overlap, dim=1) gt .2)
+	if (nuse eq 0) then return
+	triFits = tristaticFits[use]
+
+	loadct, map_opts.tristatic_color[1], /silent
+	for i = 0, nuse - 1 do begin
+
+		outWind = [triFits[i].u, triFits[i].v]
+		magnitude = sqrt(outWind[0]*outWInd[0] + outWind[1]*outWind[1]) * map_opts.scale
+		azimuth = atan(outWind[0], outWind[1]) / !DTOR
+
+		get_mapped_vector_components, map, triFits[i].lat, triFits[i].lon, $
+									  magnitude, azimuth, x0, y0, xlen, ylen
+
+		arrow, x0, y0, x0 + xlen, y0 + ylen, $
+			   color = map_opts.tristatic_color[0], $
+			   hsize = map_opts.arrow_head_size, $
+			   /data
+	endfor
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -402,11 +506,13 @@ end
 
 ;\\ MAIN ENTRY POINT
 pro sdi_all_stations_wind_fields, ydn=ydn, $
+								  options=options, $ ;\\ struct of plot options, see code
 								  data_paths=data_paths, $
 								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
 								  time_resolution=time_resolution, $ ;\\ in minutes
-								  monostatic=monostatic, $ ;\\ do monostatic plots
-								  bistatic=bistatic, $ ;\\ also make bistatic plots
+								  monostatic=monostatic, $ ;\\ make monostatic plots
+								  bistatic=bistatic, $ ;\\ make bistatic plots
+								  tristatic=tristatic, $ ;\\ make bistatic plots
 								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -417,7 +523,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	if not keyword_set(plot_type) then plot_type = 'png'
 	if plot_type ne 'eps' and plot_type ne 'png' then plot_type = 'png'
-	if not keyword_set(monostatic) and not keyword_set(bistatic) then return
+	if not keyword_set(monostatic) and $
+	   not keyword_set(bistatic) and $
+	   not keyword_set(tristatic) then return
 
 	;\\ GET SDI DATA
 	meta_loader, data, ydn=ydn, raw_paths=data_paths
@@ -435,7 +543,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 	endif
 
-	if keyword_set(bistatic) then begin
+	if keyword_set(bistatic) or keyword_set(tristatic) then begin
 		allMeta = ptrarr(nsites, /alloc)
 		allWinds = ptrarr(nsites, /alloc)
 		allWindErrs = ptrarr(nsites, /alloc)
@@ -457,22 +565,31 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	file_mkdir, output_path + '\' + output_subdir
 	if keyword_set(monostatic) then file_mkdir, output_path + '\' + output_subdir + '\Monostatic\'
 	if keyword_set(bistatic) then file_mkdir, output_path + '\' + output_subdir + '\Bistatic\'
+	if keyword_set(tristatic) then file_mkdir, output_path + '\' + output_subdir + '\Tristatic\'
 
-	map_opts = {lat:65,	lon:-147, zoom:5.5, scale:1E3, $
-				continent_color:[50,0], ocean_color:[0,0], $
-				outline_color:[90,0], grid_color:[0, 100], $
-				bounds:[0,0,1,1], $
-				arrow_head_size:5, $
-				winx:600, $
-				winy:600, $
-				text_color:255, $
-				chars:0.7, $
-				output_path:output_path, $
-				output_subdir:output_subdir, $
-				output_name:'', $
-				bistatic_color:[255, 0], $
-				blend_color:[100, 0], $
-				pfisr_color:[50, 39]}
+	if not keyword_set(options) then begin
+		map_opts = {lat:65,	$
+					lon:-147, $
+					zoom:5.5, $
+					scale:1E3, $
+					continent_color:[50,0], ocean_color:[0,0], $
+					outline_color:[90,0], grid_color:[0, 100], $
+					bounds:[0,0,1,1], $
+					arrow_head_size:5, $
+					winx:600, $
+					winy:600, $
+					text_color:255, $
+					chars:0.7, $
+					output_path:output_path, $
+					output_subdir:output_subdir, $
+					output_name:'', $
+					bistatic_color:[255, 0], $
+					tristatic_color:[255, 0], $
+					blend_color:[100, 0], $
+					pfisr_color:[50, 39]}
+	endif else begin
+		map_opts = options
+	endelse
 
 
 	;\\ For PNG, store a copy of the map (since it is slow). EPS needs to redo each time
@@ -511,7 +628,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			zonal = zonalWind*cos(angle) - meridWind*sin(angle)
 			merid = zonalWind*sin(angle) + meridWind*cos(angle)
 
-			if keyword_set(bistatic) then begin
+			if keyword_set(bistatic) or keyword_set(tristatic) then begin
 				append, zonal, allMonoZonal
 				append, merid, allMonoMerid
 				append, zinfo.lat, allMonoLat
@@ -530,7 +647,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 															 zinfo, ctable, color
 
 			;\\ STORE MULTISTATIC INFO IF DOING THESE
-			if keyword_set(bistatic) then begin
+			if keyword_set(bistatic) or keyword_set(tristatic) then begin
 				sdi_time_interpol, speks.velocity, time, this_time, _winds
 				sdi_time_interpol, speks.sigma_velocity, time, this_time, _wind_errors
 				*allMeta[i] = meta
@@ -550,10 +667,12 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 
 
-		;\\ OVER-PLOT MULTISTATIC IF REQUESTED
+		;\\ PLOT BISTATIC IF REQUESTED
 		if keyword_set(bistatic) then begin
 			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + time_str_from_decimalut(this_time, /forfile) $
 						 		 + '.' + plot_type
+
+			fits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
 
 			sdi_all_stations_wind_fields_pageset, plot_type, background=background, $
 												  map_opts=map_opts
@@ -564,8 +683,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, allMonoZonal, $
 											   		    allMonoMerid, allMonoLat, allMonoLon
 
-			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, altitude, $
-													   allMeta, allWinds, AllWindErrs
+			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, fits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
@@ -576,8 +694,31 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 
 
+		;\\ PLOT TRISTATIC IF REQUESTED
+		if keyword_set(tristatic) then begin
+			map_opts.output_name = '\Tristatic\All_Stations_Tristatic' + time_str_from_decimalut(this_time, /forfile) $
+						 		 + '.' + plot_type
 
+			fits = sdi_all_stations_wind_fields_fittristatic(altitude, allMeta, allWinds, AllWindErrs)
 
+			sdi_all_stations_wind_fields_pageset, plot_type, background=background, $
+												  map_opts=map_opts
+
+			if keyword_set(allsky_image_path) then $
+				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
+
+			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, allMonoZonal, $
+											   		    allMonoMerid, allMonoLat, allMonoLon
+
+			sdi_all_stations_wind_fields_plottristatic, map, map_opts, fits
+
+			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
+			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
+
+			;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
+			if size(pfisr_convection_data, /type) ne 0 then $
+				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+		endif
 
 		;\\ CLEAR SOME APPENDER ARRAYS
 		allMonoZonal = ''

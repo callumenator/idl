@@ -91,8 +91,7 @@ pro MIWF_FitBiStatic, force_restore = force_restore, $
 			endcase
 			if alt1 ne alt2 then continue
 
-			calculate_zone_overlaps, stationName[[st1,st2]], $
-									 alt1, $
+			calculate_zone_overlaps, alt1, $
 									 [miscData.metaData[st1], miscData.metaData[st2]], $
 									 [miscData.windData[st1], miscData.windData[st2]], $
 									 zone_overlap, $

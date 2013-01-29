@@ -33,8 +33,7 @@ pro fit_tristatic, meta1, meta2, meta3, $
 	st2 = 1
 	st3 = 2
 
-	zone_overlaps, stationName[[st1,st2,st3]], $
-	   			   altitude, $
+	zone_overlaps, altitude, $
 				   [meta1, meta2, meta3], $
 				   zone_overlap, $
 				   /tristatic

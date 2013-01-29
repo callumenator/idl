@@ -1,3 +1,4 @@
+
 ;\\ ZmapData is an array of structures of type:
 ;\\ {metadata:, winds:}, with fields containing structures returned by Mark's netcdf reader.
 ;\\ Number of elements of the array correspond to 2-way or 3-way overlap test (for bi-static or tri-static obs).
@@ -84,16 +85,6 @@ pro fractional_zone_overlap, zmapData, $
 
 	for z = 0, nZones - 1 do begin
 
-		;rads = [0,zmapData[z].metadata.zone_radii[0:zmapData[z].metadata.rings-1]]/100.
-	    ;secs = zmapData[z].metadata.zone_sectors[0:zmapData[z].metadata.rings-1]
-
-		;diff = 180 - (zmapData[z].winds[0].azimuths[2] - zmapData[z].metadata.oval_angle)
-	    ;azis = zmapData[z].winds[0].azimuths + diff
-    	;zens = zmapData[z].winds[0].zeniths
-		;stLat = zmapData[z].metadata.latitude
-		;stLon = zmapData[z].metadata.longitude
-		;rings = get_zone_rings(zens)
-
 		zn = zones[z]
 
 		zens = zmapData[z].zen
@@ -102,9 +93,6 @@ pro fractional_zone_overlap, zmapData, $
 		stLon = zmapData[z].lons[0]
 		azWidth = zmapData[z].az_width[zones[z]]
 		znWidth = zmapData[z].zen_width[zones[z]]
-
-		;azWidth = 360./secs[rings[zn]]
-		;znWidth = (rads[rings[zn]+1] - rads[rings[zn]])*zmapData[z].metadata.SKY_FOV_DEG
 
 		if keyword_set(fullFOV) then znWidth = max(zmapData[z].zen + zmapData[z].znWidth/2.)
 
@@ -329,9 +317,79 @@ pro fractional_zone_overlap, zmapData, $
 end
 
 
+;\\ Return a unique id for this set of sites, altitude, orientation, etc.
+function zone_overlaps_uid, metaArr, $
+							altitude
 
-pro zone_overlaps, stationNames, $
-				   altitude, $
+	order = sort(metaArr.site_code)
+
+	names = (metaArr.site_code)[order]
+	fovs  = (metaArr.sky_fov_deg)[order] * 100
+	nzones = (metaArr.nzones)[order]
+
+	altID = string(altitude, f='(i04)')
+	nameID = strjoin(strupcase(names), '_', /single)
+	fovID = strjoin(string(fovs, f='(i04)'), '_', /single)
+	zoneID = strjoin(string(nzones, f='(i04)'), '_', /single)
+
+	uid = nameID + '_' + $
+		  altID + '_' + $
+		  fovID + '_' + $
+		  zoneID
+
+	return, uid
+end
+
+
+;\\ Build a filename and path for this set of sites
+function zone_overlaps_filename, metaArr, $
+								 altitude, $
+								 bistatic=bistatic, $
+								 tristatic=tristatic
+
+	id = zone_overlaps_uid(metaArr, altitude)
+	path = where_is('zone_overlaps')
+	if keyword_set(bistatic) then type = 'Bistatic'
+	if keyword_set(tristatic) then type = 'Tristatic'
+	filename = path + '\ZoneOverlap_' + type + '_' + id + '.idlsave'
+	return, filename
+
+end
+
+
+;\\ Save the overlaps to an IDL save file. Incorporate enough information to
+;\\ allow a restorer to find the right overlap file (altitude, fovs of each site, etc.)
+pro zone_overlaps_save, metaArr, $
+						altitude, $
+						zone_overlap, $
+						bistatic=bistatic, $
+						tristatic=tristatic
+
+	filename = zone_overlaps_filename(metaArr, altitude, bistatic=bistatic, tristatic=tristatic)
+	save, filename = filename, zone_overlap
+end
+
+
+;\\ See if we can restore overlap info from a save file. Return 0 if no file was found.
+function zone_overlaps_restore, metaArr, $
+			 				    altitude, $
+						   		bistatic=bistatic, $
+						   		tristatic=tristatic
+
+	filename = zone_overlaps_filename(metaArr, altitude, bistatic=bistatic, tristatic=tristatic)
+
+	if file_test(filename) then begin
+		restore, filename
+		return, zone_overlap
+	endif else begin
+		return, 0
+	endelse
+end
+
+
+;\\ Main function for calculating zone map overlaps based on an array of metadata
+;\\ structures.
+pro zone_overlaps, altitude, $
 				   metaArr, $	;\\ Array
 				   zone_overlap, $	;\\ Out
 				   bistatic=bistatic, $
@@ -339,20 +397,20 @@ pro zone_overlaps, stationNames, $
 				   no_save=no_save, $
 				   force_redo = force_redo
 
+	stationNames = metaArr.site_code
 
 	if keyword_set(bistatic) then begin
 
 		;\\ See if an overlap file already exists...
-			restoredOverlap = 0
-			stnName = stationNames
-			stnName = stnName[sort(stnName)]
-			saveName = where_is('zone_overlaps') + 'BiStaticOverlap_' + stnName[0] + '_' + stnName[1] + '_' + string(altitude, f='(i0)') + '.saved'
-			if file_test(saveName) and not keyword_set(force_redo) then begin
-				restore, saveName
-				restoredOverlap = 1
-				return
+			if not keyword_set(force_redo) then begin
+				restoredOverlap = zone_overlaps_restore(metaArr, altitude, /bistatic)
+				if size(restoredOverlap, /type) eq 8 then begin
+					zone_overlap = restoredOverlap
+					return
+				endif
 			endif
 
+		;\\ Either no overlap file exists, or we are redoing it...
 			get_zone_locations, metaArr[0], zones=zones, altitude=altitude
 			s1Lat = zones.lat
 			s1Lon = zones.lon
@@ -368,58 +426,51 @@ pro zone_overlaps, stationNames, $
 					  zen:zones.mid_zen, zen_width:zones.max_zen-zones.min_zen }
 
 
-			;\\ If no saved file exists, calculate bi-static pairs anew...
-			if restoredOverlap eq 0 then begin
-				npairs = long((metaArr[0]).nzones) * long((metaArr[1]).nzones)
-				bipairs = intarr(npairs, 2)
-				bioverlaps = fltarr(npairs, 2)
-				bicenters = fltarr(npairs, 2)
-				pcount = 0
-				for s1z = 0, (metaArr[0]).nzones-1 do begin
-					for s2z = 0, (metaArr[1]).nzones-1 do begin
-						fractional_zone_overlap, [s1Data, s2Data], [s1z, s2z], altitude, overlap, polygonRes=3, maxSeparation=5
-						bipairs[pcount, *] = [s1z, s2z]
-						bioverlaps[pcount, *] = overlap
-						bicenters[pcount,*] = [.5*(s1Lat[s1z]+s2Lat[s2z]), .5*(s1Lon[s1z]+s2Lon[s2z])]
-						pcount ++
-					endfor
-					print, s1z
-					wait, 0.0001
+		;\\ Calculate bi-static pairs...
+			npairs = long((metaArr[0]).nzones) * long((metaArr[1]).nzones)
+			bipairs = intarr(npairs, 2)
+			bioverlaps = fltarr(npairs, 2)
+			bicenters = fltarr(npairs, 2)
+			pcount = 0
+			for s1z = 0, (metaArr[0]).nzones-1 do begin
+				for s2z = 0, (metaArr[1]).nzones-1 do begin
+					fractional_zone_overlap, [s1Data, s2Data], [s1z, s2z], altitude, overlap, polygonRes=3, maxSeparation=5
+					bipairs[pcount, *] = [s1z, s2z]
+					bioverlaps[pcount, *] = overlap
+					bicenters[pcount,*] = [.5*(s1Lat[s1z]+s2Lat[s2z]), .5*(s1Lon[s1z]+s2Lon[s2z])]
+					pcount ++
 				endfor
+				print, s1z
+				wait, 0.0001
+			endfor
 
-				;\\ Make a structure to hold the overlap info, and save it...
-				zone_overlap = {stationNames:stationNames, $
-								stationLatitudes:[s1Data.metadata.latitude,s2Data.metadata.latitude], $
-								stationLongitudes:[s1Data.metadata.longitude,s2Data.metadata.longitude], $
-								date_created_yymmdd_ut:js_to_yymmdd(dt_tm_tojs(systime(/ut))), $
-								date_created_js_ut:dt_tm_tojs(systime(/ut)), $
-								npairs:npairs, $
-								pairs:bipairs, $
-								overlaps:bioverlaps, $
-								centers:bicenters}
+		;\\ Make a structure to hold the overlap info, and save it...
+			zone_overlap = {stationNames:stationNames, $
+							stationLatitudes:[s1Data.metadata.latitude,s2Data.metadata.latitude], $
+							stationLongitudes:[s1Data.metadata.longitude,s2Data.metadata.longitude], $
+							date_created_yymmdd_ut:js_to_yymmdd(dt_tm_tojs(systime(/ut))), $
+							date_created_js_ut:dt_tm_tojs(systime(/ut)), $
+							npairs:npairs, $
+							pairs:bipairs, $
+							overlaps:bioverlaps, $
+							centers:bicenters}
 
-				;\\ Choose a filename with stations ordered alphabetically for easier retrieval and include altitude;
-				;\\ Eventually might have to come up with some date restrictions, in case orientations (etc.) are changed
-				if not keyword_set(no_save) then begin
-					saveName = 'BiStaticOverlap_' + stnName[0] + '_' + stnName[1] + '_' + string(altitude, f='(i0)') + '.saved'
-					save, filename = where_is('zone_overlaps') + saveName, zone_overlap
-				endif
-			endif
+		;\\ Choose a filename with stations ordered alphabetically for easier retrieval and include altitude;
+		;\\ Eventually might have to come up with some date restrictions, in case orientations (etc.) are changed
+		if not keyword_set(no_save) then zone_overlaps_save, metaArr, altitude, zone_overlap, /bistatic
+
 	endif
 
 
 	if keyword_set(tristatic) then begin
 
 		;\\ See if an overlap file already exists...
-			restoredOverlap = 0
-			stnName = stationNames
-			stnName = stnName[sort(stnName)]
-			saveName = where_is('zone_overlaps') + 'TriStaticOverlap_' + stnName[0] + '_' + stnName[1] + $
-						'_' + stnName[2] + '_' + string(altitude, f='(i0)') + '.saved'
-			if file_test(saveName) and not keyword_set(force_redo) then begin
-				restore, saveName
-				restoredOverlap = 1
-				return
+			if not keyword_set(force_redo) then begin
+				restoredOverlap = zone_overlaps_restore(metaArr, altitude, /tristatic)
+				if size(restoredOverlap, /type) eq 8 then begin
+					zone_overlap = restoredOverlap
+					return
+				endif
 			endif
 
 		;\\ Rely on the existence of bistatic overlap files for all pairs, to find the triple intersection of zones.
@@ -428,11 +479,13 @@ pro zone_overlaps, stationNames, $
 			idx = 0
 			for i0 = 0, 2 do begin
 				for i1 = i0 + 1, 2 do begin
-					names = stationNames[[i0,i1]]
-					names = names[sort(names)]
-					saveName = where_is('zone_overlaps') + 'BiStaticOverlap_' + names[0] + '_' + names[1] + '_' + string(altitude, f='(i0)') + '.saved'
-					if file_test(saveName) then	restore, saveName else stop
-					ov_array[idx] = ptr_new(zone_overlap)
+					restoredOverlap = zone_overlaps_restore(metaArr[[i0,i1]], altitude, /bistatic)
+					if size(restoredOverlap, /type) ne 8 then begin
+						restoredOverlap = 0
+						print, 'Making bistatic overlap file saved: ' + zone_overlaps_filename(metaArr[[i0,i1]], altitude, /bistatic)
+						zone_overlaps, altitude, metaArr[[i0,i1]], restoredOverlap, /bistatic
+					endif
+					ov_array[idx] = ptr_new(restoredOverlap)
 					idx++
 				endfor
 			endfor
@@ -494,49 +547,43 @@ pro zone_overlaps, stationNames, $
 
 
 
-			;\\ If no saved file exists, calculate tri-static pairs anew...
-			if restoredOverlap eq 0 then begin
+		;\\ Calculate tri-static 'pairs'...
+			npairs = n_elements(list[0,*])
+			tripairs = intarr(npairs, 3)
+			trioverlaps = fltarr(npairs, 3)
+			tricenters = fltarr(npairs, 2)
+			pcount = 0
 
-				npairs = n_elements(list[0,*])
-				tripairs = intarr(npairs, 3)
-				trioverlaps = fltarr(npairs, 3)
-				tricenters = fltarr(npairs, 2)
-				pcount = 0
+			for pp = 0, n_elements(list[0,*]) - 1 do begin
+				s1z = list[0,pp]
+				s2z = list[1,pp]
+				s3z = list[2,pp]
+				fractional_zone_overlap, [s1Data, s2Data, s3Data], [s1z, s2z, s3z], altitude, overlap, polygonRes=3, maxSeparation=5
+				tripairs[pcount, *] = [s1z, s2z, s3z]
+				trioverlaps[pcount, *] = overlap
+				tricenters[pcount,*] = [(1./3.)*(s1Lat[s1z]+s2Lat[s2z]+s3Lat[s3z]), $
+										(1./3.)*(s1Lon[s1z]+s2Lon[s2z]+s3Lon[s3z])]
+				pcount ++
+				print, pp
+				wait, 0.001
+			endfor
 
-				for pp = 0, n_elements(list[0,*]) - 1 do begin
-					s1z = list[0,pp]
-					s2z = list[1,pp]
-					s3z = list[2,pp]
-					fractional_zone_overlap, [s1Data, s2Data, s3Data], [s1z, s2z, s3z], altitude, overlap, polygonRes=3, maxSeparation=5
-					tripairs[pcount, *] = [s1z, s2z, s3z]
-					trioverlaps[pcount, *] = overlap
-					tricenters[pcount,*] = [(1./3.)*(s1Lat[s1z]+s2Lat[s2z]+s3Lat[s3z]), $
-											(1./3.)*(s1Lon[s1z]+s2Lon[s2z]+s3Lon[s3z])]
-					pcount ++
-					print, pp
-					wait, 0.001
-				endfor
+		;\\ Make a structure to hold the overlap info, and save it...
+			zone_overlap = {stationNames:stationNames, $
+							stationLatitudes:[s1Data.metadata.latitude,s2Data.metadata.latitude,s3Data.metadata.latitude], $
+							stationLongitudes:[s1Data.metadata.longitude,s2Data.metadata.longitude, s3Data.metadata.longitude], $
+							date_created_yymmdd_ut:js_to_yymmdd(dt_tm_tojs(systime(/ut))), $
+							date_created_js_ut:dt_tm_tojs(systime(/ut)), $
+							npairs:npairs, $
+							pairs:tripairs, $
+							overlaps:trioverlaps, $
+							centers:tricenters}
 
-				;\\ Make a structure to hold the overlap info, and save it...
-				zone_overlap = {stationNames:stationNames, $
-								stationLatitudes:[s1Data.metadata.latitude,s2Data.metadata.latitude,s3Data.metadata.latitude], $
-								stationLongitudes:[s1Data.metadata.longitude,s2Data.metadata.longitude, s3Data.metadata.longitude], $
-								date_created_yymmdd_ut:js_to_yymmdd(dt_tm_tojs(systime(/ut))), $
-								date_created_js_ut:dt_tm_tojs(systime(/ut)), $
-								npairs:npairs, $
-								pairs:tripairs, $
-								overlaps:trioverlaps, $
-								centers:tricenters}
+		;\\ Choose a filename with stations ordered alphabetically for easier retrieval and include altitude;
+		;\\ Eventually might have to come up with some date restrictions, in case orientations (etc.) are changed
+			if not keyword_set(no_save) then zone_overlaps_save, metaArr, altitude, zone_overlap, /tristatic
 
-				;\\ Choose a filename with stations ordered alphabetically for easier retrieval and include altitude;
-				;\\ Eventually might have to come up with some date restrictions, in case orientations (etc.) are changed
-				if not keyword_set(no_save) then begin
-					saveName = 'TriStaticOverlap_' + stnName[0] + '_' + stnName[1] + '_' + stnName[2] + '_' + string(altitude, f='(i0)') + '.saved'
-					save, filename = where_is('zone_overlaps') + saveName, zone_overlap
-				endif
-			endif
-
-			for k = 0, nels(ov_array) - 1 do ptr_free, ov_array[k]
+		for k = 0, nels(ov_array) - 1 do ptr_free, ov_array[k]
 	endif
 
 

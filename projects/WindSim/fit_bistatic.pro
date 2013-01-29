@@ -34,8 +34,7 @@ pro fit_bistatic, meta1, meta2, $
 
 	st1 = 0
 	st2 = 1
-	zone_overlaps, stationName[[st1,st2]], $
-	   			   altitude, $
+	zone_overlaps, altitude, $
 				   [meta1, meta2], $
 				   zone_overlap, $
 				   /bistatic
