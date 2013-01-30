@@ -37,6 +37,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	;\\ UT day range of interest (the current UT day for now, since obs from Alaska don't span days)
 		current_ut_day = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$')
 		ut_day_range = [current_ut_day, current_ut_day]
+		current_day_ut_range = [24, 0]
 
 	;\\ Fit the winds first, then plot
 	count_valid = 0
@@ -98,7 +99,6 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		       smarr = posarr
 		       sdi3k_spacesmooth_fits, smarr, 0.10, meta, zcen, setweight=setweight
 		       sdi3k_timesmooth_fits,  smarr, 2.50, meta, setweight=setweight
-;		       bads  = where(var.chi_squared ge chilim or  var.signal2noise le 200., nn)
 		       posarr[bads] = smarr[bads]
                smdif = posarr - smarr
                dummy = moment(smdif, sdev=stdv)
@@ -106,7 +106,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		       if nnbb gt 0 then posarr[bads] = smarr[bads]
 		       var.velocity = posarr
 		    endif
-; if meta.site eq 'HAARP' then stop
+
 
 		;\\ Windfit settings
 			dvdx_assumption = 'dv/dx=zero'
@@ -166,6 +166,9 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			meridLo = min(windfit.meridional_wind, dim=1)
 			time = js2ut(0.5*(var.start_time + var.end_time))
 
+			;\\ Time range for series
+			if (min(time) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(temp_ut)
+			if (max(time) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(temp_ut)
 
 
 			;\\ ------------------------- Dial plot info -------------------------
@@ -495,9 +498,21 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	blank = replicate(' ', 20)
 	max_time_range[1] += (5 - (max_time_range[1]-max_time_range[0]) > 1)
 
+	cnv_current = convert_js(dt_tm_tojs(systime(/ut)))
+	frac_day = cnv_current.dayno + cnv_current.sec/(24.*3600.)
+	if (current_day_ut_range[1] - current_day_ut_range[0]) lt 5 then $
+		current_day_ut_range[0] -= 5
+
+	current_day_ut_range[1] += 1
+
+	if current_day_ut_range[1] lt current_day_ut_range[0] then begin
+		max_time_range = current_ut_day + [0,5]/24.
+	endif else begin
+		max_time_range = current_ut_day + current_day_ut_range/24.
+	endelse
+
+
 	for pass = 0, 1 do begin
-
-
 
 		bounds = [.1, .27, .98, .46]
 		!p.font = 0

@@ -474,8 +474,15 @@ pro sdi_all_stations_wind_fields_plotallsky, map, $
 	diff = abs(this_time - time)
 	match = (where(diff eq min(diff)))[0]
 
+	catch, error
+	if error ne 0 then begin
+		catch, /cancel
+		goto, SKIP_JPEG
+	endif
+
 	read_jpeg, list[match], allsky_image
 	plot_allsky_on_map, map, allsky_image, 80., 23, 240., 65.13, -147.48, [map_opts.winx,map_opts.winy]
+	SKIP_JPEG:
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -497,8 +504,10 @@ pro sdi_all_stations_wind_fields_plotpfisr, map, $
 	loadct, map_opts.pfisr_color[1], /silent
 	mlon = (station_info('pkr')).mlon
 	for i = 0, n_elements(pfisr.vels.emag[*,0]) - 1 do begin
-		mag = interpol(reform(pfisr.vels.vmag[i,keep]), ut, this_time)
-		azi = interpol(reform(pfisr.vels.vdir[i,keep]), ut, this_time) ;\\ degrees north of east
+		n = interpol(reform(pfisr.vels.vest[0,i,keep]), ut, this_time)
+		e = interpol(reform(pfisr.vels.vest[1,i,keep]), ut, this_time)
+		mag = sqrt(n*n + e*e)*map_opts.scale
+		azi = atan(e, n)/!dtor + 23
 		cnv_aacgm, pfisr.vels.maglatitude[0,i], mlon, 240, glat, glon, r, error, /geo
 
 		get_mapped_vector_components, map, glat, glon, $
@@ -597,7 +606,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 					bistatic_color:[255, 0], $
 					tristatic_color:[255, 0], $
 					blend_color:[100, 0], $
-					pfisr_color:[50, 39]}
+					pfisr_color:[190, 39]}
 	endif else begin
 		map_opts = options
 	endelse
@@ -615,6 +624,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		;\\ PLOTTING
 		if keyword_set(monostatic) then $
 			sdi_all_stations_wind_fields_pageset, plot_type, background=background, map_opts=map_opts
+
+		if keyword_set(allsky_image_path) then $
+				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
 		loadct, 0, /silent
 		for i = 0, nsites - 1 do begin
