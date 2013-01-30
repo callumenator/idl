@@ -17,7 +17,7 @@
 
 @resolve_nstatic_wind
 
-;\\ GENERATE IN INTERPOLATED TIME AXIS - ASK FOR TIME RANGE IF DOING EPS
+;\\ GENERATE AN INTERPOLATED TIME AXIS - ASK FOR TIME RANGE IF DOING EPS
 pro sdi_all_stations_wind_fields_timeset, sites, $
 										  data, $
 										  plot_type, $
@@ -494,12 +494,22 @@ pro sdi_all_stations_wind_fields_plotpfisr, map, $
 	if (this_time lt min(ut)) or (this_time gt max(ut)) then return
 
 	nt = n_elements(ut)
+	loadct, map_opts.pfisr_color[1], /silent
+	mlon = (station_info('pkr')).mlon
 	for i = 0, n_elements(pfisr.vels.emag[*,0]) - 1 do begin
-		vel_e = interpol(reform(pfisr.vels.emag[i,keep]), ut, this_time)
-		vel_v = interpol(reform(pfisr.vels.vmag[i,keep]), ut, this_time)
-		stop
+		mag = interpol(reform(pfisr.vels.vmag[i,keep]), ut, this_time)
+		azi = interpol(reform(pfisr.vels.vdir[i,keep]), ut, this_time) ;\\ degrees north of east
+		cnv_aacgm, pfisr.vels.maglatitude[0,i], mlon, 240, glat, glon, r, error, /geo
+
+		get_mapped_vector_components, map, glat, glon, $
+									  mag, azi, x0, y0, xlen, ylen
+
+		arrow, x0, y0, x0 + xlen, y0 + ylen, $
+			   color = map_opts.pfisr_color[0], $
+			   hsize = map_opts.arrow_head_size, $
+			   /data
 	endfor
-	stop
+
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -520,6 +530,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	device, decompose=0
 	set_plot, 'win'
+	if keyword_set(pfisr_convection) then aacgmidl
 
 	if not keyword_set(plot_type) then plot_type = 'png'
 	if plot_type ne 'eps' and plot_type ne 'png' then plot_type = 'png'

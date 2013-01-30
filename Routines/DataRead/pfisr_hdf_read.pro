@@ -125,8 +125,8 @@ pro pfisr_hdf_read, file, data, convection=convection
 		vels = {edir:h5d_read(h5d_open(hid, '/VectorVels/Edir')), $
 				eest:h5d_read(h5d_open(hid, '/VectorVels/Eest')), $
 				emag:h5d_read(h5d_open(hid, '/VectorVels/Emag')), $
-				vdir:h5d_read(h5d_open(hid, '/VectorVels/Vest')), $
-				vest:h5d_read(h5d_open(hid, '/VectorVels/Vdir')), $
+				vdir:h5d_read(h5d_open(hid, '/VectorVels/Vdir')), $
+				vest:h5d_read(h5d_open(hid, '/VectorVels/Vest')), $
 				vmag:h5d_read(h5d_open(hid, '/VectorVels/Vmag')), $
 				maglatitude:h5d_read(h5d_open(hid, '/VectorVels/MagneticLatitude')), $
 				nmeas:h5d_read(h5d_open(hid, '/VectorVels/Nmeas')) }
