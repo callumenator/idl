@@ -272,48 +272,88 @@ pro sdi_all_stations_wind_fields_plotmonostatic, map, $
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
-;\\ BLEND THE MONOSTATIC WINDS FROM ALL STATIONS
-pro sdi_all_stations_wind_fields_plotmonoblend, map, $
-											    map_opts, $
-											    geoZonal, $
-											    geoMerid, $
-											    lat, $
-											    lon
 
-	magnitude = sqrt(geoZonal*geoZonal + geoMerid*geoMerid) * map_opts.scale
-	azimuth = atan(geoZonal, geoMerid) / !DTOR
+;\\ BLEND THE MONOSTATIC WINDS FROM ALL STATIONS
+function sdi_all_stations_wind_fields_blend_monostatic, geoZonal, $
+			 									        geoMerid, $
+											       		lat, $
+											       		lon, $
+											       		sigma=sigma
 
 	;\\ Get an even grid of locations for blending, stay inside monostatic boundary
+	if not keyword_set(sigma) then sigma = 0.8
 	missing = -9999
 	triangulate, lon, lat, tr, b
 	grid_lat = trigrid(lon, lat, lat, tr, missing=missing, nx = 20, ny=20)
 	grid_lon = trigrid(lon, lat, lon, tr, missing=missing, nx = 20, ny=20)
 	use = where(grid_lon ne missing and grid_lat ne missing, nuse)
+
 	ilats = grid_lat[use]
 	ilons = grid_lon[use]
+	zonal = ilats
+	merid = ilats
 
-	loadct, map_opts.blend_color[1], /silent
 	for locIdx = 0, nuse - 1 do begin
-
 		latDist = (lat - ilats[locIdx])
 		lonDist = (lon - ilons[locIdx])
 		dist = sqrt(lonDist*lonDist + latDist*latDist)
-
-		sigma = .8
 		weight = exp(-(dist*dist)/(2*sigma*sigma))
-		zonal = total(geoZonal * weight)/total(weight)
-		merid = total(geoMerid * weight)/total(weight)
+		zonal[locIdx] = total(geoZonal * weight)/total(weight)
+		merid[locIdx] = total(geoMerid * weight)/total(weight)
+	endfor
+	return, {lat:ilats, lon:ilons, zonal:zonal, merid:merid}
 
-		magnitude = sqrt(zonal*zonal + merid*merid)*map_opts.scale
-		azimuth = atan(zonal, merid) / !DTOR
+end
+;\\ --------------------------------------------------------------------------------------------------
 
-		get_mapped_vector_components, map, ilats[locIdx], ilons[locIdx], $
-								  	  magnitude, azimuth, x0, y0, xlen, ylen
+
+;\\ SAMPLE THE MONOSTATIC WIND GRADIENTS
+function sdi_all_stations_wind_fields_sample_gradients, blend
+
+	altitude = 240.
+	triangulate, blend.lon, blend.lat, tr, b
+	grid_lat = trigrid(blend.lon, blend.lat, blend.lat, tr, missing=missing, nx = 20, ny=20, extrap=b)
+	grid_lon = trigrid(blend.lon, blend.lat, blend.lon, tr, missing=missing, nx = 20, ny=20, extrap=b)
+	grid_zon = trigrid(blend.lon, blend.lat, blend.zonal, tr, missing=missing, nx = 20, ny=20, extrap=b)
+	grid_mer = trigrid(blend.lon, blend.lat, blend.merid, tr, missing=missing, nx = 20, ny=20, extrap=b)
+
+	s = size(grid_zon, /dimensions)
+	r = 6371.0
+
+	dlatdy = (grid_lat - shift(grid_lat, 0, 1))[1:s[0]-1, 1:s[1]-1]
+	dlondx = (grid_lon - shift(grid_lon, 1, 0))[1:s[0]-1, 1:s[1]-1]
+
+	dx = (dlondx*!DTOR) * r*cos(grid_lat[1:s[0]-1, 1:s[1]-1]*!DTOR)
+	dy = (dlatdy*!DTOR) * r
+
+	dudx = (grid_zon - shift(grid_zon, 1, 0))[1:s[0]-1, 1:s[1]-1] / dx
+	dudy = (grid_zon - shift(grid_zon, 0, 1))[1:s[0]-1, 1:s[1]-1] / dy
+	dvdx = (grid_mer - shift(grid_mer, 1, 0))[1:s[0]-1, 1:s[1]-1] / dx
+	dvdy = (grid_mer - shift(grid_mer, 0, 1))[1:s[0]-1, 1:s[1]-1] / dy
+
+	return, {dudx:dudx, dudy:dudy, dvdx:dvdx, dvdy:dvdy}
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ PLOT BLENDED MONOSTATIC WINDS
+pro sdi_all_stations_wind_fields_plotmonoblend, map, $
+											    map_opts, $
+											    blend
+
+	magnitude = sqrt(blend.zonal*blend.zonal + blend.merid*blend.merid)*map_opts.scale
+	azimuth = atan(blend.zonal, blend.merid) / !DTOR
+	loadct, map_opts.blend_color[1], /silent
+	for i = 0, n_elements(magnitude) - 1 do begin
+		get_mapped_vector_components, map, blend.lat[i], blend.lon[i], $
+								  	  magnitude[i], azimuth[i], x0, y0, xlen, ylen
 
 		arrow, x0 - .5*xlen, y0 - .5*ylen, $
 			   x0 + .5*xlen, y0 + .5*ylen, /data, $
-			   color = map_opts.blend_color[0], hsize = map_opts.arrow_head_size
+			   color = map_opts.blend_color[0], $
+			   hsize = map_opts.arrow_head_size
 	endfor
+
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -606,7 +646,11 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 					bistatic_color:[255, 0], $
 					tristatic_color:[255, 0], $
 					blend_color:[100, 0], $
-					pfisr_color:[190, 39]}
+					pfisr_color:[190, 39], $
+					site_colors:[{site_code:'PKR', color:[150,39]}, $
+								 {site_code:'TLK', color:[230,39]}, $
+								 {site_code:'HRP', color:[100,39]}, $
+								 {site_code:'KTO', color:[190,39]}  ]}
 	endif else begin
 		map_opts = options
 	endelse
@@ -658,18 +702,22 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 				append, zinfo.lon, allMonoLon
 			endif
 
-			case meta.site_code of
-				'PKR': begin & color = 150 & ctable = 39 & end
-				'HRP': begin & color = 100 & ctable = 39 & end
-				'TLK': begin & color = 230 & ctable = 39 & end
-				else: begin  & color = 0   & ctable = 0  & end
-			endcase
+			;\\ GET SITE COLOR AND CTABLE
+				c_idx = where(strupcase(map_opts.site_colors.site_code) eq $
+							  strupcase(meta.site_code), y_idx)
+				if y_idx eq 0 then begin
+					color = 255
+					ctable = 0
+				endif else begin
+					color = map_opts.site_colors[c_idx[0]].color[0]
+					ctable = map_opts.site_colors[c_idx[0]].color[1]
+				endelse
 
 			if keyword_set(monostatic) then $
 				sdi_all_stations_wind_fields_plotmonostatic, map, map_opts, zonal, merid, $
 															 zinfo, ctable, color
 
-			;\\ STORE MULTISTATIC INFO IF DOING THESE
+			;\\ STORE MULTISTATIC INFO
 			if keyword_set(bistatic) or keyword_set(tristatic) then begin
 				sdi_time_interpol, speks.velocity, time, this_time, _winds
 				sdi_time_interpol, speks.sigma_velocity, time, this_time, _wind_errors
@@ -684,28 +732,32 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		if size(pfisr_convection_data, /type) ne 0 then $
 				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
 
+		;\\ FINALIZE THE MONOSTATIC PLOT
 		if keyword_set(monostatic) then begin
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
 		endif
 
+		;\\ IF DOING MULTISTATIC, BLEND THE MONOSTATICS WINDS
+		if keyword_set(bistatic) or keyword_set(tristatic) then begin
+			mono_blend = sdi_all_stations_wind_fields_blend_monostatic(allMonoZonal, allMonoMerid, allMonoLat, allMonoLon)
+			mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend)
+		endif
+
 
 		;\\ PLOT BISTATIC IF REQUESTED
 		if keyword_set(bistatic) then begin
-			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + time_str_from_decimalut(this_time, /forfile) $
-						 		 + '.' + plot_type
+			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + $
+				time_str_from_decimalut(this_time, /forfile) + '.' + plot_type
 
 			fits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
 
-			sdi_all_stations_wind_fields_pageset, plot_type, background=background, $
-												  map_opts=map_opts
+			sdi_all_stations_wind_fields_pageset, plot_type, background=background, map_opts=map_opts
 
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
-			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, allMonoZonal, $
-											   		    allMonoMerid, allMonoLat, allMonoLon
-
+			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, mono_blend
 			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, fits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
@@ -719,20 +771,17 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 		;\\ PLOT TRISTATIC IF REQUESTED
 		if keyword_set(tristatic) then begin
-			map_opts.output_name = '\Tristatic\All_Stations_Tristatic' + time_str_from_decimalut(this_time, /forfile) $
-						 		 + '.' + plot_type
+			map_opts.output_name = '\Tristatic\All_Stations_Tristatic' + $
+				time_str_from_decimalut(this_time, /forfile) + '.' + plot_type
 
 			fits = sdi_all_stations_wind_fields_fittristatic(altitude, allMeta, allWinds, AllWindErrs)
 
-			sdi_all_stations_wind_fields_pageset, plot_type, background=background, $
-												  map_opts=map_opts
+			sdi_all_stations_wind_fields_pageset, plot_type, background=background, map_opts=map_opts
 
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
-			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, allMonoZonal, $
-											   		    allMonoMerid, allMonoLat, allMonoLon
-
+			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, mono_blend
 			sdi_all_stations_wind_fields_plottristatic, map, map_opts, fits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
