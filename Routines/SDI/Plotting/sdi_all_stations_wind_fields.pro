@@ -6,8 +6,9 @@
 ;\\								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
 ;\\								  time_resolution=time_resolution, $ ;\\ in minutes
 ;\\								  monostatic=monostatic, $ ;\\ make monostatic plots
-;\\								  bistatic=bistatic ;\\ make bistatic plots
-;\\								  tristatic=tristatic ;\\ make tristatic plots
+;\\								  bistatic=bistatic, $ ;\\ make bistatic plots
+;\\								  tristatic=tristatic, $ ;\\ make tristatic plots
+;\\								  gradients=gradients, $ ;\\ calculate gradient profiles
 ;\\								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 ;\\								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 ;\\								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -308,14 +309,17 @@ end
 
 
 ;\\ SAMPLE THE MONOSTATIC WIND GRADIENTS
-function sdi_all_stations_wind_fields_sample_gradients, blend
+function sdi_all_stations_wind_fields_sample_gradients, blend, $
+														resolution ;\\ [x pts, y pts]
 
+	nx = resolution[0]+1
+	ny = resolution[1]+1
 	altitude = 240.
 	triangulate, blend.lon, blend.lat, tr, b
-	grid_lat = trigrid(blend.lon, blend.lat, blend.lat, tr, missing=missing, nx = 20, ny=20, extrap=b)
-	grid_lon = trigrid(blend.lon, blend.lat, blend.lon, tr, missing=missing, nx = 20, ny=20, extrap=b)
-	grid_zon = trigrid(blend.lon, blend.lat, blend.zonal, tr, missing=missing, nx = 20, ny=20, extrap=b)
-	grid_mer = trigrid(blend.lon, blend.lat, blend.merid, tr, missing=missing, nx = 20, ny=20, extrap=b)
+	grid_lat = trigrid(blend.lon, blend.lat, blend.lat, tr, missing=missing, nx=nx, ny=ny, extrap=b)
+	grid_lon = trigrid(blend.lon, blend.lat, blend.lon, tr, missing=missing, nx=nx, ny=ny, extrap=b)
+	grid_zon = trigrid(blend.lon, blend.lat, blend.zonal, tr, missing=missing, nx=nx, ny=ny, extrap=b)
+	grid_mer = trigrid(blend.lon, blend.lat, blend.merid, tr, missing=missing, nx=nx, ny=ny, extrap=b)
 
 	s = size(grid_zon, /dimensions)
 	r = 6371.0
@@ -572,6 +576,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  monostatic=monostatic, $ ;\\ make monostatic plots
 								  bistatic=bistatic, $ ;\\ make bistatic plots
 								  tristatic=tristatic, $ ;\\ make bistatic plots
+								  gradients=gradients, $ ;\\ calculate gradient profiles
 								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -583,9 +588,6 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	if not keyword_set(plot_type) then plot_type = 'png'
 	if plot_type ne 'eps' and plot_type ne 'png' then plot_type = 'png'
-	if not keyword_set(monostatic) and $
-	   not keyword_set(bistatic) and $
-	   not keyword_set(tristatic) then return
 
 	;\\ GET SDI DATA
 	meta_loader, data, ydn=ydn, raw_paths=data_paths
@@ -659,6 +661,14 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	;\\ For PNG, store a copy of the map (since it is slow). EPS needs to redo each time
 	sdi_all_stations_wind_fields_makemap, plot_type, background=background, map_opts=map_opts, out_map=map
 
+	;\\ Save gradient profiles
+	if arg_present(gradients) then begin
+		dudx = fltarr(n_elements(new_time_axis), 50)
+		dudy = fltarr(n_elements(new_time_axis), 50)
+		dvdx = fltarr(n_elements(new_time_axis), 50)
+		dvdy = fltarr(n_elements(new_time_axis), 50)
+	endif
+
 	for time_index = 0, n_elements(new_time_axis) - 1 do begin
 
 		this_time = new_time_axis[time_index]
@@ -695,7 +705,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			zonal = zonalWind*cos(angle) - meridWind*sin(angle)
 			merid = zonalWind*sin(angle) + meridWind*cos(angle)
 
-			if keyword_set(bistatic) or keyword_set(tristatic) then begin
+			if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) then begin
 				append, zonal, allMonoZonal
 				append, merid, allMonoMerid
 				append, zinfo.lat, allMonoLat
@@ -739,9 +749,16 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 
 		;\\ IF DOING MULTISTATIC, BLEND THE MONOSTATICS WINDS
-		if keyword_set(bistatic) or keyword_set(tristatic) then begin
+		if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) then begin
 			mono_blend = sdi_all_stations_wind_fields_blend_monostatic(allMonoZonal, allMonoMerid, allMonoLat, allMonoLon)
-			mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend)
+
+			if arg_present(gradients) then begin
+				mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend, [50,50])
+				dudx[time_index, *] = total(mono_grads.dudx, 1) / 50.0
+				dudy[time_index, *] = total(mono_grads.dudy, 1) / 50.0
+				dvdx[time_index, *] = total(mono_grads.dvdx, 1) / 50.0
+				dvdy[time_index, *] = total(mono_grads.dvdy, 1) / 50.0
+			endif
 		endif
 
 
@@ -798,12 +815,17 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		allMonoLon = ''
 		allMonoLat = ''
 
-		wait, 0.1
+		wait, 0.005
+		print, time_index + 1, n_elements(new_time_axis)
 	endfor ;\\ loop through times
 
 
-	if keyword_set(bistatic) then begin
+	if keyword_set(bistatic) or keyword_set(tristatic) then begin
 		ptr_free, allMeta, allWinds, allWindErrs
+	endif
+
+	if arg_present(gradients) then begin
+		gradients = {dudx:dudx, dudy:dudy, dvdx:dvdx, dvdy:dvdy}
 	endif
 
 end
