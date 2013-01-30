@@ -335,6 +335,8 @@ pro sdi_monitor_timeseries
 				time_range = current_ut_day + current_day_ut_range/24.
 			endelse
 
+			global.shared.temperature_time_axis = time_range
+
 			blank = replicate(' ', 30)
 
 			plot, time_range, [0,1], /nodata, /xstyle, /ystyle, yrange=yrange, xtick_get = xvals, xtickint = 2./24., xminor=8, $

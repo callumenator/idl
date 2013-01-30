@@ -13,8 +13,8 @@ function where_is, what
 		'toolik_data': path = data_prefix+'Toolik\'
 		'gakona_data': path = data_prefix+'Gakona\'
 		'pfisr_data': path = data_prefix+'PFISR\'
-		'zone_overlaps': path = 'c:\cal\localData\'
-		'multistatic_data': path = 'c:\cal\localData\'
+		'zone_overlaps': path = data_prefix+'Multistatic\Overlaps\'
+		'multistatic_data': path = data_prefix+'Multistatic\'
 		else:
 	end
 

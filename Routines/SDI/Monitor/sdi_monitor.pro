@@ -686,7 +686,8 @@ pro sdi_monitor
 	widget_control, /realize, base
 	widget_control, timer = timer_interval, base
 
-	shared = {recent_monostatic_winds:ptr_new(/alloc)}
+	shared = {recent_monostatic_winds:ptr_new(/alloc), $
+			  temperature_time_axis:[0.0, 0.0] }
 
 	global = {persistent_file:persistent_file, $
 			  in_dir:in_dir, $

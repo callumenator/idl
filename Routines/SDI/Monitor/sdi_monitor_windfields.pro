@@ -12,6 +12,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	if ptr_valid(persistent.snapshots) eq 0 then return
 	if size(lastSaveTime, /type) eq 0 then lastSaveTime = systime(/sec) - 1E5
 
+	print, 'PROCESSING WINDFIELDS'
+
 	;\\ Color map
 		color_map = {wavelength:[5577, 6300, 6328, 7320, 8430], $
 						 ctable:[  39,   39,   39,    2,    2], $
@@ -166,9 +168,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			meridLo = min(windfit.meridional_wind, dim=1)
 			time = js2ut(0.5*(var.start_time + var.end_time))
 
-			;\\ Time range for series
-			if (min(time) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(temp_ut)
-			if (max(time) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(temp_ut)
+			cnv_series = convert_js(var.start_time)
+			taxis = cnv_series.dayno + cnv_series.sec/(24.*3600.)
 
 
 			;\\ ------------------------- Dial plot info -------------------------
@@ -220,7 +221,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 						  medZonal:medZonal, $
 						  zonalHi:zonalHi, $
 						  zonalLo:zonalLo, $
-						  time:time }
+						  time:time, $
+						  taxis:taxis }
 
 			winds[i] = ptr_new(wind_struc)
 			count_valid ++
@@ -498,19 +500,8 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	blank = replicate(' ', 20)
 	max_time_range[1] += (5 - (max_time_range[1]-max_time_range[0]) > 1)
 
-	cnv_current = convert_js(dt_tm_tojs(systime(/ut)))
-	frac_day = cnv_current.dayno + cnv_current.sec/(24.*3600.)
-	if (current_day_ut_range[1] - current_day_ut_range[0]) lt 5 then $
-		current_day_ut_range[0] -= 5
-
-	current_day_ut_range[1] += 1
-
-	if current_day_ut_range[1] lt current_day_ut_range[0] then begin
-		max_time_range = current_ut_day + [0,5]/24.
-	endif else begin
-		max_time_range = current_ut_day + current_day_ut_range/24.
-	endelse
-
+	if total(global.shared.temperature_time_axis) ne 0.0 then $
+		max_time_range = global.shared.temperature_time_axis
 
 	for pass = 0, 1 do begin
 
@@ -521,11 +512,17 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
 		!p.font = -1
 		if pass eq 0 then begin
-			plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, $
-				  ytitle = 'Mag. Zonal (m/s)' , xtickname = blank, yticklen=.003, chars=1.5
+				plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, xminor=8, xtickint = 2./24., $
+				  ytitle = 'Mag. Zonal (m/s)' , xtitle = 'Time (UT)', yticklen=.003, chars=1.5, xtick_get = xvals, xtickname=blank
+
 			oplot, max_time_range, [0,0], line=1
+
+   			xtickname = time_str_from_decimalut((xvals mod 1) * 24., /noseconds)
+			axis, xaxis=0, xtickname = blank, /xstyle, xrange=max_time_range, xtitle = 'Time (UT)', $
+				  chars = 1.5, xminor=8, xtickint = 2./24.
+
 		endif else begin
-			plot, max_time_range, [0,1], xstyle=5, ystyle=5, yrange=yrange, /nodata, pos=bounds, /noerase
+			plot, max_time_range, [0,1], xstyle=5, ystyle=5, yrange=yrange, /nodata, pos=bounds, /noerase, xtickint = 2./24.
 		endelse
 
 		site_count = 0
@@ -556,7 +553,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if pass eq 0 then begin
 				loadct, 0, /silent
 				if n_elements(wnd.time) gt 1 then $
-					errplot, wnd.time, wnd.zonalLo, wnd.zonalHi, color=50, width=.00001, noclip=0
+					errplot, wnd.taxis, wnd.zonalLo, wnd.zonalHi, color=50, width=.00001, noclip=0
 				loadct, ctable, /silent
 
 				!p.font = 0
@@ -567,7 +564,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			endif else begin
 				loadct, ctable, /silent
 				if n_elements(wnd.time) gt 1 then $
-					oplot, wnd.time, wnd.medZonal, color=color, psym=-6, sym=.2, thick=.5
+					oplot, wnd.taxis, wnd.medZonal, color=color, psym=-6, sym=.2, thick=.5
 			endelse
 
 			site_count ++
@@ -576,13 +573,20 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 
 		bounds = [.1, .06, .98, .26]
 		if pass eq 0 then begin
-			plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, $
-				  ytitle = 'Mag. Merid (m/s)' , xtitle = 'Time (UT)', yticklen=.003, chars=1.5
+			plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, xminor=8, xtickint = 2./24., $
+				  ytitle = 'Mag. Merid (m/s)' , xtitle = 'Time (UT)', yticklen=.003, chars=1.5, xtick_get = xvals, xtickname=blank
+
 			oplot, max_time_range, [0,0], line=1
+
+			xtickname = time_str_from_decimalut((xvals mod 1) * 24., /noseconds)
+			axis, xaxis=0, xtickname = xtickname, /xstyle, xrange=max_time_range, xtitle = 'Time (UT)', $
+				  chars = 1.5, xminor=8, xtickint = 2./24.
+
 		endif else begin
-			plot, max_time_range, [0,1], xstyle=5, ystyle=5, yrange=yrange, /nodata, pos=bounds, /noerase
+			plot, max_time_range, [0,1], xstyle=5, ystyle=5, yrange=yrange, /nodata, pos=bounds, /noerase, xtickint = 2./24.
+			oplot, max_time_range, [0,0], line=1
 		endelse
-		oplot, max_time_range, [0,0], line=1
+
 
 		for i = 0, n_fitted - 1 do begin
 			if ptr_valid(winds[i]) eq 0 then continue
@@ -611,11 +615,11 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 			if pass eq 0 then begin
 				loadct, 0, /silent
 				if n_elements(wnd.time) gt 1 then $
-					errplot, wnd.time, wnd.meridLo, wnd.meridHi, color=50, width=.00001, noclip=0
+					errplot, wnd.taxis, wnd.meridLo, wnd.meridHi, color=50, width=.00001, noclip=0
 			endif else begin
 				loadct, ctable, /silent
 				if n_elements(wnd.time) gt 1 then $
-					oplot, wnd.time, wnd.medMerid, color=color, psym=-6, sym=.2, thick=0.5
+					oplot, wnd.taxis, wnd.medMerid, color=color, psym=-6, sym=.2, thick=0.5
 
 			endelse
 		endfor
