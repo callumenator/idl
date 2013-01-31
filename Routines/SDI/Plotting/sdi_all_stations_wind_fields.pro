@@ -1,6 +1,7 @@
 
 ;\\ THE MAIN ENTRY POINT IS:
 ;\\ sdi_all_stations_wind_fields, ydn=ydn, $ ;\\ year daynumber e.g. '2012013'
+;\\ 							  lambda=lambda, $ ;\\ string containing lambda filter eg '630'
 ;\\								  options=options, $ ;\\ struct of plot options, see code
 ;\\								  data_paths=data_paths, $ ;\\ array of paths to data
 ;\\								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
@@ -620,6 +621,7 @@ end
 
 ;\\ MAIN ENTRY POINT
 pro sdi_all_stations_wind_fields, ydn=ydn, $
+								  lambda=lambda, $
 								  options=options, $ ;\\ struct of plot options, see code
 								  data_paths=data_paths, $
 								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
@@ -639,9 +641,10 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	if not keyword_set(plot_type) then plot_type = 'png'
 	if plot_type ne 'eps' and plot_type ne 'png' then plot_type = 'png'
+	if not keyword_set(lambda) then lambda = '630'
 
 	;\\ GET SDI DATA
-	meta_loader, data, ydn=ydn, raw_paths=data_paths
+	meta_loader, data, ydn=ydn, raw_paths=data_paths, filter=['*'+lambda+'*']
 
 	look_for_sites = ['PKR', 'HRP', 'TLK', 'KTO']
 	tags = tag_names(data)
@@ -681,7 +684,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	if not keyword_set(output_path) then $
 		output_path = dialog_pickfile(/directory, title='Select Output Path')
 
-	output_subdir = data.yymmdd_nosep
+	output_subdir = data.yymmdd_nosep + '\' + lambda
 	file_mkdir, output_path + '\' + output_subdir
 	if keyword_set(monostatic) then file_mkdir, output_path + '\' + output_subdir + '\Monostatic\'
 	if keyword_set(bistatic) then file_mkdir, output_path + '\' + output_subdir + '\Bistatic\'
