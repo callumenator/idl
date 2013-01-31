@@ -313,11 +313,11 @@ end
 
 ;\\ SAMPLE THE MONOSTATIC WIND GRADIENTS
 function sdi_all_stations_wind_fields_sample_gradients, blend, $
+														altitude, $
 														resolution ;\\ [x pts, y pts]
 
 	nx = resolution[0]+1
 	ny = resolution[1]+1
-	altitude = 240.
 	triangulate, blend.lon, blend.lat, tr, b
 	grid_lat = trigrid(blend.lon, blend.lat, blend.lat, tr, missing=missing, nx=nx, ny=ny, extrap=b)
 	grid_lon = trigrid(blend.lon, blend.lat, blend.lon, tr, missing=missing, nx=nx, ny=ny, extrap=b)
@@ -815,7 +815,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			mono_blend = sdi_all_stations_wind_fields_blend_monostatic(allMonoZonal, allMonoMerid, allMonoLat, allMonoLon)
 
 			if arg_present(gradients) then begin
-				mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend, [50,50])
+				mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend, altitude, [50,50])
 				dudx[time_index, *] = total(mono_grads.dudx, 1) / 50.0
 				dudy[time_index, *] = total(mono_grads.dudy, 1) / 50.0
 				dvdx[time_index, *] = total(mono_grads.dvdx, 1) / 50.0
