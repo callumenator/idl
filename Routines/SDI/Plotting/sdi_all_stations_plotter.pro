@@ -13,7 +13,7 @@ pro sdi_all_stations_plotter
 				winy:600, $					;\\ for png, y size of the image
 				text_color:255, $			;\\ text color for map annotations
 				chars:0.7, $				;\\ for eps, character size of text
-				output_path:output_path, $	;\\ root path where plot subdirs are made
+				output_path:'', $			;\\ used internally
 				output_subdir:'', $			;\\ used internally
 				output_name:'', $			;\\ used internally
 				bistatic_color:[255, 0], $	;\\ color of bistatic vectors (color, color table)
@@ -26,10 +26,6 @@ pro sdi_all_stations_plotter
 							 {site_code:'KTO', color:[190,39]}  ]}
 
 
-	;\\ Example - generate monostatic, bistatic and tristatic png's for 2012 335,
-	;\\ save images in root dir c:\users\sdi\AllStationPlots\. Automatically calculate
-	;\\ time range and resolution. No all-sky or pfisr convection data
-
 	ydn = '2012335'
 	opts = options
 	plot_type = 'png'
@@ -38,12 +34,13 @@ pro sdi_all_stations_plotter
 	tristatic = 1
 	output_path = 'c:\users\sdi\AllStationPlots\'
 
-	sdi_all_stations_wind_fields, ydn=ydn, $
-								  options=opts, $
-								  monostatic=monostatic, $
-								  bistatic=bistatic, $
-								  tristatic=tristatic, $
-								  plot_type=plot_type, $
-								  output_path=output_path
+
+	ydns = ['2012326', '2012329', '2012346', '2012350', '2012353', '2012356',$
+			'2013009', '2013014', '2013017', '2013018', '2013019', '2013020']
+	for i = 0, n_elements(ydns) - 1 do begin
+		;sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
+		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads
+	endfor
+
 
 end

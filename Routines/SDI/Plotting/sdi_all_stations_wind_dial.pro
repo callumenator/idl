@@ -13,11 +13,18 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 
 	meta_loader, data, ydn=ydn, raw_paths=data_paths
 
-	sites = ['PKR', 'HRP', 'TLK']
+	look_for_sites = ['PKR', 'HRP', 'TLK', 'KTO']
 	tags = tag_names(data)
-	nsites = total( [total(strmatch(tags, sites[0])), $
-					 total(strmatch(tags, sites[1])), $
-					 total(strmatch(tags, sites[2])) ] )
+	for i = 0, n_elements(look_for_sites) - 1 do begin
+		match = where(tags eq look_for_sites[i], m_yn)
+		if m_yn eq 1 then append, look_for_sites[i], sites
+	endfor
+
+	nsites = n_elements(sites)
+	if nsites eq 0 then begin
+		print, 'No site data found matching date. Aborting.'
+		return
+	endif
 
 	;\\ COLLECTING DATA FROM EACH SITE
 	for i = 0, nsites - 1 do begin
