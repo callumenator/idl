@@ -58,6 +58,33 @@ pro sdi_monitor_clear_calibration, site ;\\ site code
 
 end
 
+;\\ Clear all saved timeseries data for the current day and site
+pro sdi_monitor_clear_timeseries, site ;\\ site code
+
+	common sdi_monitor_common, global, persistent
+
+	ts_files = file_search(global.home_dir + '\Timeseries\' + site + '_timeseries.idlsave', count = n_series)
+	print, ts_files
+
+	for i = 0, n_series - 1 do begin
+		restore, ts_files[i]
+
+		js2ymds, series.start_time, y, m, d, s
+		dayno = ymd2dn(y, m, d)
+
+		curr_year = float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
+		curr_dayn = float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$'))
+		keep = where(y eq curr_year and dayno eq curr_dayn, nkeep)
+		if nkeep gt 0 then begin
+			series = series[keep]
+			save, filename = ts_files[i], series, meta
+		endif else begin
+
+		endelse
+	endfor
+
+end
+
 ;\\ Return the status structure for a given job
 function sdi_monitor_job_status, job
 
