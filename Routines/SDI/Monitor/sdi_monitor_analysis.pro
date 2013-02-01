@@ -8,7 +8,8 @@ pro sdi_monitor_analysis_log, msg_string
 	free_lun, hnd
 end
 
-pro sdi_monitor_analysis, ignore_checksum = ignore_checksum, $
+pro sdi_monitor_analysis, site=site, $ ;\\ optional, defaults to all sites
+						  ignore_checksum = ignore_checksum, $
 						  force_all = force_all ;\\ create incomming file for all sites,
 						  						;\\ do analysis regardless of checksums
 
@@ -27,7 +28,11 @@ pro sdi_monitor_analysis, ignore_checksum = ignore_checksum, $
 	endif
 
 	;\\ Look for _incomming files
-	in_files = file_search('c:\ftp\instrument_incomming\{HRP,PKR,MAW,TLK,KTO}*_incomming.txt', count = n_in)
+	if keyword_set(site) then begin
+		in_files = file_search('c:\ftp\instrument_incomming\' + site + '*_incomming.txt', count = n_in)
+	endif else begin
+		in_files = file_search('c:\ftp\instrument_incomming\{HRP,PKR,MAW,TLK,KTO}*_incomming.txt', count = n_in)
+	endelse
 
 	for i = 0, n_in - 1 do begin
 		lines = file_lines(in_files[i])
