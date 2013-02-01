@@ -37,11 +37,9 @@ pro sdi_tag_event, event
 				sdi_tag_scan_dir
 			end
 
-			'set_tag_type': begin
-				ctype = global.state.tag_type
-				xvaredit, ctype, group = global.gui.base, name = 'Set New Tag Type'
-				global.state.tag_type = strlowcase(ctype)
-				widget_control, set_value = 'Current Tag Type: ' + ctype, global.gui.tagtype_label
+			'tagtype_edit': begin
+				widget_control, get_value = tag_type, event.id
+				global.state.tag_type = tag_type
 			end
 
 			'file_list': begin
@@ -63,7 +61,6 @@ pro sdi_tag_event, event
 			end
 
 			'draw': begin
-
 
 				case event.type of
 
@@ -601,7 +598,8 @@ pro sdi_tag_save_daydata
 		endelse
 	endelse
 
-	save, file = global.state.save_file, tags
+	info = {current_dir:global.state.current_dir}
+	save, file = global.state.save_file, tags, info
 
 end
 
@@ -619,18 +617,22 @@ pro sdi_tag_restore_daydata
 
 	if (size(tags, /type) eq 0) then return
 
-	site = (*global.data.meta).site_code
+	if size(*global.data.meta, /type) ne 0 then begin
+		site = (*global.data.meta).site_code
 
-	pts = where(tags.site_code eq site and $
-				tags.year eq global.data.year and $
-				tags.dayno eq global.data.dayno and $
-				tags.lambda eq (*global.data.meta).wavelength_nm, nmatch)
+		pts = where(tags.site_code eq site and $
+					tags.year eq global.data.year and $
+					tags.dayno eq global.data.dayno and $
+					tags.lambda eq (*global.data.meta).wavelength_nm, nmatch)
 
 
-	if nmatch eq 0 then return
+		if nmatch eq 0 then return
 
-	*global.tags = tags[pts]
+		*global.tags = tags[pts]
+	endif
 
+	global.state.current_dir = info.current_dir
+	sdi_tag_scan_dir
 end
 
 
@@ -690,11 +692,15 @@ pro sdi_tag, directory = directory
 	tag_type = widget_button(options, value = 'Set Tag Type', uval = {tag:'set_tag_type'})
 
 	filename_label = widget_label(base, value = 'Current Filename:', font=font, xs = .5*width, /align_left)
-	tagtype_label = widget_label(base, value = 'Current Tag Type: ' + default_tag, font=font, xs = .5*width, /align_left)
+
+	tagtype_base = widget_base(base, col=2)
+	tagtype_label = widget_label(tagtype_base, value = 'Current Tag Type:', font=font, xs = .1*width, /align_left)
+	tagtype_edit = widget_text(tagtype_base, value = default_tag, font=font, xs = 30, $
+							   /align_left, /edit, /all, uval = {tag:'tagtype_edit'})
 
 	base0 = widget_base(base, col=3)
 
-	list = widget_list(base0, font=font, scr_xsize = .35*width, scr_ysize = height, $
+	list = widget_list(base0, font='Ariel*14', scr_xsize = .25*width, scr_ysize = height, $
 					   uval = {tag:'file_list'})
 
 	draw = widget_draw(base0, xs = .5*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
@@ -762,6 +768,7 @@ pro sdi_tag, directory = directory
 			  tags:ptr_new(/alloc), $
 			  current_tag:0}
 
+	sdi_tag_restore_daydata
 	sdi_tag_scan_dir
 	sdi_tag_load_file
 
