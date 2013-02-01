@@ -346,20 +346,23 @@ end
 
 
 ;\\ PLOT BLENDED MONOSTATIC WINDS
-pro sdi_all_stations_wind_fields_plotmonoblend, map, $
-											    map_opts, $
-											    blend
+pro sdi_all_stations_wind_fields_plot_blend, map, $
+								 		     map_opts, $
+											 blend, $
+											 color=color
+
+	if not keyword_set(color) then color = [100,0]
 
 	magnitude = sqrt(blend.zonal*blend.zonal + blend.merid*blend.merid)*map_opts.scale
 	azimuth = atan(blend.zonal, blend.merid) / !DTOR
-	loadct, map_opts.blend_color[1], /silent
+	loadct, color[1], /silent
 	for i = 0, n_elements(magnitude) - 1 do begin
 		get_mapped_vector_components, map, blend.lat[i], blend.lon[i], $
 								  	  magnitude[i], azimuth[i], x0, y0, xlen, ylen
 
 		arrow, x0 - .5*xlen, y0 - .5*ylen, $
 			   x0 + .5*xlen, y0 + .5*ylen, /data, $
-			   color = map_opts.blend_color[0], $
+			   color = color[0], $
 			   hsize = map_opts.arrow_head_size
 	endfor
 
@@ -396,6 +399,55 @@ function sdi_all_stations_wind_fields_fitbistatic, altitude, $
 
 	sdi_all_stations_wind_fields_coords, /restore
 	return, bistaticFits
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ BLEND THE BISTATIC WINDS
+function sdi_all_stations_wind_fields_blend_bistatic, bistaticFits, $
+											       	  sigma=sigma
+
+	;\\ Get an even grid of locations for blending, stay inside bistatic boundary
+	use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
+				bistaticFits.obsdot lt .8 and $
+				bistaticFits.mangle gt 25 and $
+				abs(bistaticFits.mcomp) lt 500 and $
+				abs(bistaticFits.lcomp) lt 500 and $
+				bistaticFits.merr/bistaticFits.mcomp lt .3 and $
+				bistaticFits.lerr/bistaticFits.lcomp lt .3, nbi )
+	if nbi lt 5 then return, 0
+
+	if not keyword_set(sigma) then sigma = 0.8
+	bi = bistaticFits[use]
+	missing = -9999
+	triangulate, bi.lon, bi.lat, tr, b
+	grid_lat = trigrid(bi.lon, bi.lat, bi.lat, tr, missing=missing, nx = 20, ny=20)
+	grid_lon = trigrid(bi.lon, bi.lat, bi.lon, tr, missing=missing, nx = 20, ny=20)
+	use = where(grid_lon ne missing and grid_lat ne missing, nuse)
+
+	ilats = grid_lat[use]
+	ilons = grid_lon[use]
+	zonal = ilats
+	merid = ilats
+
+	allZonal = fltarr(nbi)
+	allMerid = fltarr(nbi)
+	for i = 0, nbi - 1 do begin
+		outWind = project_bistatic_fit(bi[i], 0)
+		allZonal[i] = outWind[0]
+		allMerid[i] = outWind[1]
+	endfor
+
+	for locIdx = 0, nuse - 1 do begin
+		latDist = (bi.lat - ilats[locIdx])
+		lonDist = (bi.lon - ilons[locIdx])
+		dist = sqrt(lonDist*lonDist + latDist*latDist)
+		weight = exp(-(dist*dist)/(2*sigma*sigma))
+		zonal[locIdx] = total(allZonal * weight)/total(weight)
+		merid[locIdx] = total(allMerid * weight)/total(weight)
+	endfor
+	return, {lat:ilats, lon:ilons, zonal:zonal, merid:merid}
+
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -577,44 +629,66 @@ pro sdi_all_stations_wind_fields_plotgrads, grads, $
 
 	critical = -0.132 ;\\ vorticity below this is unstable
 
-	eps, filename=map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
-				  map_opts.output_name, /open, xs = 12, ys=10
+	for type = 0, 1 do begin ;\\ do separate monostatic and bistatic plots
 
-		loadct, 39, /silent
-		gscale = [-.5,.5]
+		if type eq 0 then begin
+			filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
+					   map_opts.output_name + '_Monostatic.eps'
+			dudx = (grads.m_dudx)[*,5:*]
+			dudy = (grads.m_dudy)[*,5:*]
+			dvdx = (grads.m_dvdx)[*,5:*]
+			dvdy = (grads.m_dvdy)[*,5:*]
+			lat =  (grads.mono_lat)[*,5:*]
+			lon =  (grads.mono_lon)[*,5:*]
+			;\\ Use monostatic lat range for bistatic also, for comparison
+			mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
+			lat_range = [min(mean_lat), max(mean_lat)]
+		endif else begin
+			filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
+					   map_opts.output_name + '_Bistatic.eps'
+			dudx = (grads.b_dudx)[*,5:*]
+			dudy = (grads.b_dudy)[*,5:*]
+			dvdx = (grads.b_dvdx)[*,5:*]
+			dvdy = (grads.b_dvdy)[*,5:*]
+			lat =  (grads.bi_lat)[*,5:*]
+			lon =  (grads.bi_lon)[*,5:*]
+			mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
+		endelse
 
-		vorticity = (grads.dvdx - grads.dudy)[*, 5:*]
-		divergence = (grads.dudx + grads.dvdy)[*, 5:*]
-		mean_lat = total(grads.lat[*, 5:*], 1) / float(n_elements(grads.lat[*,0]))
-		lat_range = [min(mean_lat), max(mean_lat)]
-		ut_range =  [min(grads.ut), max(grads.ut)]
+		eps, filename=filename, /open, xs = 12, ys=10
 
-		bounds = split_page(2,1, bounds = [.1,.1,.88,.96], row_gap=.15)
-		plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[0,0,*], xtickname=replicate(' ', 20), $
-			  /nodata, title='Divergence', ytitle = 'Latitude', chart=1.5
-		scale_to_range, divergence, gscale[0], gscale[1], div
-		tv, div, ut_range[0], lat_range[0], xs=(ut_range[1]-ut_range[0]), ys=(lat_range[1]-lat_range[0]), /data
-		plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[0,0,*], /noerase, /nodata, xtickname=replicate(' ', 20)
+			loadct, 39, /silent
+			gscale = [-.5,.5]
 
-		plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[1,0,*], /noerase, /nodata, $
-			  title='Vorticity', xtitle='Time (UT)', ytitle = 'Latitude', chart=1.5
-		scale_to_range, vorticity, gscale[0], gscale[1], vor
-		tv, vor, ut_range[0], lat_range[0], xs=(ut_range[1]-ut_range[0]), ys=(lat_range[1]-lat_range[0]), /data
-		plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[1,0,*], /noerase, /nodata
-		contour, vorticity, levels=[critical], pos=bounds[1,0,*], c_thick = 2, $
-				 /noerase, xstyle=5, ystyle=5, c_colors=[250]
+			vorticity = (dvdx - dudy)
+			divergence = (dudx + dvdy)
+			ut_range =  [min(grads.ut), max(grads.ut)]
 
-		scale = fltarr(10,256)
-		for i = 0, 9 do scale[i,*] = indgen(256)
-		tv, scale, /normal, .9, .3, xs=.05, ys=.4
-		xyouts, /normal, .925, .26, string(gscale[0], f='(f0.1)'), align=.5, chart=1.5
-		xyouts, /normal, .925, .71, string(gscale[1], f='(f0.1)'), align=.5, chart=1.5
+			bounds = split_page(2,1, bounds = [.1,.1,.88,.96], row_gap=.15)
+			plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[0,0,*], xtickname=replicate(' ', 20), $
+				  /nodata, title='Divergence', ytitle = 'Latitude', chart=1.5
+			scale_to_range, divergence, gscale[0], gscale[1], div
+			tv, div, ut_range[0], min(lat), xs=(ut_range[1]-ut_range[0]), ys=(max(lat)-min(lat)), /data
+			plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[0,0,*], /noerase, /nodata, xtickname=replicate(' ', 20)
 
-	eps, /close
+			plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[1,0,*], /noerase, /nodata, $
+				  title='Vorticity', xtitle='Time (UT)', ytitle = 'Latitude', chart=1.5
+			scale_to_range, vorticity, gscale[0], gscale[1], vor
+			tv, vor, ut_range[0], min(lat), xs=(ut_range[1]-ut_range[0]), ys=(max(lat)-min(lat)), /data
+			plot, ut_range, lat_range, /xstyle, /ystyle, pos=bounds[1,0,*], /noerase, /nodata
 
+			contour, vorticity, grads.ut, mean_lat, /overplot, $
+					 levels=[critical], pos=bounds[1,0,*], c_thick = 2, c_colors=[250]
 
+			scale = fltarr(10,256)
+			for i = 0, 9 do scale[i,*] = indgen(256)
+			tv, scale, /normal, .9, .3, xs=.05, ys=.4
+			xyouts, /normal, .925, .26, string(gscale[0], f='(f0.1)'), align=.5, chart=1.5
+			xyouts, /normal, .925, .71, string(gscale[1], f='(f0.1)'), align=.5, chart=1.5
 
+		eps, /close
 
+	endfor ;\\ loop over plot type (mono, bi)
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -666,7 +740,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 	endif
 
-	if keyword_set(bistatic) or keyword_set(tristatic) then begin
+	if keyword_set(bistatic) or $
+	   keyword_set(tristatic) or $
+	   arg_present(gradients) then begin
 		allMeta = ptrarr(nsites, /alloc)
 		allWinds = ptrarr(nsites, /alloc)
 		allWindErrs = ptrarr(nsites, /alloc)
@@ -686,10 +762,10 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	output_subdir = data.yymmdd_nosep + '\' + lambda
 	file_mkdir, output_path + '\' + output_subdir
-	if keyword_set(monostatic) then file_mkdir, output_path + '\' + output_subdir + '\Monostatic\'
-	if keyword_set(bistatic) then file_mkdir, output_path + '\' + output_subdir + '\Bistatic\'
-	if keyword_set(tristatic) then file_mkdir, output_path + '\' + output_subdir + '\Tristatic\'
-	if arg_present(gradients) then file_mkdir, output_path + '\' + output_subdir + '\Gradients\'
+	if keyword_set(monostatic) 	then file_mkdir, output_path + '\' + output_subdir + '\Monostatic\'
+	if keyword_set(bistatic) 	then file_mkdir, output_path + '\' + output_subdir + '\Bistatic\'
+	if keyword_set(tristatic) 	then file_mkdir, output_path + '\' + output_subdir + '\Tristatic\'
+	if arg_present(gradients) 	then file_mkdir, output_path + '\' + output_subdir + '\Gradients\'
 
 	if not keyword_set(options) then begin
 		map_opts = {lat:65,	$
@@ -709,7 +785,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 					output_name:'', $
 					bistatic_color:[255, 0], $
 					tristatic_color:[255, 0], $
-					blend_color:[100, 0], $
+					mono_blend_color:[100, 0], $
+					bi_blend_color:[130, 8], $
 					pfisr_color:[190, 39], $
 					site_colors:[{site_code:'PKR', color:[150,39]}, $
 								 {site_code:'TLK', color:[230,39]}, $
@@ -723,12 +800,18 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	;\\ For PNG, store a copy of the map (since it is slow). EPS needs to redo each time
 	sdi_all_stations_wind_fields_makemap, plot_type, background=background, map_opts=map_opts, out_map=map
 
-	;\\ Save gradient profiles
+	;\\ STORE GRADIENT PROFILES
 	if arg_present(gradients) then begin
-		dudx = fltarr(n_elements(new_time_axis), 50)
-		dudy = fltarr(n_elements(new_time_axis), 50)
-		dvdx = fltarr(n_elements(new_time_axis), 50)
-		dvdy = fltarr(n_elements(new_time_axis), 50)
+		;\\ DERIVED FROM MONOSTATIC BLENDED WIND FIELDS
+		m_dudx = fltarr(n_elements(new_time_axis), 50)
+		m_dudy = fltarr(n_elements(new_time_axis), 50)
+		m_dvdx = fltarr(n_elements(new_time_axis), 50)
+		m_dvdy = fltarr(n_elements(new_time_axis), 50)
+		;\\ DERIVED FROM BISTATIC BLENDED WIND FIELDS
+		b_dudx = fltarr(n_elements(new_time_axis), 50)
+		b_dudy = fltarr(n_elements(new_time_axis), 50)
+		b_dvdx = fltarr(n_elements(new_time_axis), 50)
+		b_dvdy = fltarr(n_elements(new_time_axis), 50)
 	endif
 
 	for time_index = 0, n_elements(new_time_axis) - 1 do begin
@@ -790,7 +873,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 															 zinfo, ctable, color
 
 			;\\ STORE MULTISTATIC INFO
-			if keyword_set(bistatic) or keyword_set(tristatic) then begin
+			if keyword_set(bistatic) or $
+			   keyword_set(tristatic) or $
+			   arg_present(gradients) then begin
 				sdi_time_interpol, speks.velocity*meta.channels_to_velocity, time, this_time, _winds
 				sdi_time_interpol, speks.sigma_velocity*meta.channels_to_velocity, time, this_time, _wind_errors
 				*allMeta[i] = meta
@@ -816,28 +901,32 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 			if arg_present(gradients) then begin
 				mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend, altitude, [50,50])
-				dudx[time_index, *] = total(mono_grads.dudx, 1) / 50.0
-				dudy[time_index, *] = total(mono_grads.dudy, 1) / 50.0
-				dvdx[time_index, *] = total(mono_grads.dvdx, 1) / 50.0
-				dvdy[time_index, *] = total(mono_grads.dvdy, 1) / 50.0
+				m_dudx[time_index, *] = median(mono_grads.dudx, dimension=1)
+				m_dudy[time_index, *] = median(mono_grads.dudy, dimension=1)
+				m_dvdx[time_index, *] = median(mono_grads.dvdx, dimension=1)
+				m_dvdy[time_index, *] = median(mono_grads.dvdy, dimension=1)
 			endif
 		endif
 
 
-		;\\ PLOT BISTATIC IF REQUESTED
+		if keyword_set(bistatic) or arg_present(gradients) then begin
+			bistaticFits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
+			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits)
+		endif
+
+		;\\ PLOT BISTATIC WINDS IF REQUESTED
 		if keyword_set(bistatic) then begin
 			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + $
 				time_str_from_decimalut(this_time, /forfile) + '.' + plot_type
-
-			fits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
 
 			sdi_all_stations_wind_fields_pageset, plot_type, background=background, map_opts=map_opts
 
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
-			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, mono_blend
-			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, fits
+			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
+			sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
+			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, bistaticFits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
@@ -845,6 +934,14 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
 			if size(pfisr_convection_data, /type) ne 0 then $
 				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+		endif
+
+		if arg_present(gradients) then begin
+			bi_grads = sdi_all_stations_wind_fields_sample_gradients(bi_blend, altitude, [50,50])
+			b_dudx[time_index, *] = median(bi_grads.dudx, dimension=1)
+			b_dudy[time_index, *] = median(bi_grads.dudy, dimension=1)
+			b_dvdx[time_index, *] = median(bi_grads.dvdx, dimension=1)
+			b_dvdy[time_index, *] = median(bi_grads.dvdy, dimension=1)
 		endif
 
 
@@ -860,7 +957,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
-			sdi_all_stations_wind_fields_plotmonoblend, map, map_opts, mono_blend
+			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
 			sdi_all_stations_wind_fields_plottristatic, map, map_opts, fits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
@@ -887,9 +984,18 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	endif
 
 	if arg_present(gradients) then begin
-		map_opts.output_name = '\Gradients\All_Stations_Gradients.eps'
-		gradients = {ut:new_time_axis, dudx:dudx, dudy:dudy, dvdx:dvdx, dvdy:dvdy, $
-					 lat:mono_grads.lat, lon:mono_grads.lon}
+		map_opts.output_name = '\Gradients\All_Stations_Gradients'
+		gradients = {ut:new_time_axis, $
+					 m_dudx:m_dudx, $
+					 m_dudy:m_dudy, $
+					 m_dvdx:m_dvdx, $
+					 m_dvdy:m_dvdy, $
+					 b_dudx:b_dudx, $
+					 b_dudy:b_dudy, $
+					 b_dvdx:b_dvdx, $
+					 b_dvdy:b_dvdy, $
+					 mono_lat:mono_grads.lat, mono_lon:mono_grads.lon, $
+					 bi_lat:bi_grads.lat, bi_lon:bi_grads.lon}
 		sdi_all_stations_wind_fields_plotgrads, gradients, map_opts
 	endif
 

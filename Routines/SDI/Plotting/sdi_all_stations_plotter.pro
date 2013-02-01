@@ -18,7 +18,8 @@ pro sdi_all_stations_plotter
 				output_name:'', $			;\\ used internally
 				bistatic_color:[255, 0], $	;\\ color of bistatic vectors (color, color table)
 				tristatic_color:[255, 0], $	;\\ color of tristatic vectors (color, color table)
-				blend_color:[100, 0], $		;\\ color of blended monostatic vectors (color, color table)
+				mono_blend_color:[100, 0], $;\\ color of blended monostatic vectors (color, color table)
+				bi_blend_color:[130, 8], $  ;\\ color of blended bistatic vectors (color, color table)
 				pfisr_color:[50, 39], $		;\\ color of pfisr convection vectors (color, color table)
 				site_colors:[{site_code:'PKR', color:[150,39]}, $
 							 {site_code:'TLK', color:[230,39]}, $
