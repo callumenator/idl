@@ -37,6 +37,13 @@ pro sdi_tag_event, event
 				sdi_tag_scan_dir
 			end
 
+			'set_tag_type': begin
+				ctype = global.state.tag_type
+				xvaredit, ctype, group = global.gui.base, name = 'Set New Tag Type'
+				global.state.tag_type = strlowcase(ctype)
+				widget_control, set_value = 'Current Tag Type: ' + ctype, global.gui.tagtype_label
+			end
+
 			'file_list': begin
 				global.state.current_list_index = event.index
 				sdi_tag_load_file
@@ -156,6 +163,7 @@ pro sdi_tag_edit, type, x, y
 			new_tag.metadata = ptr_new(/alloc)
 
 			*new_tag.metadata = *global.data.meta
+			new_tag.type = global.state.tag_type
 			new_tag.site_code = (*global.data.meta).site_code
 			new_tag.year = global.data.year
 			new_tag.dayno = global.data.dayno
@@ -322,7 +330,7 @@ pro sdi_tag_update_taglist
 	endif else begin
 		tags = *global.tags
 		list = string(tags.ut_start, f='(f0.2)') + ' - ' + string(tags.ut_end, f='(f0.2)') + $
-			   ' ' + tags.site_code + ' ' + string(tags.dayno, f='(i03)')
+			   ' ' + tags.site_code + ' ' + string(tags.dayno, f='(i03)') + ' ' + tags.type
 		widget_control, set_value = list, global.gui.tag_list
 	endelse
 end
@@ -630,23 +638,27 @@ end
 pro sdi_tag_cleanup, arg
 
 	common SDITag_Common, global
+
 	sdi_tag_save_daydata
 	heap_gc, /verbose
 end
 
 
 ;\\ Query the tag database, can be called from external code
-function sdi_tag_query, site_code, lambda, js
+function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
+
+	if not keyword_set(tag_type) then tag_type = 'cloud'
 
 	if file_test(save_file) eq 0 then begin
 		print, 'NO DATABASE AVAILABLE!'
 		return, 0
 	endif else begin
 		restore, save_file
-		pts = where(tags.site_code eq site_code and $
+		pts = where(tags.type eq tag_type and $
+					tags.site_code eq site_code and $
 					tags.js_end lt js and $
 					tags.lambda eq lambda, nmatch)
 		if (nmatch gt 0) then return, tags[pts] else return, 0
@@ -664,6 +676,7 @@ pro sdi_tag, directory = directory
 
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
+	default_tag = 'cloud'
 
 	width = 1200.
 	height = 500.
@@ -674,8 +687,10 @@ pro sdi_tag, directory = directory
 	options = widget_button(menubar, value = 'Options')
 	load_dir = widget_button(options, value = 'Select Directory', uval = {tag:'select_directory'})
 	file_filter = widget_button(options, value = 'Set Filename Filter', uval = {tag:'filename_filter'})
+	tag_type = widget_button(options, value = 'Set Tag Type', uval = {tag:'set_tag_type'})
 
 	filename_label = widget_label(base, value = 'Current Filename:', font=font, xs = .5*width, /align_left)
+	tagtype_label = widget_label(base, value = 'Current Tag Type: ' + default_tag, font=font, xs = .5*width, /align_left)
 
 	base0 = widget_base(base, col=3)
 
@@ -702,6 +717,7 @@ pro sdi_tag, directory = directory
 		   list:list, $
 		   tag_list:tag_list, $
 		   filename_label:filename_label, $
+		   tagtype_label:tagtype_label, $
 		   base_geom:widget_info(base, /geom), $
 		   font:font }
 
@@ -711,7 +727,8 @@ pro sdi_tag, directory = directory
 			 rbutton_down:0, $
 			 tag_list_selected:-1, $
 			 save_file:save_file, $
-			 filename_filter:'*SKY*6300*'}
+			 filename_filter:'*SKY*6300*', $
+			 tag_type:default_tag }
 
 	data = {valid:0, $
 			year:0, $
@@ -723,7 +740,7 @@ pro sdi_tag, directory = directory
 			med_zonal:ptr_new(/alloc), $
 			med_merid:ptr_new(/alloc) }
 
-	tag_template = {type:'cloud', $
+	tag_template = {type:'', $
 					filename:'', $
 					site_code:'', $
 				    year:0, $
@@ -743,7 +760,7 @@ pro sdi_tag, directory = directory
 			  data:data, $
 			  tag_template:tag_template, $
 			  tags:ptr_new(/alloc), $
-			  current_tag:0 }
+			  current_tag:0}
 
 	sdi_tag_scan_dir
 	sdi_tag_load_file
