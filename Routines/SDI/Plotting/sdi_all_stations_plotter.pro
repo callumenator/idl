@@ -1,8 +1,8 @@
 
 pro sdi_all_stations_plotter
 
-	options = {	lat:65,	$ 		;\\ center geo lat of map
-			   	lon:-147, $		;\\ center geo lon of map
+	options = {	lat:0,	$ 		;\\ center geo lat of map (0 = use mean lat)
+			   	lon:0, $		;\\ center geo lon of map (0 = use mean lon)
 			   	zoom:5.5, $		;\\ zoom factor of map
 				scale:1E3, $	;\\ wind vectors multiplied by this for plotting
 				continent_color:[50,0], ocean_color:[0,0], $	;\\ color of map continents
@@ -32,15 +32,14 @@ pro sdi_all_stations_plotter
 	plot_type = 'png'
 	monostatic = 1
 	bistatic = 1
-	tristatic = 1
 	output_path = 'c:\users\sdi\AllStationPlots\'
 
 
 	ydns = ['2012326', '2012329', '2012346', '2012350', '2012353', '2012356',$
 			'2013009', '2013014', '2013017', '2013018', '2013019', '2013020']
 	for i = 0, n_elements(ydns) - 1 do begin
-		;sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
-		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads
+		sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
+		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads, /monostatic, /bistatic
 	endfor
 
 

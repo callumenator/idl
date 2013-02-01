@@ -18,6 +18,7 @@
 
 
 @resolve_nstatic_wind
+@sdi3k_polywind
 
 ;\\ GENERATE AN INTERPOLATED TIME AXIS - ASK FOR TIME RANGE IF DOING EPS
 pro sdi_all_stations_wind_fields_timeset, sites, $
@@ -370,7 +371,7 @@ end
 ;\\ --------------------------------------------------------------------------------------------------
 
 
-;\\ FIT BISTATIC WIND VECTORS
+;\\ FIT BISTATIC WIND VECTORS USING DIRECT INVERSION
 function sdi_all_stations_wind_fields_fitbistatic, altitude, $
 									 	   		   allMeta, $
 											   	   allWinds, $
@@ -399,6 +400,140 @@ function sdi_all_stations_wind_fields_fitbistatic, altitude, $
 
 	sdi_all_stations_wind_fields_coords, /restore
 	return, bistaticFits
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ FIT BISTATIC WIND VECTORS USING MARKS POLYWIND ROUTINE
+function sdi_all_stations_wind_fields_polyfitbistatic, altitude, $
+									 	   		   	   allMeta, $
+											   	   	   allWinds, $
+											   	   	   AllWindErrs
+
+	;\\ Cache the geometry information, since this won't change
+	common sdi_all_stations_polycache, geometry
+
+	if size(geometry, /type) ne 8 then begin
+		earth_radius = 6371
+		for i = 0, n_elements(allMeta) - 1 do begin
+			meta = *allMeta[i]
+			get_zone_locations, meta, altitude=altitude, zones=zones
+
+			distance = map_2points((*allMeta[0]).longitude, $
+								   (*allMeta[0]).latitude, $
+								   meta.longitude, $
+								   meta.latitude, /meters)
+
+			azimuth = (map_2points((*allMeta[0]).longitude, $
+								   (*allMeta[0]).latitude, $
+								   meta.longitude, $
+								   meta.latitude))[1]
+
+			site_x = (distance/1000.) * sin(azimuth*!DTOR)
+			site_y = (distance/1000.) * cos(azimuth*!DTOR)
+
+			range = altitude*tan(!DTOR*zones.mid_zen)
+          	append, site_x + range*sin(!DTOR*zones.mid_azi), obsx_vec
+           	append, site_y + range*cos(!DTOR*zones.mid_azi), obsy_vec
+           	append, zones.mid_zen, ozen_vec
+           	append, zones.mid_azi, oazi_vec
+
+			append, zones.lon, lon_vec
+			append, zones.lat, lat_vec
+		endfor
+
+		;\\ Create a grid of locations at which to calculate the fitted winds
+		missing = -9999
+		triangulate, lon_vec, lat_vec, tr, b
+		grid_lat = trigrid(lon_vec, lat_vec, lat_vec, tr, missing=missing, nx = 20, ny=20)
+		grid_lon = trigrid(lon_vec, lat_vec, lon_vec, tr, missing=missing, nx = 20, ny=20)
+		grid_x = trigrid(lon_vec, lat_vec, obsx_vec, tr, missing=missing, nx = 20, ny=20)
+		grid_y = trigrid(lon_vec, lat_vec, obsy_vec, tr, missing=missing, nx = 20, ny=20)
+		use = where(grid_lon ne missing and grid_lat ne missing, nuse)
+
+		lat = grid_lat[use]
+		lon = grid_lon[use]
+		ix = grid_x[use]
+		iy = grid_x[use]
+
+		geometry = {obsx_vec:obsx_vec, $
+					obsy_vec:obsy_vec, $
+					oazi_vec:oazi_vec, $
+					ozen_vec:ozen_vec, $
+					lat:lat, $
+					lon:lon, $
+					ix:ix, $
+					iy:iy  }
+
+	endif else begin
+		;\\ Use cached geometry
+		obsx_vec = geometry.obsx_vec
+		obsy_vec = geometry.obsy_vec
+		oazi_vec = geometry.oazi_vec
+		ozen_vec = geometry.ozen_vec
+		lon = geometry.lon
+		lat = geometry.lat
+		ix = geometry.ix
+		iy = geometry.iy
+	endelse
+
+	fitord = 2
+	hozo = 0
+
+	for i = 0, n_elements(allMeta) - 1 do begin
+		append, *allWinds[i], los_obs
+		append, *allWindErrs[i], los_err
+	endfor
+
+	sdi3k_polywind, los_obs, $
+					los_err, $
+					obsx_vec, $
+					obsy_vec, $
+					oazi_vec, $
+					ozen_vec, $
+					fitord, $
+					fitpars, $
+                    zonal, $
+                    meridional, $
+                    vertical, $
+                    sigzon, $
+                    sigmer, $
+                    sigver, $
+                    quality, $
+                    horizontal_only=1
+
+	sdi3k_get_poly_wind, ix, iy, fitord, fitpars, winds
+
+	polyFits = {lat:lat, $
+				lon:lon, $
+				zonal:winds.zonal, $
+				merid:winds.meridional }
+
+	;\\ FOR TESTING
+	;fit_los = fltarr(n_elements(los_obs))
+   	;for j=0, n_elements(los_obs)-1 do begin
+    ;	fit_los(j) = 0; winds.vertical(j)*cos(!dtor*ozen_vec(j)) ; vertical contribution
+    ;  	fit_los(j) = fit_los(j) + winds.zonal(j)*sin(!dtor*oazi_vec(j))*sin(!dtor*ozen_vec(j)) ; zonal contribution
+    ;  	fit_los(j) = fit_los(j) + winds.meridional(j)*cos(!dtor*oazi_vec(j))*sin(!dtor*ozen_vec(j)) ; meridional contribution
+   	;endfor
+
+	;window, 0, xs=800, ys=800
+	;plot, [min(obsx_vec),max(obsx_vec)], [min(obsy_vec),max(obsy_vec)], /nodata, /xsty, /ysty, /iso
+	;loadct, 39, /silent
+	;plots, obsx_vec[0:114], obsy_vec[0:114], color=50, psym=1
+	;plots, obsx_vec[115:229], obsy_vec[115:229], color=150, psym=1
+	;plots, obsx_vec[230:344], obsy_vec[230:344], color=200, psym=1
+	;arrow, obsx_vec, obsy_vec, obsx_vec + winds.zonal, obsy_vec+winds.meridional, /data
+
+	return, polyFits
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+;\\ CLEAR THE POLY FIT CACHED DATA
+pro sdi_all_stations_wind_fields_clear_poly_cache
+	common sdi_all_stations_polycache, geometry
+	geometry = 0
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -458,12 +593,12 @@ pro sdi_all_stations_wind_fields_plotbistatic, map, $
 											   bistaticFits
 
 	use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
-			bistaticFits.obsdot lt .8 and $
-			bistaticFits.mangle gt 25 and $
-			abs(bistaticFits.mcomp) lt 500 and $
-			abs(bistaticFits.lcomp) lt 500 and $
-			bistaticFits.merr/bistaticFits.mcomp lt .3 and $
-			bistaticFits.lerr/bistaticFits.lcomp lt .3, nuse )
+				bistaticFits.obsdot lt .8 and $
+				bistaticFits.mangle gt 25 and $
+				abs(bistaticFits.mcomp) lt 500 and $
+				abs(bistaticFits.lcomp) lt 500 and $
+				bistaticFits.merr/bistaticFits.mcomp lt .25 and $
+				bistaticFits.lerr/bistaticFits.lcomp lt .25, nuse )
 
 	if (nuse le 0) then return
 
@@ -748,6 +883,22 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		allWindErrs = ptrarr(nsites, /alloc)
 	endif
 
+	;\\ CLEAR ANY CACHED POLYWIND GEOMETRY
+	sdi_all_stations_wind_fields_clear_poly_cache
+
+	;\\ FIND A MEAN LAT AND LON
+	mean_lat = 0
+	mean_lon = 0
+	for i = 0, n_elements(sites) - 1 do begin
+		match = where(tags eq sites[i], m_yn)
+		if m_yn eq 1 then begin
+			mean_lat += data.(match[0]).meta.latitude
+			mean_lon += data.(match[0]).meta.longitude
+		endif
+	endfor
+	mean_lat /= float(n_elements(sites))
+	mean_lon /= float(n_elements(sites))
+
 	;\\ SET UP A TIME AXIS TO INTERPOLATE TO
 	sdi_all_stations_wind_fields_timeset, sites, $
 										  data, $
@@ -768,9 +919,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	if arg_present(gradients) 	then file_mkdir, output_path + '\' + output_subdir + '\Gradients\'
 
 	if not keyword_set(options) then begin
-		map_opts = {lat:65,	$
-					lon:-147, $
-					zoom:5.5, $
+		map_opts = {lat:mean_lat,	$
+					lon:mean_lon, $
+					zoom:6, $
 					scale:1E3, $
 					continent_color:[50,0], ocean_color:[0,0], $
 					outline_color:[90,0], grid_color:[0, 100], $
@@ -794,6 +945,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								 {site_code:'KTO', color:[190,39]}  ]}
 	endif else begin
 		map_opts = options
+		if options.lat eq 0 then map_opts.lat = mean_lat
+		if options.lon eq 0 then map_opts.lon = mean_lon
 	endelse
 
 
@@ -911,7 +1064,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 		if keyword_set(bistatic) or arg_present(gradients) then begin
 			bistaticFits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
-			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits)
+			polyFits = sdi_all_stations_wind_fields_polyfitbistatic(altitude, allMeta, allWinds, AllWindErrs)
+			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits, sigma=1.5)
 		endif
 
 		;\\ PLOT BISTATIC WINDS IF REQUESTED
@@ -925,7 +1079,9 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
 			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
-			sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
+			;sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
+			polyFits.lon += .3
+			sdi_all_stations_wind_fields_plot_blend, map, map_opts, polyFits, color=[130, 8]
 			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, bistaticFits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
