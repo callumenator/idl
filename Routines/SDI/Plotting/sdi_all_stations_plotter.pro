@@ -38,8 +38,8 @@ pro sdi_all_stations_plotter
 	ydns = ['2012326', '2012329', '2012346', '2012350', '2012353', '2012356',$
 			'2013009', '2013014', '2013017', '2013018', '2013019', '2013020']
 	for i = 0, n_elements(ydns) - 1 do begin
-		sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
-		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads, /monostatic, /bistatic
+		;sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
+		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads
 	endfor
 
 

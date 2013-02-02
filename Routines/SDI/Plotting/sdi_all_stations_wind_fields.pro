@@ -764,31 +764,36 @@ pro sdi_all_stations_wind_fields_plotgrads, grads, $
 
 	critical = -0.132 ;\\ vorticity below this is unstable
 
-	for type = 0, 1 do begin ;\\ do separate monostatic and bistatic plots
+	for type = 0, 2 do begin ;\\ do separate monostatic, bistatic and polyfit plots
 
-		if type eq 0 then begin
-			filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
-					   map_opts.output_name + '_Monostatic.eps'
-			dudx = (grads.m_dudx)[*,5:*]
-			dudy = (grads.m_dudy)[*,5:*]
-			dvdx = (grads.m_dvdx)[*,5:*]
-			dvdy = (grads.m_dvdy)[*,5:*]
-			lat =  (grads.mono_lat)[*,5:*]
-			lon =  (grads.mono_lon)[*,5:*]
-			;\\ Use monostatic lat range for bistatic also, for comparison
-			mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
-			lat_range = [min(mean_lat), max(mean_lat)]
-		endif else begin
-			filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
-					   map_opts.output_name + '_Bistatic.eps'
-			dudx = (grads.b_dudx)[*,5:*]
-			dudy = (grads.b_dudy)[*,5:*]
-			dvdx = (grads.b_dvdx)[*,5:*]
-			dvdy = (grads.b_dvdy)[*,5:*]
-			lat =  (grads.bi_lat)[*,5:*]
-			lon =  (grads.bi_lon)[*,5:*]
-			mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
-		endelse
+		case type of
+			0: begin
+				filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
+						   map_opts.output_name + '_Monostatic.eps'
+				dudx = (grads.m_dudx)[*,5:*] & dudy = (grads.m_dudy)[*,5:*]
+				dvdx = (grads.m_dvdx)[*,5:*] & dvdy = (grads.m_dvdy)[*,5:*]
+				lat =  (grads.mono_lat)[*,5:*] & lon =  (grads.mono_lon)[*,5:*]
+				;\\ Use monostatic lat range for bistatic also, for comparison
+				mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
+				lat_range = [min(mean_lat), max(mean_lat)]
+			end
+			1: begin
+				filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
+						   map_opts.output_name + '_Bistatic.eps'
+				dudx = (grads.b_dudx)[*,5:*] & dudy = (grads.b_dudy)[*,5:*]
+				dvdx = (grads.b_dvdx)[*,5:*] & dvdy = (grads.b_dvdy)[*,5:*]
+				lat =  (grads.bi_lat)[*,5:*] & lon =  (grads.bi_lon)[*,5:*]
+				mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
+			end
+			2: begin
+				filename = map_opts.output_path + '\' + map_opts.output_subdir + '\' + $
+						   map_opts.output_name + '_Polyfit.eps'
+				dudx = (grads.p_dudx)[*,5:*] & dudy = (grads.p_dudy)[*,5:*]
+				dvdx = (grads.p_dvdx)[*,5:*] & dvdy = (grads.p_dvdy)[*,5:*]
+				lat =  (grads.poly_lat)[*,5:*] & lon =  (grads.poly_lon)[*,5:*]
+				mean_lat = total(lat, 1) / float(n_elements(lat[*,0]))
+			end
+		endcase
 
 		eps, filename=filename, /open, xs = 12, ys=10
 
@@ -965,6 +970,11 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		b_dudy = fltarr(n_elements(new_time_axis), 50)
 		b_dvdx = fltarr(n_elements(new_time_axis), 50)
 		b_dvdy = fltarr(n_elements(new_time_axis), 50)
+		;\\ DERIVED FROM POLYFIT BISTATIC WINDS
+		p_dudx = fltarr(n_elements(new_time_axis), 50)
+		p_dudy = fltarr(n_elements(new_time_axis), 50)
+		p_dvdx = fltarr(n_elements(new_time_axis), 50)
+		p_dvdy = fltarr(n_elements(new_time_axis), 50)
 	endif
 
 	for time_index = 0, n_elements(new_time_axis) - 1 do begin
@@ -1098,6 +1108,11 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			b_dudy[time_index, *] = median(bi_grads.dudy, dimension=1)
 			b_dvdx[time_index, *] = median(bi_grads.dvdx, dimension=1)
 			b_dvdy[time_index, *] = median(bi_grads.dvdy, dimension=1)
+			poly_grads = sdi_all_stations_wind_fields_sample_gradients(polyFits, altitude, [50,50])
+			p_dudx[time_index, *] = median(poly_grads.dudx, dimension=1)
+			p_dudy[time_index, *] = median(poly_grads.dudy, dimension=1)
+			p_dvdx[time_index, *] = median(poly_grads.dvdx, dimension=1)
+			p_dvdy[time_index, *] = median(poly_grads.dvdy, dimension=1)
 		endif
 
 
@@ -1142,16 +1157,12 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	if arg_present(gradients) then begin
 		map_opts.output_name = '\Gradients\All_Stations_Gradients'
 		gradients = {ut:new_time_axis, $
-					 m_dudx:m_dudx, $
-					 m_dudy:m_dudy, $
-					 m_dvdx:m_dvdx, $
-					 m_dvdy:m_dvdy, $
-					 b_dudx:b_dudx, $
-					 b_dudy:b_dudy, $
-					 b_dvdx:b_dvdx, $
-					 b_dvdy:b_dvdy, $
+					 m_dudx:m_dudx, m_dudy:m_dudy, m_dvdx:m_dvdx, m_dvdy:m_dvdy, $
+					 b_dudx:b_dudx, b_dudy:b_dudy, b_dvdx:b_dvdx, b_dvdy:b_dvdy, $
+					 p_dudx:p_dudx, p_dudy:p_dudy, p_dvdx:p_dvdx, p_dvdy:p_dvdy, $
 					 mono_lat:mono_grads.lat, mono_lon:mono_grads.lon, $
-					 bi_lat:bi_grads.lat, bi_lon:bi_grads.lon}
+					 bi_lat:bi_grads.lat, bi_lon:bi_grads.lon, $
+					 poly_lat:poly_grads.lat, poly_lon:poly_grads.lon}
 		sdi_all_stations_wind_fields_plotgrads, gradients, map_opts
 	endif
 

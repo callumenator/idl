@@ -42,6 +42,11 @@ pro sdi_tag_event, event
 				global.state.tag_type = tag_type
 			end
 
+			'operator_edit': begin
+				widget_control, get_value = operator, event.id
+				global.state.operator = operator
+			end
+
 			'file_list': begin
 				global.state.current_list_index = event.index
 				sdi_tag_load_file
@@ -49,6 +54,11 @@ pro sdi_tag_event, event
 
 			'tag_list': begin
 				global.state.tag_list_selected = event.index
+				sdi_tag_update_tag_edit
+			end
+
+			'tag_edit': begin
+				sdi_tag_refresh_tag
 			end
 
 			'delete_tag': begin
@@ -136,7 +146,7 @@ pro sdi_tag_edit, type, x, y
 
 		'click': begin ;\\ create new or edit existing
 
-			;\\ If we clicked inside a current tag, draw the offset associated with it and select it in the list
+			;\\ If we clicked inside a current tag, select it in the tag list
 			if (size(*global.tags, /type) ne 0) then begin
 
 				for i = 0, n_elements(*global.tags) - 1 do begin
@@ -146,7 +156,7 @@ pro sdi_tag_edit, type, x, y
 
 						widget_control, set_list_select = i, global.gui.tag_list
 						global.state.tag_list_selected = i
-
+						sdi_tag_update_tag_edit
 						tag = (*global.tags)[i]
 					endif
 
@@ -161,6 +171,7 @@ pro sdi_tag_edit, type, x, y
 
 			*new_tag.metadata = *global.data.meta
 			new_tag.type = global.state.tag_type
+			new_tag.operator = global.state.operator
 			new_tag.site_code = (*global.data.meta).site_code
 			new_tag.year = global.data.year
 			new_tag.dayno = global.data.dayno
@@ -235,7 +246,7 @@ pro sdi_tag_edit, type, x, y
 			sdi_tag_plot_winds
 
 			plots, /device, [x,x], [0,1000], line=1
-			xyouts, .05, .05, string(res[0], f='(f0.2)'), /normal
+			xyouts, .05, .05, 'Time: ' + string(res[0], f='(f0.2)') + ' UT', /normal
 
 		end
 
@@ -247,7 +258,7 @@ pro sdi_tag_edit, type, x, y
 				tv, *global.gui.draw_cache, /true
 				device, decomposed = 0
 				plots, /device, [x,x], [0,1000], line=1
-				xyouts, .05, .05, string(res[0], f='(f0.2)'), /normal
+				xyouts, .05, .05, 'Time: ' + string(res[0], f='(f0.2)') + ' UT', /normal
 			endif else begin
 				sdi_tag_plot_winds
 			endelse
@@ -262,12 +273,10 @@ end
 
 ;\\ Convert js to ut
 function sdi_tag_js2ut, js
-
 	js2ymds, double(js), y, m, d, s
 	xvals = (s/3600.)
 	xvals += (d-d[0])*24.
 	return, xvals
-
 end
 
 
@@ -321,7 +330,6 @@ pro sdi_tag_update_taglist
 
 	common SDITag_Common, global
 
-
 	if (size(*global.tags, /type) eq 0) then begin
 		widget_control, set_value = [''], global.gui.tag_list
 	endif else begin
@@ -359,6 +367,29 @@ pro sdi_tag_delete_tag, index
 	tags = [ tags[0:index-1], tags[index+1:*]]
 	*global.tags = tags
 	sdi_tag_update_taglist
+end
+
+
+;\\ Update the tag edit box with current tag info
+pro sdi_tag_update_tag_edit
+
+	common SDITag_Common, global
+
+	tags = *global.tags
+	ctag = tags[global.state.tag_list_selected]
+	widget_control, set_value = ctag, global.gui.tag_edit
+end
+
+
+;\\ Called when a current tag is edited
+pro sdi_tag_refresh_tag
+
+	common SDITag_Common, global
+
+	widget_control, get_value = ctag, global.gui.tag_edit
+	(*global.tags)[global.state.tag_list_selected] = ctag
+	sdi_tag_update_taglist
+	sdi_tag_plot_winds
 end
 
 
@@ -515,7 +546,8 @@ pro sdi_tag_plot_winds
 	zonal = *global.data.med_zonal
 	merid = *global.data.med_merid
 
-	yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
+	;yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
+	yrange = [-200, 200]
 	trange = [min(time), max(time)]
 
 	bounds = sdi_tag_split_page(2, 1, bounds=[.1, .1, .98, .98])
@@ -536,16 +568,18 @@ pro sdi_tag_plot_winds
 			polyfill, [left, left, right, right], [bottom,top,top,bottom], /normal, color = 100
 
 		endfor
-
 	endif
 
-	plot, time, time*0, /nodata, xstyle=5, pos = bounds[0,0,*], yrange=yrange, /ystyle, ytitle = 'Zonal', /noerase
+	title = dt_tm_fromjs(wind[0].start_time[0], format='d$ N$ Y$')
+
+	plot, time, time*0, /nodata, xstyle=5, pos = bounds[0,0,*], yrange=yrange, $
+		  /ystyle, ytitle = 'Zonal', /noerase, title = title
 	oplot, trange, [0,0], line=1
-	oplot, time, zonal, psym=-1, sym=.5
+	oplot, time, zonal, psym=-1, sym=.5, noclip=1
 
 	plot, time, time*0, /nodata, xstyle=9, pos = bounds[1,0,*], /noerase, yrange=yrange, /ystyle, ytitle = 'Merid'
 	oplot, trange, [0,0], line=1
-	oplot, time, merid, psym=-1, sym=.5
+	oplot, time, merid, psym=-1, sym=.5, noclip=1
 
 	*global.gui.draw_cache = tvrd(/true)
 
@@ -617,7 +651,7 @@ pro sdi_tag_restore_daydata
 
 	if (size(tags, /type) eq 0) then return
 
-	if ptr_valid(global.data.meta) then begin
+	if size(*global.data.meta, /type) ne 0 then begin
 		site = (*global.data.meta).site_code
 
 		pts = where(tags.site_code eq site and $
@@ -632,7 +666,7 @@ pro sdi_tag_restore_daydata
 	endif
 
 	global.state.current_dir = info.current_dir
-	sdi_tag_scan_dir
+
 end
 
 
@@ -674,6 +708,23 @@ pro sdi_tag, directory = directory
 
 	common SDITag_Common, global
 
+	tag_template = {type:'', $
+					filename:'', $
+					site_code:'', $
+				    year:0, $
+				    dayno:0, $
+				    lambda:0.0, $
+				    ut_start:0D, $
+				    ut_end:0D, $
+				    js_start:0D, $
+				    js_end:0D, $
+					metadata:ptr_new(), $
+				    positions:ptr_new(), $
+				    js_created:0D, $
+				    operator:'', $
+				    comments:'', $
+				    valid:0 }
+
 	if not keyword_set(directory) then directory = 'c:\'
 
 	whoami, home_dir, file
@@ -693,10 +744,16 @@ pro sdi_tag, directory = directory
 
 	filename_label = widget_label(base, value = 'Current Filename:', font=font, xs = .5*width, /align_left)
 
-	tagtype_base = widget_base(base, col=2)
+	tag_op_base = widget_base(base, col=2)
+	tagtype_base = widget_base(tag_op_base, col=2)
 	tagtype_label = widget_label(tagtype_base, value = 'Current Tag Type:', font=font, xs = .1*width, /align_left)
 	tagtype_edit = widget_text(tagtype_base, value = default_tag, font=font, xs = 30, $
 							   /align_left, /edit, /all, uval = {tag:'tagtype_edit'})
+
+	operator_base = widget_base(tag_op_base, col=2)
+	operator_label = widget_label(operator_base, value = 'Operator:', font=font, xs = .06*width, /align_left)
+	operator_edit = widget_text(operator_base, value = '', font=font, xs = 30, $
+							   /align_left, /edit, /all, uval = {tag:'operator_edit'})
 
 	base0 = widget_base(base, col=3)
 
@@ -706,11 +763,14 @@ pro sdi_tag, directory = directory
 	draw = widget_draw(base0, xs = .5*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
 					   uval = {tag:'draw'})
 
-	tag_base = widget_base(base0, col=1)
-	tag_list = widget_list(tag_base, font=font, scr_xsize = .15*width, scr_ysize = height - 35, $
-					   uval = {tag:'tag_list'})
-	del_button = widget_button(tag_base, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
-
+	tag_base_0 = widget_base(base0, col=1)
+	tag_base_1 = widget_base(tag_base_0, col=2)
+	tag_list = widget_list(tag_base_1, font=font, scr_xsize = .15*width, scr_ysize = height - 35, $
+					  	   uval = {tag:'tag_list'})
+	tag_edit = widget_table(tag_base_1, font=font, scr_xsize = .18*width, scr_ysize = height - 35, $
+					  	    uval = {tag:'tag_edit'}, /column_major, /no_column_headers, value=tag_template, $
+					  	    row_labels=tag_names(tag_template), /editable, /all_events)
+	del_button = widget_button(tag_base_0, value = 'Delete Tag', font=font, uval = {tag:'delete_tag'})
 
 	widget_control, base, /realize
 	widget_control, get_value = window_id, draw
@@ -722,6 +782,7 @@ pro sdi_tag, directory = directory
 		   draw_cache:ptr_new(/alloc), $
 		   list:list, $
 		   tag_list:tag_list, $
+		   tag_edit:tag_edit, $
 		   filename_label:filename_label, $
 		   tagtype_label:tagtype_label, $
 		   base_geom:widget_info(base, /geom), $
@@ -734,7 +795,8 @@ pro sdi_tag, directory = directory
 			 tag_list_selected:-1, $
 			 save_file:save_file, $
 			 filename_filter:'*SKY*6300*', $
-			 tag_type:default_tag }
+			 tag_type:default_tag, $
+			 operator:''}
 
 	data = {valid:0, $
 			year:0, $
@@ -745,21 +807,6 @@ pro sdi_tag, directory = directory
 			time:ptr_new(/alloc), $
 			med_zonal:ptr_new(/alloc), $
 			med_merid:ptr_new(/alloc) }
-
-	tag_template = {type:'', $
-					filename:'', $
-					site_code:'', $
-				    year:0, $
-				    dayno:0, $
-				    lambda:0.0, $
-				    ut_start:0D, $
-				    ut_end:0D, $
-				    js_start:0D, $
-				    js_end:0D, $
-					metadata:ptr_new(), $
-				    positions:ptr_new(), $
-				    js_created:0D, $
-				    valid:0 }
 
 	global = {gui:gui, $
 			  state:state, $
