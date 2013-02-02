@@ -220,7 +220,6 @@ pro sdi_tag_edit, type, x, y
 			(*global.tags)[global.current_tag].js_created = dt_tm_tojs(systime(/ut))
 
 
-
 			;\\ Store the position info for the time range
 			tag = (*global.tags)[global.current_tag]
 			pts = where(*global.data.time ge tag.ut_start and $
@@ -510,23 +509,17 @@ function sdi_tag_split_page, nrows, ncolumns, $
 
 	for r = 0, nrows - 1 do begin
 		for c = 0, ncolumns - 1 do begin
-
 			xc = bounds[0] + total(fcolWidth[0:c]) - fcolWidth[c]/2.
 			yc = bounds[3] - total(frowWidth[0:r]) + frowWidth[r]/2.
-			;yc = bounds[3] - (r+1)*(frowWidth) + frowWidth/2.
-
 			x0 = xc - colWidth[c]/2.
 			x1 = xc + colWidth[c]/2.
 			y0 = yc - rowWidth[r]/2.
 			y1 = yc + rowWidth[r]/2.
-
 			ob[r,c,*] = [x0,y0,x1,y1]
-
 		endfor
 	endfor
 
 	return, ob
-
 end
 
 
@@ -582,7 +575,6 @@ pro sdi_tag_plot_winds
 	oplot, time, merid, psym=-1, sym=.5, noclip=1
 
 	*global.gui.draw_cache = tvrd(/true)
-
 end
 
 
@@ -666,7 +658,6 @@ pro sdi_tag_restore_daydata
 	endif
 
 	global.state.current_dir = info.current_dir
-
 end
 
 
@@ -709,6 +700,7 @@ pro sdi_tag, directory = directory
 	common SDITag_Common, global
 
 	tag_template = {type:'', $
+					boundary:0, $
 					filename:'', $
 					site_code:'', $
 				    year:0, $
@@ -723,6 +715,7 @@ pro sdi_tag, directory = directory
 				    js_created:0D, $
 				    operator:'', $
 				    comments:'', $
+				    quality:0, $
 				    valid:0 }
 
 	if not keyword_set(directory) then directory = 'c:\'
@@ -820,5 +813,4 @@ pro sdi_tag, directory = directory
 	sdi_tag_load_file
 
 	xmanager, 'sdi_tag', base, event = 'sdi_tag_event', cleanup = 'sdi_tag_cleanup', /no_block
-
 end

@@ -173,6 +173,7 @@ pro sdi_tag_edit, type, x, y
 			new_tag.type = global.state.tag_type
 			new_tag.operator = global.state.operator
 			new_tag.site_code = (*global.data.meta).site_code
+			new_tag.quality = -1
 			new_tag.year = global.data.year
 			new_tag.dayno = global.data.dayno
 			new_tag.filename = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
@@ -700,6 +701,7 @@ pro sdi_tag, directory = directory
 	common SDITag_Common, global
 
 	tag_template = {type:'', $
+					boundary:0, $
 					filename:'', $
 					site_code:'', $
 				    year:0, $
@@ -714,6 +716,7 @@ pro sdi_tag, directory = directory
 				    js_created:0D, $
 				    operator:'', $
 				    comments:'', $
+				    quality:0, $
 				    valid:0 }
 
 	if not keyword_set(directory) then directory = 'c:\'
