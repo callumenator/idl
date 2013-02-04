@@ -111,7 +111,6 @@ pro sdi_monitor_analysis, site=site, $ ;\\ optional, defaults to all sites
 		if (n_sky gt 0) then begin
 			sdi_analysis, '', skylist = files_arr[sky_files], move_to = move_to_dir, files_processed = processed
 		endif
-		;sdi_analysis, '', skylist = files_arr, files_processed = processed
 
 		openw, handle, 'c:\ftp\instrument_incomming\_processed.txt', /get, /append
 		for ff = 0, n_elements(processed) - 1 do begin

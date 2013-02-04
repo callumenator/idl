@@ -128,7 +128,6 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
     		var.sigma_velocity *= meta.channels_to_velocity
     		posarr = var.velocity
 
-
 			sdi3k_timesmooth_fits,  posarr, 1.1, meta
 		    pos2arr = posarr
 

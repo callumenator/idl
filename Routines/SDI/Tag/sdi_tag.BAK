@@ -47,6 +47,10 @@ pro sdi_tag_event, event
 				global.state.operator = operator
 			end
 
+			'show_skymaps': begin
+				sdi_tag_show_skymaps
+			end
+
 			'file_list': begin
 				global.state.current_list_index = event.index
 				sdi_tag_load_file
@@ -190,6 +194,7 @@ pro sdi_tag_edit, type, x, y
 				*global.tags = [*global.tags, new_tag]
 			endelse
 
+			global.have_tags = 1
 			global.current_tag = n_elements(*global.tags) - 1
 
 		end
@@ -355,6 +360,8 @@ pro sdi_tag_delete_tag, index
 	if index eq 0 then begin
 		if (n_elements(tags) eq 1) then begin
 			global.have_tags = 0
+			ptr_free, global.tags
+			global.tags = ptr_new(/alloc)
 		endif else begin
 			tags = tags[1:*]
 			*global.tags = tags
@@ -379,6 +386,7 @@ pro sdi_tag_update_tag_edit
 
 	common SDITag_Common, global
 
+	if global.have_tags eq 0 then return
 	tags = *global.tags
 	ctag = tags[global.state.tag_list_selected]
 	widget_control, set_value = ctag, global.gui.tag_edit
@@ -390,6 +398,7 @@ pro sdi_tag_refresh_tag
 
 	common SDITag_Common, global
 
+	if global.have_tags eq 0 then return
 	widget_control, get_value = ctag, global.gui.tag_edit
 	(*global.tags)[global.state.tag_list_selected] = ctag
 	sdi_tag_update_taglist
@@ -493,6 +502,43 @@ SDI_TAG_POST_LOAD:
 end
 
 
+;\\ Pop up a window showing the RGB skymaps for the current day
+pro sdi_tag_show_skymaps
+
+	common SDITag_Common, global
+
+	;\\ First save current state
+	if size(*global.data.meta, /type) eq 0 then return
+
+	fname = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
+	if file_test(fname) eq 0 or file_test(fname, /directory) eq 1 then return
+
+	;\\ Create the name of the corresponding image, and look for that first
+	meta = *global.data.meta
+
+	pic_dir = global.state.pic_directory + '\' + $
+			  dt_tm_fromjs(meta.start_time, format='Y$_'+meta.site_code+'_'+$
+			  			   string(meta.wavelength_nm*10, f='(i04)')) + '\Temperature_Brightness_RGB_Skymap\'
+	pic_name = dt_tm_fromjs(meta.start_time, format='Temperature_Brightness_RGB_Skymap_'+meta.site_code+'_Y$_DOYdoy$_'+$
+							string(meta.wavelength_nm*10, f='(i04)')) + '.png'
+
+	if file_test(pic_dir + pic_name) then begin
+		image = read_png(pic_dir+pic_name)
+		dims = size(image, /dimensions)
+		dmax = dims[1] > dims[2]
+		scale = 800. / dmax
+		base = widget_base(col=1)
+		draw = widget_draw(base, xs = dims[1], ys=dims[2], scr_xs=800, scr_ys=800, /scroll)
+		widget_control, /realize, base
+		widget_control, get_value = id, draw
+		wset, id
+		;tv, congrid(image, 3, dims[1]*scale, dims[2]*scale, /interp), /true
+		tv, image, /true
+		spawn, pic_dir + pic_name
+	endif
+end
+
+
 function sdi_tag_split_page, nrows, ncolumns, $
 					 bounds = bounds, $
 					 row_gap = row_gap, $
@@ -554,7 +600,7 @@ pro sdi_tag_plot_winds
 	if ptr_valid(global.state.current_pic) then begin
 		wset, global.gui.window_id
 		geom = widget_info(global.gui.draw, /geom)
-		tv, congrid(*global.state.current_pic, 3, geom.xsize, geom.ysize), /true
+		tv, congrid(*global.state.current_pic, 3, geom.xsize, geom.ysize, /interp), /true
 		return
 	endif
 	if global.data.valid eq 0 then return
@@ -715,8 +761,8 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 		restore, save_file
 		pts = where(tags.type eq tag_type and $
 					tags.site_code eq site_code and $
-					tags.js_end lt js and $
-					tags.lambda eq lambda, nmatch)
+					tags.lambda eq lambda and $
+					tags.js_end lt js, nmatch)
 		if (nmatch gt 0) then return, tags[pts] else return, 0
 	endelse
 
@@ -800,8 +846,11 @@ pro sdi_tag, directory = directory
 	list = widget_list(base0, font='Ariel*14', scr_xsize = .25*width, scr_ysize = height, $
 					   uval = {tag:'file_list'})
 
-	draw = widget_draw(base0, xs = .5*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
+	draw_base = widget_base(base0, col=1)
+	draw = widget_draw(draw_base, xs = .5*width, ys = height, keyboard_events = 2, /button_events, /motion_events, $
 					   uval = {tag:'draw'})
+	skymap_button_base = widget_base(draw_base, col=1)
+	skymap_button = widget_button(skymap_button_base, xs = 250, font=font, value='Show Skymap', uval={tag:'show_skymaps'})
 
 	tag_base_0 = widget_base(base0, col=1)
 	tag_base_1 = widget_base(tag_base_0, col=2)
@@ -819,6 +868,7 @@ pro sdi_tag, directory = directory
 	gui = {base:base, $
 		   draw:draw, $
 		   window_id:window_id, $
+		   skymap_button:skymap_button, $
 		   draw_cache:ptr_new(/alloc), $
 		   list:list, $
 		   tag_list:tag_list, $
