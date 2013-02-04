@@ -241,8 +241,6 @@ pro meta_loader, out, $
 
 		ut = js2ut(0.5*(winds.start_time + winds.end_time))
 
-
-
 		;\\ Apply flat field
 		if keyword_set(auto_flat) then begin
 			sdi3k_auto_flat, meta, wind_offset, /use_database
@@ -256,9 +254,28 @@ pro meta_loader, out, $
 			this_drift_type = drift_type
 		endelse
 
+		;---Replace any spectral fits with really bad fits with interpolated data:
+	    chilim = 1.8
+	    speks_dc = speks
+	    if abs(meta.wavelength_nm - 557.7) lt 1. then chilim = 5.
+	    posarr = speks_dc.velocity
+	    bads  = where(speks_dc.chi_squared ge chilim or  speks_dc.signal2noise le 200. or abs(speks_dc.velocity) ge 1200., nn)
+	    if nn gt 0 then begin
+	       setweight = 0.*posarr + 1.
+	       setweight(bads) = 0.
+	       smarr = posarr
+	       sdi3k_spacesmooth_fits, smarr, 0.10, meta, zone_centers, setweight=setweight
+	       sdi3k_timesmooth_fits,  smarr, 2.50, meta, setweight=setweight
+	       posarr(bads) = smarr(bads)
+	       smdif = posarr - smarr
+	       dummy = moment(smdif, sdev=stdv)
+	       bads  = where(abs(smdif) gt 4.*stdv, nnbb)
+		   if nnbb gt 0 then posarr[bads] = smarr[bads]
+	       speks_dc.velocity = posarr
+	    endif
+
 		drift = 0
 		if this_drift_type eq 'data' then begin
-			speks_dc = speks
 			sdi3k_drift_correct, speks_dc, meta, /force, /data_based
 			vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			drift_curve = (speks.velocity - speks_dc.velocity)*meta.channels_to_velocity
@@ -270,12 +287,10 @@ pro meta_loader, out, $
 			match = strmatch(las_files, '*' + meta.site_code + '*', /fold)
 			yes = where(match eq 1, nyes)
 			if nyes eq 1 then begin
-				speks_dc = speks
 				insfile = (las_files[yes[0]])[0]
 				sdi3k_drift_correct, speks_dc, meta, /force, insfile=insfile
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			endif else begin
-				speks_dc = speks
 				sdi3k_drift_correct, speks_dc, meta, /force, /data_based
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 				print, 'No Laser Found For ' + meta.site_code + ' - data-based drift correction applied...'
@@ -289,13 +304,11 @@ pro meta_loader, out, $
 			match = strmatch(las_files, '*' + meta.site_code + '*', /fold)
 			yes = where(match eq 1, nyes)
 			if nyes eq 1 then begin
-				speks_dc = speks
 				insfile = (las_files[yes[0]])[0]
 				sdi3k_drift_correct, speks_dc, meta, /force, insfile=insfile
 				sdi3k_drift_correct, speks_dc, meta, /force, /data_based
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			endif else begin
-				speks_dc = speks
 				sdi3k_drift_correct, speks_dc, meta, /force, /data_based
 				vz = speks_dc.velocity[0]*meta.channels_to_velocity
 				print, 'No Laser Found For ' + meta.site_code + ' - data-based drift correction applied...'
@@ -306,7 +319,6 @@ pro meta_loader, out, $
 		endif
 
 		if this_drift_type eq 'none' or drift eq 0 then begin
-			speks_dc = speks
 			vz = speks_dc.velocity[0]*meta.channels_to_velocity
 			vz = vz - median(vz)
 			drift_curve = (speks.velocity - speks_dc.velocity)*meta.channels_to_velocity
