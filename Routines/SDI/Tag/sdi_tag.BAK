@@ -77,7 +77,9 @@ pro sdi_tag_event, event
 					0: begin ;\\ button pressed
 
 						if event.press eq 1 then begin	;\\ left button press
-
+							if global.state.preview_mode eq 1 then begin
+								sdi_tag_load_file, /no_preview
+							endif
 						endif
 						if event.press eq 4 then begin ;\\ right button press
 							global.state.rbutton_down = 1
@@ -139,6 +141,7 @@ pro sdi_tag_edit, type, x, y
 	common SDITag_Common, global
 
 	if global.data.valid eq 0 then return
+	if global.state.preview_mode eq 1 then return
 
 	res = convert_coord(x, y, /device, /to_data)
 
@@ -147,7 +150,7 @@ pro sdi_tag_edit, type, x, y
 		'click': begin ;\\ create new or edit existing
 
 			;\\ If we clicked inside a current tag, select it in the tag list
-			if (size(*global.tags, /type) ne 0) then begin
+			if global.have_tags eq 1 then begin
 
 				for i = 0, n_elements(*global.tags) - 1 do begin
 
@@ -181,7 +184,7 @@ pro sdi_tag_edit, type, x, y
 			new_tag.ut_start = res[0]
 			new_tag.ut_end = res[0]
 
-			if (size(*global.tags, /type) eq 0) then begin
+			if global.have_tags eq 0 then begin
 				*global.tags = [new_tag]
 			endif else begin
 				*global.tags = [*global.tags, new_tag]
@@ -235,6 +238,7 @@ pro sdi_tag_edit, type, x, y
 				(*global.tags)[global.current_tag].js_end = js_mid[max(pts)]
 			endif
 
+			global.have_tags = 1
 			sdi_tag_plot_winds
 
 		end
@@ -287,7 +291,8 @@ pro sdi_tag_merge_overlaps, newIndex
 
 	MERGE_START:
 
-	if (size(*global.tags, /type) eq 0) then return
+	newIndex = global.current_tag
+	if global.have_tags eq 0 then return
 	tags = *global.tags
 
 	if (size(look_for, /type) eq 0) then begin
@@ -330,7 +335,7 @@ pro sdi_tag_update_taglist
 
 	common SDITag_Common, global
 
-	if (size(*global.tags, /type) eq 0) then begin
+	if global.have_tags eq 0 then begin
 		widget_control, set_value = [''], global.gui.tag_list
 	endif else begin
 		tags = *global.tags
@@ -349,8 +354,7 @@ pro sdi_tag_delete_tag, index
 	tags = *global.tags
 	if index eq 0 then begin
 		if (n_elements(tags) eq 1) then begin
-			ptr_free, global.tags
-			global.tags = ptr_new(/alloc)
+			global.have_tags = 0
 		endif else begin
 			tags = tags[1:*]
 			*global.tags = tags
@@ -429,39 +433,58 @@ end
 
 
 ;\\ Load a new file
-pro sdi_tag_load_file
+pro sdi_tag_load_file, no_preview=no_preview ;\\ set to force using real winds, not image preview
 
 	common SDITag_Common, global
+	heap_gc, /verbose
+
+	;\\ First save current state
+	if (global.data.valid eq 1) then sdi_tag_save_daydata
 
 	fname = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
-	if file_test(fname) eq 0 then return
+	if file_test(fname) eq 0 or file_test(fname, /directory) eq 1 then return
 
-	sdi3k_read_netcdf_data, fname, meta = meta, winds = wind, spek=spek
+	;\\ Create the name of the corresponding image, and look for that first
+	sdi3k_read_netcdf_data, fname, meta = meta
+	if not keyword_set(no_preview) then begin
+		pic_dir = global.state.pic_directory + '\' + $
+				  dt_tm_fromjs(meta.start_time, format='Y$_'+meta.site_code+'_'+$
+				  			   string(meta.wavelength_nm*10, f='(i04)')) + '\Wind_Summary\'
+		pic_name = dt_tm_fromjs(meta.start_time, format='Wind_Summary_'+meta.site_code+'_Y$_DOYdoy$_'+$
+								string(meta.wavelength_nm*10, f='(i04)')) + '.png'
+
+		if file_test(pic_dir + pic_name) then begin
+			global.state.preview_mode = 1
+			global.state.current_pic = ptr_new( read_png(pic_dir+pic_name) )
+			goto, SDI_TAG_POST_LOAD
+		endif
+	endif
+
+	ptr_free, global.state.current_pic
+	global.state.preview_mode = 0
+	sdi3k_read_netcdf_data, fname, winds=wind, spek=spek
 
 	if (size(wind, /type) ne 8) then return
 	if (size(meta, /type) ne 8) then return
 	if (size(spek, /type) ne 8) then return
 
-	;\\ First save current state
-	if (global.data.valid eq 1) then sdi_tag_save_daydata
-
 	widget_control, set_list_select = global.state.current_list_index, global.gui.list
 
-	*global.data.meta = meta
 	*global.data.wind = wind
 	*global.data.spek = spek
 	*global.data.time = sdi_tag_js2ut((wind.start_time[0] + wind.end_time[0])/2.)
 	*global.data.med_zonal = median(wind.zonal_wind, dimension=1)
 	*global.data.med_merid = median(wind.meridional_wind, dimension=1)
 
-	js2ymds, (*global.data.meta).start_time[0], y, m, d, s
-	global.data.year = y
-	global.data.dayno = ymd2dn(y, m, d)
-
 	global.data.valid = 1
 
-	ptr_free, global.tags
-	global.tags = ptr_new(/alloc)
+SDI_TAG_POST_LOAD:
+	js2ymds, meta.start_time[0], y, m, d, s
+	global.data.year = y
+	global.data.dayno = ymd2dn(y, m, d)
+	*global.data.meta = meta
+
+	global.have_tags = 0
 	sdi_tag_restore_daydata
 
 	widget_control, set_value = 'Current Filename: ' + fname, global.gui.filename_label
@@ -485,7 +508,6 @@ function sdi_tag_split_page, nrows, ncolumns, $
 
 	fwidth = bounds[2] - bounds[0]
 	fheight = bounds[3] - bounds[1]
-
 
 	if keyword_set(col_percents) then begin
 		if n_elements(col_percents) eq ncolumns then begin
@@ -529,6 +551,12 @@ pro sdi_tag_plot_winds
 
 	common SDITag_Common, global
 
+	if ptr_valid(global.state.current_pic) then begin
+		wset, global.gui.window_id
+		geom = widget_info(global.gui.draw, /geom)
+		tv, congrid(*global.state.current_pic, 3, geom.xsize, geom.ysize), /true
+		return
+	endif
 	if global.data.valid eq 0 then return
 
 	wset, global.gui.window_id
@@ -550,7 +578,7 @@ pro sdi_tag_plot_winds
 
 	plot, time, time, pos = bounds[0,0,*], /nodata, xstyle=5, ystyle=5
 
-	if (size(*global.tags, /type) ne 0) then begin
+	if global.have_tags eq 1 then begin
 
 		for i = 0, n_elements(*global.tags) - 1 do begin
 
@@ -595,7 +623,7 @@ pro sdi_tag_save_daydata
 
 	if (size(tags, /type) eq 0) then begin
 
-		if (size(*global.tags, /type) ne 0) then begin
+		if global.have_tags eq 1 then begin
 			tags = *global.tags
 		endif else begin
 			if (file_test(global.state.save_file) eq 1) then file_delete, global.state.save_file
@@ -609,7 +637,7 @@ pro sdi_tag_save_daydata
 					tags.dayno eq global.data.dayno and $
 					tags.lambda eq (*global.data.meta).wavelength_nm, nmatch, complement = compts, ncomp = ncompts)
 
-		if (size(*global.tags, /type) ne 0) then begin
+		if global.have_tags eq 1 then begin
 			if (ncompts gt 0) then begin
 				tags = [tags[compts], *global.tags]
 			endif else begin
@@ -652,6 +680,8 @@ pro sdi_tag_restore_daydata
 					tags.dayno eq global.data.dayno and $
 					tags.lambda eq (*global.data.meta).wavelength_nm, nmatch)
 
+		global.have_tags = nmatch ne 0
+		print, 'Have tags: ' + string(global.have_tags, f='(i0)')
 		if nmatch eq 0 then return
 		*global.tags = tags[pts]
 	endif
@@ -739,6 +769,7 @@ pro sdi_tag, directory = directory
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 	default_tag = 'cloud'
+ 	default_pic_dir = 'c:\users\sdi\sdiplots\' ;\\ default directory for finding pictures
 
 	width = 1200.
 	height = 500.
@@ -805,7 +836,10 @@ pro sdi_tag, directory = directory
 			 save_file:save_file, $
 			 filename_filter:'*SKY*6300*', $
 			 tag_type:default_tag, $
-			 operator:''}
+			 operator:'', $
+			 pic_directory:default_pic_dir, $
+			 current_pic:ptr_new(), $
+			 preview_mode:0}
 
 	data = {valid:0, $
 			year:0, $
@@ -822,7 +856,10 @@ pro sdi_tag, directory = directory
 			  data:data, $
 			  tag_template:tag_template, $
 			  tags:ptr_new(/alloc), $
+			  have_tags:0, $
 			  current_tag:0}
+
+	global.tags = ptr_new(/alloc)
 
 	sdi_tag_restore_daydata
 	sdi_tag_scan_dir
