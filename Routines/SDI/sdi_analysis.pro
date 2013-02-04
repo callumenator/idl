@@ -24,13 +24,12 @@ pro sdi_analysis, directory, $
 			las_list = file_search(directory + '*CAL*', count = nlas)
 			sky_list = file_search(directory + '*SKY*', count = nsky)
 		endif else begin
-			las_list = file_search(directory + filter + '*CAL*', count = nlas)
+			las_list = file_search(directory +  '*CAL*', count = nlas)
 			sky_list = file_search(directory + filter + '*SKY*', count = nsky)
 		endelse
 	endelse
 
 	;\\ Should sort by file age, to do newest ones first
-
 
 	;\\ Format the laser names
 	las_names = strarr(nlas)
@@ -96,6 +95,9 @@ pro sdi_analysis, directory, $
 			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, ipc_info = ipc_info
 			append, sky_list[k], files_done
 
+			setenv, 'SDI_GREEN_ZERO_VELOCITY_FILE=AUTO'
+    		setenv, 'SDI_RED_ZERO_VELOCITY_FILE=AUTO'
+    		setenv, 'SDI_OH_ZERO_VELOCITY_FILE=AUTO'
 			sdi3k_batch_windfitz, sky_list[k]
 
 			if not keyword_set(no_plots) then begin

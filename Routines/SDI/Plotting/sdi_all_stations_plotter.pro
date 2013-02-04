@@ -39,7 +39,7 @@ pro sdi_all_stations_plotter
 			'2013009', '2013014', '2013017', '2013018', '2013019', '2013020']
 	for i = 0, n_elements(ydns) - 1 do begin
 		;sdi_all_stations_wind_dial, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', plot_type = 'eps'
-		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads
+		sdi_all_stations_wind_fields, ydn=ydns[i], output='c:\users\sdi\allstationsplots\', gradients=grads, /mono, /bi
 	endfor
 
 

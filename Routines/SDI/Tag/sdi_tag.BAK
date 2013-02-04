@@ -436,7 +436,7 @@ end
 pro sdi_tag_load_file, no_preview=no_preview ;\\ set to force using real winds, not image preview
 
 	common SDITag_Common, global
-	heap_gc, /verbose
+	heap_gc
 
 	;\\ First save current state
 	if (global.data.valid eq 1) then sdi_tag_save_daydata

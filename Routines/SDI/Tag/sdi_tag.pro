@@ -379,6 +379,7 @@ pro sdi_tag_update_tag_edit
 
 	common SDITag_Common, global
 
+	if global.have_tags eq 0 then return
 	tags = *global.tags
 	ctag = tags[global.state.tag_list_selected]
 	widget_control, set_value = ctag, global.gui.tag_edit
@@ -390,6 +391,7 @@ pro sdi_tag_refresh_tag
 
 	common SDITag_Common, global
 
+	if global.have_tags eq 0 then return
 	widget_control, get_value = ctag, global.gui.tag_edit
 	(*global.tags)[global.state.tag_list_selected] = ctag
 	sdi_tag_update_taglist
