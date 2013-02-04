@@ -652,9 +652,7 @@ pro sdi_tag_restore_daydata
 					tags.dayno eq global.data.dayno and $
 					tags.lambda eq (*global.data.meta).wavelength_nm, nmatch)
 
-
 		if nmatch eq 0 then return
-
 		*global.tags = tags[pts]
 	endif
 
@@ -695,6 +693,23 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 end
 
 
+;\\ Return the tag database, can be called from external code
+function sdi_tag_get_database
+
+	whoami, home_dir, file
+	save_file = home_dir + 'tag.idlsave'
+
+	if file_test(save_file) eq 0 then begin
+		print, 'NO DATABASE AVAILABLE!'
+		return, 0
+	endif else begin
+		restore, save_file
+		return, tags
+	endelse
+end
+
+
+
 ;\\ Main entry point
 pro sdi_tag, directory = directory
 
@@ -724,6 +739,7 @@ pro sdi_tag, directory = directory
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 	default_tag = 'cloud'
+ 	default_pic_dir = 'c:\users\sdi\sdiplots\' ;\\ default directory for finding pictures
 
 	width = 1200.
 	height = 500.

@@ -173,6 +173,7 @@ pro sdi_tag_edit, type, x, y
 			new_tag.type = global.state.tag_type
 			new_tag.operator = global.state.operator
 			new_tag.site_code = (*global.data.meta).site_code
+			new_tag.quality = -1
 			new_tag.year = global.data.year
 			new_tag.dayno = global.data.dayno
 			new_tag.filename = global.state.current_dir + '\' + (*global.state.file_list)[global.state.current_list_index]
@@ -651,9 +652,7 @@ pro sdi_tag_restore_daydata
 					tags.dayno eq global.data.dayno and $
 					tags.lambda eq (*global.data.meta).wavelength_nm, nmatch)
 
-
 		if nmatch eq 0 then return
-
 		*global.tags = tags[pts]
 	endif
 
@@ -692,6 +691,23 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 	endelse
 
 end
+
+
+;\\ Return the tag database, can be called from external code
+function sdi_tag_get_database
+
+	whoami, home_dir, file
+	save_file = home_dir + 'tag.idlsave'
+
+	if file_test(save_file) eq 0 then begin
+		print, 'NO DATABASE AVAILABLE!'
+		return, 0
+	endif else begin
+		restore, save_file
+		return, tags
+	endelse
+end
+
 
 
 ;\\ Main entry point
