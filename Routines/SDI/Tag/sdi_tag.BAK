@@ -532,9 +532,7 @@ pro sdi_tag_show_skymaps
 		widget_control, /realize, base
 		widget_control, get_value = id, draw
 		wset, id
-		;tv, congrid(image, 3, dims[1]*scale, dims[2]*scale, /interp), /true
 		tv, image, /true
-		spawn, pic_dir + pic_name
 	endif
 end
 
@@ -752,6 +750,7 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 
+	heap_gc
 	if not keyword_set(tag_type) then tag_type = 'cloud'
 
 	if file_test(save_file) eq 0 then begin

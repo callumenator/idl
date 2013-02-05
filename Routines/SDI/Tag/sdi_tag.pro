@@ -611,6 +611,7 @@ pro sdi_tag_plot_winds
 	time = *global.data.time
 	zonal = *global.data.med_zonal
 	merid = *global.data.med_merid
+	if n_elements(time) lt 2 then return
 
 	;yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
 	yrange = [-200, 200]
@@ -750,6 +751,7 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 
+	heap_gc
 	if not keyword_set(tag_type) then tag_type = 'cloud'
 
 	if file_test(save_file) eq 0 then begin
