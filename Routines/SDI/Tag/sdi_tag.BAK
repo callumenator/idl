@@ -37,6 +37,10 @@ pro sdi_tag_event, event
 				sdi_tag_scan_dir
 			end
 
+			'plot_tags': begin
+				sdi_tag_plot_tags
+			end
+
 			'tagtype_edit': begin
 				widget_control, get_value = tag_type, event.id
 				global.state.tag_type = tag_type
@@ -611,6 +615,7 @@ pro sdi_tag_plot_winds
 	time = *global.data.time
 	zonal = *global.data.med_zonal
 	merid = *global.data.med_merid
+	if n_elements(time) lt 2 then return
 
 	;yrange = [min([min(zonal), min(merid)]), max([max(zonal), max(merid)])]
 	yrange = [-200, 200]
@@ -734,6 +739,61 @@ pro sdi_tag_restore_daydata
 end
 
 
+;\\ Plot a time series of where tags occur
+pro sdi_tag_plot_tags
+
+	common SDITag_Common, global
+
+	if (file_test(global.state.save_file) eq 1) then begin
+		restore, global.state.save_file
+	endif else begin
+		return
+	endelse
+
+	if (size(tags, /type) eq 0) then return
+
+	sites = tags.site_code
+	usites = sites[sort(sites)]
+	usites = usites[uniq(usites)]
+	loadct, 39, /silent
+
+	;\\ Make 0ne year = 300 pix
+	pix_per_year = 300
+	js_range = [min(tags.js_start), max(tags.js_end)]
+	js2ymds, js_range, y, m, d, s
+	xpix = (y[1] - y[0])*pix_per_year
+	xpix = xpix > 800
+
+	base = widget_base(col=1)
+	draw = widget_draw(base, xs = xpix, ys=600, scr_xs=800, scr_ys=600, /scroll)
+	widget_control, /realize, base
+	widget_control, get_value = id, draw
+	wset, id
+
+	blank = replicate(' ', 20)
+	plot, js_range, [0, n_elements(usites) + 1], /nodata, /ystyle, xrange=js_range, $
+		  xtickname=blank, xtick_get=xvals, ytickname=[' ', usites, ' ']
+
+	js2ymds, xvals, xy, xm, xd, xs
+	xticks = string(xy, f='(i4)') + '!C' + $
+			 string(xm, f='(i02)') + '/' + $
+			 string(xd, f='(i02)') + '!C' + $
+			 time_str_from_decimalut(xs/3600.)
+	axis, xaxis=0, xtickname=xticks, xrange=js_range
+
+	color = indgen(n_elements(usites)) * (200./float(n_elements(usites))) + 50
+	for i = 0, n_elements(usites) - 1 do begin
+		pts = where(tags.site_code eq usites[i], npts)
+		for j = 0, npts - 1 do begin
+			plots, [tags[pts[j]].js_start, tags[pts[j]].js_end], [i+1, i+1], psym = -6, /data, color=color[i]
+		endfor
+	endfor
+
+	loadct, 0, /silent
+
+end
+
+
 ;\\ Widget close cleanup, save the database, free heap vars
 pro sdi_tag_cleanup, arg
 
@@ -825,7 +885,8 @@ pro sdi_tag, directory = directory
 	options = widget_button(menubar, value = 'Options')
 	load_dir = widget_button(options, value = 'Select Directory', uval = {tag:'select_directory'})
 	file_filter = widget_button(options, value = 'Set Filename Filter', uval = {tag:'filename_filter'})
-	tag_type = widget_button(options, value = 'Set Tag Type', uval = {tag:'set_tag_type'})
+	plot_tags = widget_button(options, value = 'Plot Tags', uval = {tag:'plot_tags'})
+
 
 	filename_label = widget_label(base, value = 'Current Filename:', font=font, xs = .5*width, /align_left)
 
