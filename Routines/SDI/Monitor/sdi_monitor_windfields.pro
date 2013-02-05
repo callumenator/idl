@@ -626,14 +626,16 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 	endfor ;\\ pass loop
 
 	;\\ Save a copy of the image
-	if systime(/sec) - lastSaveTime gt 15.*60. then begin
-		datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
-		timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
-		toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Windfields\'
-		fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
-		file_mkdir, toplevel
-		write_png, fname, tvrd(/true)
-		lastSaveTime = systime(/sec)
+	if 0 then begin ;\\ currently disabled, disk fills up
+		if systime(/sec) - lastSaveTime gt 15.*60. then begin
+			datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+			timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+			toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Windfields\'
+			fname = toplevel + 'Realtime_Windfields_' + timestamp + '.png'
+			file_mkdir, toplevel
+			write_png, fname, tvrd(/true)
+			lastSaveTime = systime(/sec)
+		endif
 	endif
 
 	img = tvrd(/true)

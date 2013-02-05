@@ -442,14 +442,16 @@ pro sdi_monitor_multistatic
 	endif
 
 	;\\ Save a copy of the image without tristatic
-	if systime(/sec) - lastSaveTime0 gt 15*60. then begin
-		datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
-		timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
-		toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
-		fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
-		file_mkdir, toplevel
-		write_png, fname, tvrd(/true)
-		lastSaveTime0 = systime(/sec)
+	if 0 then begin ;\\ currently disabled, disk fills up
+		if systime(/sec) - lastSaveTime0 gt 15*60. then begin
+			datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
+			timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
+			toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
+			fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
+			file_mkdir, toplevel
+			write_png, fname, tvrd(/true)
+			lastSaveTime0 = systime(/sec)
+		endif
 	endif
 
 
@@ -484,11 +486,13 @@ pro sdi_monitor_multistatic
 	!p.font = -1
 
 	;\\ Save a copy of the image with tristatic
-	if systime(/sec) - lastSaveTime1 gt 15*60. then begin
-		fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
-		file_mkdir, toplevel
-		write_png, fname, tvrd(/true)
-		lastSaveTime1 = systime(/sec)
+	if 0 then begin ;\\ currently disabled, disk fills up
+		if systime(/sec) - lastSaveTime1 gt 15*60. then begin
+			fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
+			file_mkdir, toplevel
+			write_png, fname, tvrd(/true)
+			lastSaveTime1 = systime(/sec)
+		endif
 	endif
 
 

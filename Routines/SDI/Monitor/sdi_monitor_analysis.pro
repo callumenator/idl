@@ -109,7 +109,8 @@ pro sdi_monitor_analysis, site=site, $ ;\\ optional, defaults to all sites
 
 		sky_files = where(strmatch(files_arr, '*CAL*') eq 0, n_sky)
 		if (n_sky gt 0) then begin
-			sdi_analysis, '', skylist = files_arr[sky_files], move_to = move_to_dir, files_processed = processed
+			sdi_analysis, '', skylist = files_arr[sky_files], move_to=move_to_dir, files_processed=processed, $
+							  /speks, /winds, /plots, /ascii
 		endif
 
 		openw, handle, 'c:\ftp\instrument_incomming\_processed.txt', /get, /append

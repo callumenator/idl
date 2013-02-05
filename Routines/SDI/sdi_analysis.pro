@@ -7,12 +7,12 @@ pro sdi_analysis, directory, $
 				  only_zones = only_zones, $
 				  skylist = skylist, $
 				  files_processed = files_processed, $
-				  no_plots = no_plots, $
-				  no_ascii = no_ascii
-
+				  speks=speks, $
+				  winds=winds, $
+				  plots=plots, $
+				  ascii=ascii
 
 	if keyword_set(plot_to) then plot_dir = plot_to else plot_dir = 'c:\users\sdi\sdiplots\'
-
 
 	if keyword_set(skylist) then begin
 		sky_list = skylist
@@ -48,12 +48,14 @@ pro sdi_analysis, directory, $
 
 
 	;\\ If there are no skies, just fit the lasers
-	if nsky eq 0 then begin
-		for k = 0, nlas - 1 do begin
-			fname = las_list[k]
-			sdi_fit_spectra, fit_insfile = fname, ipc_info = ipc_info
-			append, fname, files_done
-		endfor
+	if keyword_set(speks) then begin
+		if nsky eq 0 then begin
+			for k = 0, nlas - 1 do begin
+				fname = las_list[k]
+				sdi_fit_spectra, fit_insfile = fname, ipc_info = ipc_info
+				append, fname, files_done
+			endfor
+		endif
 	endif
 
 
@@ -89,18 +91,18 @@ pro sdi_analysis, directory, $
 
 			print, fname, las_names[best_match[0]]
 
-			sdi_fit_spectra, fit_insfile = use_laser, ipc_info = ipc_info
+			if keyword_set(speks) then sdi_fit_spectra, fit_insfile = use_laser, ipc_info = ipc_info
 			append, use_laser, files_done
 
-			sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, ipc_info = ipc_info
+			if keyword_set(speks) then sdi_fit_spectra, fit_skyfile = sky_list[k], use_insfile = use_laser, ipc_info = ipc_info
 			append, sky_list[k], files_done
 
 			setenv, 'SDI_GREEN_ZERO_VELOCITY_FILE=AUTO'
     		setenv, 'SDI_RED_ZERO_VELOCITY_FILE=AUTO'
     		setenv, 'SDI_OH_ZERO_VELOCITY_FILE=AUTO'
-			sdi3k_batch_windfitz, sky_list[k]
+			if keyword_set(winds) then sdi3k_batch_windfitz, sky_list[k]
 
-			if not keyword_set(no_plots) then begin
+			if keyword_set(plots) then begin
 				sdi3k_batch_plotz, sky_list[k], $
 								   skip_existing = 0, $
 								   stage = 0, $
@@ -112,7 +114,7 @@ pro sdi_analysis, directory, $
 			endif
 
 
-			if not keyword_set(no_ascii) then begin
+			if keyword_set(ascii) then begin
 
 				sdi3k_read_netcdf_data, sky_list[k], meta=mm
 				if size(mm, /type) eq 8 then begin

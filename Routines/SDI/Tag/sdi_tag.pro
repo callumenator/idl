@@ -758,14 +758,14 @@ pro sdi_tag_plot_tags
 	loadct, 39, /silent
 
 	;\\ Make 0ne year = 300 pix
-	pix_per_year = 300
+	pix_per_year = 500
 	js_range = [min(tags.js_start), max(tags.js_end)]
 	js2ymds, js_range, y, m, d, s
-	xpix = (y[1] - y[0])*pix_per_year
+	xpix = ((y[1] - y[0]) + 1)*pix_per_year
 	xpix = xpix > 800
 
 	base = widget_base(col=1)
-	draw = widget_draw(base, xs = xpix, ys=600, scr_xs=800, scr_ys=600, /scroll)
+	draw = widget_draw(base, xs = xpix, ys=600, scr_xs=800, scr_ys=650, /scroll)
 	widget_control, /realize, base
 	widget_control, get_value = id, draw
 	c_wind = !D.WINDOW
@@ -782,11 +782,21 @@ pro sdi_tag_plot_tags
 			 time_str_from_decimalut(xs/3600.)
 	axis, xaxis=0, xtickname=xticks, xrange=js_range
 
-	color = indgen(n_elements(usites)) * (200./float(n_elements(usites))) + 50
+	;color = indgen(n_elements(usites)) * (200./float(n_elements(usites))) + 50
+	h = .15
+
 	for i = 0, n_elements(usites) - 1 do begin
 		pts = where(tags.site_code eq usites[i], npts)
 		for j = 0, npts - 1 do begin
-			plots, [tags[pts[j]].js_start, tags[pts[j]].js_end], [i+1, i+1], psym = -6, /data, color=color[i]
+			case tags[pts[j]].lambda of
+				557.7: begin & color = 150 & base = i+1-h & end
+				630.0: begin & color = 250 & base = i+1 & end
+				else: begin & color = 90 & base = i+1-2*h & end
+			endcase
+
+			polyfill, [tags[pts[j]].js_start, tags[pts[j]].js_start, $
+					   tags[pts[j]].js_end, tags[pts[j]].js_end], $
+					  base + [0, h, h, 0], /data, color=color
 		endfor
 	endfor
 
