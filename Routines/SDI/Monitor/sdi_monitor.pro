@@ -1,26 +1,19 @@
 
-;\\ This part is for testing, it simulates an instrument creating a snapshot
+;\\ This routine is just for testing, it simulates an instrument creating a snapshot
 pro sdi_monitor_make_snapshot, index = index
 
 	dir = 'F:\SDIData\'
-
 	files = ['gakona\HRP_2011_029_Elvey_630nm_Red_Sky_Date_01_29.nc', $
 			 'gakona\HRP_2010_019_Elvey_Laser6328_Red_Cal_Date_01_19.nc', $
 			 'poker\PKR 2010_309_Poker_630nm_Red_Sky_Date_11_05.nc', $
 			 'poker\PKR 2010_046_Poker_558nm_Green_Sky_Date_02_15.nc', $
 			 'poker\PKR 2010_092_Poker_Laser6328_Red_Cal_Date_04_02.pf' ]
 
-
 	if not keyword_set(index) then index = 0
-
 	for j = 0, n_elements(files) - 1 do begin
-
 		sdi3k_read_netcdf_data, dir + files[j], spex=spex, meta=meta
-
 		out_dir = 'C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\'
-
 		index = index < (meta.maxrec - 1)
-
 		snapshot = {spectra:spex[index].spectra, $
 					start_time:spex[index].start_time, $
 					end_time:spex[index].end_time, $
@@ -32,13 +25,11 @@ pro sdi_monitor_make_snapshot, index = index
 					oval_angle:meta.oval_angle, $
 					wavelength:meta.wavelength_nm * 10, $
 					site_code:meta.site_code}
-
 		save, filename = out_dir + meta.site_code + '_' + string(meta.wavelength_nm*10., f='(i04)') + $
 				'_snapshot.idlsave', snapshot, /compress
-
 	endfor
-
 end
+
 
 ;\\ Clear the calibration data for given site (force it to refresh when the
 ;\\ next calibration snapshot arrives). Clears all calibration for all zonemaps.
@@ -157,9 +148,11 @@ pro sdi_monitor_send_email, addresses, subject, body
     	cmd += ' -b "' + body + '"'
     	spawn, cmd, /nowait
   	endfor
-
 end
 
+pro sdi_monitor_run, cmd
+	spawn, 'c:\rsi\idl62\bin\bin.x86\idlde -e "' + cmd + '"', /nowait, /hide
+end
 
 pro sdi_monitor_event, event
 
@@ -254,19 +247,15 @@ pro sdi_monitor_event, event
 
 		global.free_index_0 ++
 
-
 		;\\ Queue next timer event
 			widget_control, timer = global.timer_interval, global.base_id
-
 
 		;\\ Manage the log (check if we need to open a new one, email the current one, etc)
 			sdi_monitor_log_manage
 
-
 		;\\ Read snapshot files in in_dir
 			in_files = file_search(global.in_dir + '*snapshot*idlsave', count = n_in, /test_regular)
 			if n_in eq 0 then goto, MONITOR_FILE_LOOP_END
-
 
 		;\\ Only take the ones that are more than N seconds old, to (try to) prevent read errors
 			file_age = systime(/sec) - (file_info(in_files)).mtime
@@ -281,7 +270,6 @@ pro sdi_monitor_event, event
 
 
 			for k = 0, n_in - 1 do begin
-
 
 				;\\ Handle read errors (these do occur)
 				catch, error_status
@@ -302,7 +290,6 @@ pro sdi_monitor_event, event
 				restore, in_files[k]
 
 				catch, /cancel
-
 
 				;\\ Build up unique id's for this snapshot site, wavelength, and zonemap type
 					site_lambda_id = strupcase(snapshot.site_code) + '_' + $
@@ -547,44 +534,42 @@ pro sdi_monitor_event, event
 		;\\ Plot the current snapshots
 		status = sdi_monitor_job_status('snapshots')
 		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 60) then begin
+			cmd = "sdi_monitor_snapshots, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_monitor.png'"
+			sdi_monitor_run, cmd
 			sdi_monitor_job_timeupdate, 'snapshots'
-			sdi_monitor_snapshots, oldest_snapshot = global.oldest_snapshot
-			append, 'sdi_monitor', image_names
-			append, global.draw_id[0], draw_ids
-			ftp = 1
 		endif
 
-		;\\ Plot the current timeseries
-		status = sdi_monitor_job_status('timeseries')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 120) then begin
-			sdi_monitor_job_timeupdate, 'timeseries'
-			sdi_monitor_timeseries
-			append, 'sdi_timeseries', image_names
-			append, global.draw_id[1], draw_ids
-			append, 'sdi_temp_series', image_names
-			append, global.draw_id[2], draw_ids
-			ftp = 1
-		endif
-
-		;\\ Plot the current windfields
-		status = sdi_monitor_job_status('windfields')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 120) then begin
-			sdi_monitor_job_timeupdate, 'windfields'
-			sdi_monitor_windfields
-			append, 'sdi_windfields', image_names
-			append, global.draw_id[3], draw_ids
-			ftp = 1
-		endif
-
-		;\\ Run multistatic analyses
-		status = sdi_monitor_job_status('multistatic')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
-			sdi_monitor_job_timeupdate, 'multistatic'
-			sdi_monitor_multistatic
-			append, 'sdi_multistatic', image_names
-			append, global.draw_id[4], draw_ids
-			ftp = 1
-		endif
+;		;\\ Plot the current timeseries
+;		status = sdi_monitor_job_status('timeseries')
+;		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 120) then begin
+;			sdi_monitor_job_timeupdate, 'timeseries'
+;			sdi_monitor_timeseries
+;			append, 'sdi_timeseries', image_names
+;			append, global.draw_id[1], draw_ids
+;			append, 'sdi_temp_series', image_names
+;			append, global.draw_id[2], draw_ids
+;			ftp = 1
+;		endif
+;
+;		;\\ Plot the current windfields
+;		status = sdi_monitor_job_status('windfields')
+;		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 120) then begin
+;			sdi_monitor_job_timeupdate, 'windfields'
+;			sdi_monitor_windfields
+;			append, 'sdi_windfields', image_names
+;			append, global.draw_id[3], draw_ids
+;			ftp = 1
+;		endif
+;
+;		;\\ Run multistatic analyses
+;		status = sdi_monitor_job_status('multistatic')
+;		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
+;			sdi_monitor_job_timeupdate, 'multistatic'
+;			sdi_monitor_multistatic
+;			append, 'sdi_multistatic', image_names
+;			append, global.draw_id[4], draw_ids
+;			ftp = 1
+;		endif
 
 
 		;\\ FTP images
@@ -602,19 +587,6 @@ pro sdi_monitor_event, event
 				image_name = global.out_dir + '\Plots\' + image_names[j] + '.png'
 				write_png, image_name, image
 
-				;\\ FTP it - not any more
-				;openw, hnd, global.home_dir + 'ftp_batch.bat', /get
-				;for k = 0, n_elements(global.ftp_batch) - 1 do printf, hnd, global.ftp_batch[k]
-				;printf, hnd, 'put ' + image_name + ' ' + image_names[j] + '.png'
-				;printf, hnd, 'quit'
-				;free_lun, hnd
-
-				;openw, hnd, global.home_dir + 'command_batch.bat', /get
-				;printf, hnd, 'ftp -s:' + global.home_dir + 'ftp_batch.bat'
-				;printf, hnd, 'del ' + image_name
-				;free_lun, hnd
-
-				;spawn, global.home_dir + '\command_batch.bat', /hide
 			endfor
 		endif
 
@@ -633,7 +605,6 @@ pro sdi_monitor_cleanup, arg
 	persistent = 0
 	heap_gc, /ptr, /verbose
 	print, ptr_valid()
-
 end
 
 
@@ -642,11 +613,9 @@ pro sdi_monitor
 
 	common sdi_monitor_common, global, persistent
 
-
 	in_dir = 'C:\FTP\'
 	whoami, home_dir, file
 	out_dir = home_dir
-
 
 	;\\ Recipient list for email updates
 	email_list = ['callumenator@gmail.com', $
@@ -658,9 +627,6 @@ pro sdi_monitor
 				  {name:'timeseries', active:1, last_run:0D}, $
 				  {name:'windfields', active:1, last_run:0D}, $
 				  {name:'multistatic', active:1, last_run:0D} ]
-
-	;\\ This was for transferring files to fulcrum, not used now...
-	ftp_batch = ['o fulcrum.gi.alaska.edu', 'callum', 'B1_static', 'cd ../Downrange_SDI/sdi_monitor']
 
 	zmap_size = 200.
 	min_file_age = 5 ;\\ age in seconds
@@ -727,7 +693,6 @@ pro sdi_monitor
 			  timeseries_chop:timeseries_chop, $
 			  timer_interval:timer_interval, $
 			  oldest_snapshot:oldest_snapshot, $
-			  ftp_batch:ftp_batch, $
 			  base_id:base, $
 			  base_geom:widget_info(base, /geom), $
 			  draw_id:[draw0, draw1, draw2, draw3, draw4], $
@@ -741,9 +706,6 @@ pro sdi_monitor
      		  job_status:job_status, $
 			  shared:shared}
 
-
-
 	xmanager, 'sdi_monitor', base, event = 'sdi_monitor_event', $
 			  cleanup = 'sdi_monitor_cleanup', /no_block
-
 end

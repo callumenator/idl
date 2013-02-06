@@ -1,31 +1,46 @@
 
+;\\ snapshots = {site id, spectra:ptr, fits:ptr, start/end, scans, site, wavelength, zonemap_index}
+;\\ zonemaps  = {zmap id, zonemap, centers:ptr, rads:ptr, secs:ptr}
+
 ;\\ Plot the current snapshots
-pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot time in days
+pro sdi_monitor_snapshots, datafile=datafile, $
+						   background_parameter=background_parameter, $ ;\\ string ('Temperature', etc.)
+						   oldest_snapshot=oldest_snapshot, $ ;\\ units of days
+						   dimensions=dimensions, $ ;\\ two element vector, size of a single zonemap plot
+						   save_name=save_name ;\\ png image file name
 
-	common sdi_monitor_common, global, persistent
+	if not keyword_set(datafile) then datafile = 'c:\rsi\idl\routines\sdi\monitor\persistent.idlsave'
+	if not keyword_set(background_parameter) then background_parameter = 'Temperature'
+	if not keyword_set(oldest_snapshot) then oldest_snapshot = 5
+	if not keyword_set(dimensions) then dimensions = [600,600]
 
-	if not keyword_set(oldest_snapshot) then oldest_snapshot = 1E9
-	if size(persistent, /type) eq 0 then return
-	if ptr_valid(persistent.zonemaps) eq 0 then return
+	if file_test(datafile) eq 0 then return
+	tries = 0
+	catch, error
+	if error ne 0 then begin
+		if tries lt 3 then begin
+			wait, 2. & tries ++
+		endif else begin
+			catch, /cancel & return
+		endelse
+	endif
+	restore, datafile
+
 	if ptr_valid(persistent.snapshots) eq 0 then return
+	if ptr_valid(persistent.zonemaps) eq 0 then return
+	if size(*persistent.snapshots, /type) eq 0 then return
+	if size(*persistent.zonemaps, /type) eq 0 then return
+
+	snapshots = *persistent.snapshots 	;\\ array of snapshot structs
+	zonemaps = *persistent.zonemaps		;\\ array of zonemap structs
 
 	;\\ Color map
 		color_map = {wavelength:[5577, 6300, 6328, 7320, 8430], $
 						 ctable:[  39,   39,   39,    2,    2], $
 					 	  color:[ 150,  250,  190,  143,  207]}
 
-
-	;\\ Get the array of zonemap info
-		zonemaps = *persistent.zonemaps
-
-
 	;\\ Count up unique sites and snapshots
-		snapshots = *persistent.snapshots
 		snap_ages = (dt_tm_tojs(systime(/ut)) - snapshots.end_time) / (24.*60.*60.)
-
-		;young = where(day_diff le oldest_snapshot, n_young)
-		;if n_young eq 0 then return	;\\ Something should happen here - eg blank image, etc
-		;snapshots = snapshots[young]
 
 		sites = snapshots.site_code
 		s_sites = sites[sort(sites)]
@@ -38,20 +53,19 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 			n_snapshots[k] += n_snaps
 		endfor
 
-
-	;\\ Set plot widths
+	;\\ Set plot widths, create window
 		max_snaps = max(n_snapshots)
-		snap_width = 600.
-		snap_height = 600.
+		snap_width = float(dimensions[0])
+		snap_height = float(dimensions[1])
 
 		wy = snap_width * float(max_snaps)
 		wx = snap_height * float(n_sites)
 
-		widget_control, draw_xsize=wx, draw_ysize=wy, global.draw_id[0]
-		widget_control, get_value = wset_id, global.draw_id[0]
-		wset, wset_id
+		window, /free, xs=wx, ys=wy, /pixmap
+		wid = !D.WINDOW
 		loadct, 39, /silent
 		erase, 0
+
 
 	for site_idx = 0, n_sites - 1 do begin
 
@@ -76,13 +90,11 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 
 			snap = snaps[snap_idx]
 			snapshot_age = ages[snap_idx]
-
 			snapshot = snapshots[snap]
 			have_fits = ptr_valid(snapshot.fits)
 
 			yoff = wy - ((snap_idx + 1) * snap_height)
 			xoff = site_idx * snap_width
-
 			offset = [xoff, yoff]
 
 			;\\ Scale the zonemap, zone_bounds, and zone_centers to the correct size
@@ -92,7 +104,6 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 				zone_centers = *(zonemaps[snapshot.zonemap_index].centers) * scale
 				n_zones = n_elements(zone_centers[*,0])
 				zmap_offset = (offset+(1-frac)*snap_width/2.) + [0, 0]
-
 
 			;\\ If we have spectral fits, make a parameter skymap
 				if have_fits eq 1 then begin
@@ -104,9 +115,9 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					snr_per_scan /= pix_per_zone
 					snr_per_scan = median(snr_per_scan)
 
-					case global.background_parameter of
+					case strcompress(strlowcase(background_parameter), /remove_all) of
 
-						'Temperature': begin
+						'temperature': begin
 							parameter = (*snapshot.fits).width
 							median_parameter = median(parameter)
 							sdi3k_spacesmooth_fits, parameter, 0.09, {nzones:snapshot.nzones}, centers/float(zmap_size)
@@ -122,7 +133,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 							unit = 'K'
 						end
 
-						'Intensity': begin
+						'intensity': begin
 							parameter = (*snapshot.fits).area / float(snapshot.end_time - snapshot.start_time)
 							parameter /= pix_per_zone
 							median_parameter = median(parameter)
@@ -137,7 +148,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 							unit = ''
 						end
 
-						'SNR/Scan': begin
+						'snr/scan': begin
 							parameter = (*snapshot.fits).snr / float(snapshot.scans)
 							parameter /= pix_per_zone
 							median_parameter = median(parameter)
@@ -152,7 +163,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 							unit = ''
 						end
 
-						'Chi Squared': begin
+						'chisquared': begin
 							parameter = (*snapshot.fits).chi
 							median_parameter = median(parameter)
 							scale = [0, 4]
@@ -181,7 +192,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					ypos = offset[1] + 20
 					tv, scl_bar, xpos, ypos
 					loadct, 39, /silent
-					xyouts, xpos - 5, ypos + scl_height/2., global.background_parameter, orientation=90, $
+					xyouts, xpos - 5, ypos + scl_height/2., background_parameter, orientation=90, $
 							align=.5, color=255, /device, chars = 1
 					!p.font = 0
 					device, set_font="Ariel*15*Bold"
@@ -189,19 +200,17 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					xyouts, xpos + 10, ypos + scl_height + 1, string(scale[1], f='(i0)') + ' ' + unit, align=.5, color=255, /device
 					!p.font = -1
 
-				endif
-
-
+				endif ;\\ if have_fits eq 1
 
 			;\\ Plot zone boundaries
 				plot_zone_bounds, snap_width*frac, $
 								  *(zonemaps[snapshot.zonemap_index].rads), $
 								  *(zonemaps[snapshot.zonemap_index].secs), $
 								  offset=zmap_offset, ctable=0, color=190
-				loadct, 39, /silent
 
 
 			;\\ Plot the spectra
+				loadct, 39, /silent
 				spex = *snapshot.spectra
 				n_chann = n_elements(spex[0,*])
 
@@ -213,7 +222,6 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					loadct, color_map.ctable[spex_cmap_pt], /silent
 					spex_color = color_map.color[spex_cmap_pt]
 				endelse
-
 
 				if have_fits eq 0 then begin
    					spec0 = reform(spex[0,*])
@@ -241,14 +249,9 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					plot, findgen(n_chann), sp, psym=3, /noerase, pos = box, /device, /nodata, $
 						  xstyle=9, ystyle=5, xtickname = blank, noclip=1, xticklen=.001
 					oplot, findgen(n_chann), sp, color = 255
-
-					if have_fits eq 1 then begin
-						;sp = shift(reform(*spex[zone_idx, *]), spec_shift)
-						;sp -= min(sp)
-					endif
 				endfor
 
-			;\\ Get a copy of the image just produced
+			;\\ Get a copy of the image just produced and gray it out if too old
 				currImage = tvrd(offset[0], offset[1], snap_width, snap_height, /true)
 				if (snapshot_age gt oldest_snapshot) then begin
 					currImage *= .3
@@ -256,7 +259,6 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 					tv, currImage, offset[0], offset[1], /true
 					device, decomposed=0
 				endif
-
 
 			;\\ Add some annotation
 				!p.font = 0
@@ -268,10 +270,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 				hr_diff = (dy_diff mod 1)*24
 				mn_diff = (hr_diff mod 1)*60.
 
-				age = [fix(yr_diff), $
-					   fix(dy_diff), $
-					   fix(hr_diff), $
-					   fix(mn_diff)]
+				age = [fix(yr_diff), fix(dy_diff), fix(hr_diff), fix(mn_diff)]
 
 				;\\ Pluralise labels
 				not_one = where(age ne 1, n_not_one)
@@ -287,8 +286,7 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 				endelse
 				age_out = ['Age:', age_out]
 
-
-				;\\ Create a more descriptive name than the site code
+				;\\ Create a more descriptive name than just the site code
 				case snapshot.site_code of
 					'PKR':site_name = 'Poker Flat, Alaska'
 					'HRP':site_name = 'HAARP, Gakona, Alaska'
@@ -325,8 +323,8 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 
 				if have_fits eq 1 then begin
 					label = 'Median: ' + string(median_parameter, f='(f0.1)') + ' ' + unit
-					xyouts, offset[0] + snap_width/2., $
-							offset[1] + 3, align=.5, label, color=text_color, /device
+					xyouts, offset[0] + snap_width/2., offset[1] + 3, $
+							align=.5, label, color=text_color, /device
 				endif
 
 				!p.font = -1
@@ -334,15 +332,16 @@ pro sdi_monitor_snapshots, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot t
 		endfor ;\\ snapshot loop
 	endfor ;\\ site loop
 
-
 	;\\ Plot divisions
 	loadct, 0, /silent
-	for xx = 0, n_sites do begin
-		plots, [snap_width*xx-1,snap_width*xx-1], [0, wy], /device, color = 150
-	endfor
-	for yy = 0, max_snaps do begin
-		plots, [0, wx], [snap_height*yy - 1,snap_height*yy - 1], /device, color = 150
-	endfor
+	for xx = 0, n_sites do plots, [snap_width*xx-1,snap_width*xx-1], [0, wy], /device, color = 150
+	for yy = 0, max_snaps do plots, [0, wx], [snap_height*yy - 1,snap_height*yy - 1], /device, color = 150
 
+	if keyword_set(save_name) then begin
+		img = tvrd(/true)
+		write_png, save_name, img
+	endif
+
+	wdelete, wid
 
 end

@@ -137,14 +137,7 @@ pro sdi_monitor_windfields, oldest_snapshot=oldest_snapshot	;\\ Oldest snapshot 
 		    var.velocity(0) = reform(pos2arr(0,*))
 			var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
 
-
-    		;sdi3k_timesmooth_fits,  posarr, 1.1, meta
-    		;sdi3k_spacesmooth_fits, posarr, 0.03, meta, zcen
-    		;var.velocity = posarr
-    		;var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity())
-
     		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
-
 
 			;\\ Save data back into time series file
 			series.winds.zonal = windfit.zonal_wind
