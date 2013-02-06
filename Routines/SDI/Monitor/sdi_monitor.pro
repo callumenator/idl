@@ -151,7 +151,7 @@ pro sdi_monitor_send_email, addresses, subject, body
 end
 
 pro sdi_monitor_run, cmd
-	spawn, 'c:\rsi\idl62\bin\bin.x86\idlde -e "' + cmd + '"', /nowait, /hide
+	spawn, 'start /MIN c:\rsi\idl62\bin\bin.x86\idlde -IDL_WDE_SPLASHSCREEN 0 -e "' + cmd + '"', /nowait, /hide
 end
 
 pro sdi_monitor_event, event
@@ -435,7 +435,6 @@ pro sdi_monitor_event, event
 				;\\ Save the current persistent data
 					log_emailed = global.log_emailed
 					save, filename = global.persistent_file, persistent, log_emailed
-
 			endfor
 
 
@@ -478,9 +477,6 @@ pro sdi_monitor_event, event
 				(*persistent.snapshots)[fit_these[k]].fits = ptr_new(fits)
 
 				;\\ Once they have been fit, new snapshots can be added to the timeseries
-				;if (snapshots[fit_these[k]].wavelength eq 5577 or $
-				;    snapshots[fit_these[k]].wavelength eq 6300) then begin
-
 					save_name = global.home_dir + '\Timeseries\' + snapshots[fit_these[k]].id + '_timeseries.idlsave'
 					if file_test(save_name) eq 1 then begin
 						restore, save_name
@@ -533,61 +529,34 @@ pro sdi_monitor_event, event
 
 		;\\ Plot the current snapshots
 		status = sdi_monitor_job_status('snapshots')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 60) then begin
+		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 120) then begin
 			cmd = "sdi_monitor_snapshots, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_monitor.png'"
 			sdi_monitor_run, cmd
 			sdi_monitor_job_timeupdate, 'snapshots'
 		endif
 
-;		;\\ Plot the current timeseries
-;		status = sdi_monitor_job_status('timeseries')
-;		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 120) then begin
-;			sdi_monitor_job_timeupdate, 'timeseries'
-;			sdi_monitor_timeseries
-;			append, 'sdi_timeseries', image_names
-;			append, global.draw_id[1], draw_ids
-;			append, 'sdi_temp_series', image_names
-;			append, global.draw_id[2], draw_ids
-;			ftp = 1
-;		endif
-;
-;		;\\ Plot the current windfields
-;		status = sdi_monitor_job_status('windfields')
-;		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 120) then begin
-;			sdi_monitor_job_timeupdate, 'windfields'
-;			sdi_monitor_windfields
-;			append, 'sdi_windfields', image_names
-;			append, global.draw_id[3], draw_ids
-;			ftp = 1
-;		endif
-;
-;		;\\ Run multistatic analyses
-;		status = sdi_monitor_job_status('multistatic')
-;		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 120) then begin
-;			sdi_monitor_job_timeupdate, 'multistatic'
-;			sdi_monitor_multistatic
-;			append, 'sdi_multistatic', image_names
-;			append, global.draw_id[4], draw_ids
-;			ftp = 1
-;		endif
+		;\\ Plot the time series
+		status = sdi_monitor_job_status('timeseries')
+		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 240) then begin
+			cmd = "sdi_monitor_timeseries, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_timeseries.png'"
+			sdi_monitor_run, cmd
+			sdi_monitor_job_timeupdate, 'timeseries'
+		endif
 
+		;\\ Plot the current windfields
+		status = sdi_monitor_job_status('windfields')
+		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 240) then begin
+			cmd = "sdi_monitor_windfields, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_windfields.png'"
+			sdi_monitor_run, cmd
+			sdi_monitor_job_timeupdate, 'windfields'
+		endif
 
-		;\\ FTP images
-		if ftp eq 1 then begin
-			for j = 0, n_elements(draw_ids) - 1 do begin
-
-				;\\ Here we get the actual image from the widget draw window
-				widget_control, get_value = wind_id, draw_ids[j]
-				wset, wind_id
-				image = tvrd(/true)
-
-				;\\ Write out the file
-				crtime = convert_js(dt_tm_tojs(systime(/ut)))
-				tstamp = string(crtime.sec, f='(i05)')
-				image_name = global.out_dir + '\Plots\' + image_names[j] + '.png'
-				write_png, image_name, image
-
-			endfor
+		;\\ Run multistatic analyses
+		status = sdi_monitor_job_status('multistatic')
+		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 360) then begin
+			cmd = "sdi_monitor_multistatic, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_multistatic.png'"
+			sdi_monitor_run, cmd
+			sdi_monitor_job_timeupdate, 'multistatic'
 		endif
 
 	endif ;\\ widget timer events

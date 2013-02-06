@@ -1,13 +1,10 @@
 
-;\\ Plot the current snapshots
-pro sdi_monitor_timeseries
+pro sdi_monitor_timeseries, data_dir=data_dir, $
+							save_name=save_name ;\\ png image file name
 
-	print, 'PROCESSING TIMESERIES...'
+	whoami, dir, file
 
-	common sdi_monitor_common, global, persistent
-
-	if ptr_valid(persistent.zonemaps) eq 0 then return
-	if ptr_valid(persistent.snapshots) eq 0 then return
+ 	if not keyword_set(timeseries) then timeseries = dir + '\timeseries\'
 
 	;\\ Things to plot...
 		show = [{tag:'width', site:'all', wavelength:'6300', range:[700., 1400.], zone:-1, title:'630nm Temperature (K)', thick:.5}, $
@@ -22,24 +19,19 @@ pro sdi_monitor_timeseries
 	;\\ BAD VALUE
 		bad_value_temp = 600.
 
-	;\\ Store the current color table
-		tvlct, store_red, store_green, store_blue, /get
-
-	;\\ Set draw geometry
-		base_geom = widget_info(global.tab_id[1], /geometry)
-		widget_control, draw_ysize=350*n_elements(show), draw_xsize = 1200, global.draw_id[1]
-		widget_control, get_value = wset_id, global.draw_id[1]
-		wset, wset_id
+	;\\ Create a window
+		window, /free, xs=1200, ys=350*n_elements(show), /pixmap
+		wid = !D.WINDOW
 		loadct, 39, /silent
 		erase, 0
 
-	;\\ Plot median temperature for each site
+	;\\ Site colors
 		site_colormap = {site:['HRP', 'PKR', 'MAW', 'TLK', 'KTO'], $
 						 color:[100, 150, 190, 230, 144], $
 						 ctable:[39, 39, 39, 39, 2] }
 
 	;\\ Find timeseries save files
-		ts_files = file_search(global.home_dir + '\Timeseries\' + '*_timeseries.idlsave', count = n_series)
+		ts_files = file_search(timeseries + '*_timeseries.idlsave', count = n_series)
 		if n_series eq 0 then return
 
 	;\\ Use this to get a maximal time range for the current days' data
@@ -47,17 +39,15 @@ pro sdi_monitor_timeseries
 		ut_day_range = [current_ut_day, current_ut_day]
 		current_day_ut_range = [24, 0]
 
-	;\\ Restore them all at once
+	;\\ Restore them all first
 		data = ptrarr(n_series)
 		for k = 0, n_series - 1 do begin
 			restore, ts_files[k]
 
 			js2ymds, series.start_time, y, m, d, s
-
 			curr_year =float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
 			keep = where(y eq curr_year, nkeep)
 			if nkeep gt 0 then series = series[keep] else continue
-
 
 			daynos = ymd2dn(y, m, d)
 			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
@@ -74,23 +64,20 @@ pro sdi_monitor_timeseries
 				if ngood gt 0 then series = series[good]
 			endif
 
-
-
 			cnv_series = convert_js(series.start_time)
 			xaxis = cnv_series.dayno + cnv_series.sec/(24.*3600.)
 
-				color_pt = (where(site_colormap.site eq meta.site_code, n_match))[0]
-				if n_match eq 0 then begin
-					color = 255
-					ctable = 39
-				endif else begin
-					color = site_colormap.color[color_pt]
-					ctable = site_colormap.ctable[color_pt]
-				endelse
+			color_pt = (where(site_colormap.site eq meta.site_code, n_match))[0]
+			if n_match eq 0 then begin
+				color = 255
+				ctable = 39
+			endif else begin
+				color = site_colormap.color[color_pt]
+				ctable = site_colormap.ctable[color_pt]
+			endelse
 
 			data[k] = ptr_new({series:series, meta:meta, xaxis:xaxis, color:color, ctable:ctable})
 		endfor
-
 
 	;\\ Split up the page
 		bounds = split_page(n_elements(show), 1, bounds=[.05, .05, .98, .99], row_gap=.06)
@@ -105,7 +92,6 @@ pro sdi_monitor_timeseries
 		xtickname = time_str_from_decimalut((xvals mod 1) * 24., /noseconds)
 
 		for p = 0, n_elements(show) - 1 do begin
-
 
 			if p eq 0 then noerase = 0 else noerase = 1
 			loadct, 0, /silent
@@ -143,7 +129,6 @@ pro sdi_monitor_timeseries
 					if n_matching eq 0 then continue
 				endif
 
-
 				tags = tag_names(series[0].fits)
 				match = where(strupcase(show[p].tag) eq tags, n_matching)
 
@@ -151,22 +136,17 @@ pro sdi_monitor_timeseries
 				xaxis = (*data[k]).xaxis
 
 				if n_matching eq 0 then begin
-
 					case show[p].tag of
 						'exptime': begin
 							parameter = (series.end_time - series.start_time)/60.
 							sdevs = intarr(n_elements(series))
 						end
-
 						else:
 					endcase
-
 				endif else begin
-
 					parameter = series.fits.(match[0])
 					sdevs = fltarr(n_elements(series))
 					for t = 0, n_elements(series) - 1 do sdevs[t] = meanabsdev(parameter[*,t], /nan, /median)
-
 
 					;\\ One zone, median of all zones, ?
 					if show[p].zone eq -1 then begin
@@ -174,8 +154,6 @@ pro sdi_monitor_timeseries
 					endif else begin
 						parameter = reform(parameter[show[p].zone, *])
 					endelse
-
-
 				endelse
 
 
@@ -233,9 +211,6 @@ pro sdi_monitor_timeseries
 					else:
 				endcase
 
-
-
-
 				;\\ Get the color for this site
 				color = (*data[k]).color
 				ctable = (*data[k]).ctable
@@ -254,8 +229,6 @@ pro sdi_monitor_timeseries
 
 			endfor
 
-
-
 			if nels(sites_used) gt 0 then begin
 				u_sites = uniq(sites_used[sort(sites_used)])
 				!p.font = 0
@@ -271,19 +244,12 @@ pro sdi_monitor_timeseries
 				!p.font = -1
 			endif
 
-
 			sites_used = 0
 			ctables_used = ''
 			colors_used = ''
-
 		endfor
 
-
-
 		for k = 0, n_elements(second_pass) - 1 do begin
-
-			;plot, time_range, (*second_pass[k]).yrange, /nodata, /xstyle=5, ystyle=5, $
-			;	  /noerase, pos=(*second_pass[k]).bounds, xtickint = 2./24., xminor=8
 
 			plot, time_range, (*second_pass[k]).yrange, /nodata, /xstyle, ystyle=5, /noerase, $
 				  xtickname=xtickname, xtickint = 6./24., xminor=8, $
@@ -297,7 +263,6 @@ pro sdi_monitor_timeseries
 				sub_y = y[blocks[j,0]:blocks[j,1]]
 				if n_elements(sub_x) ge 2 then begin
 					oplot, sub_x, sub_y, color=(*second_pass[k]).color, thick=(*second_pass[k]).thick
-					;plots, sub_x, sub_y, color=(*second_pass[k]).color, psym=6, sym=.3, thick=1.55
 				endif else begin
 					plots, sub_x, sub_y, color=(*second_pass[k]).color, thick=(*second_pass[k]).thick
 				endelse
@@ -305,17 +270,20 @@ pro sdi_monitor_timeseries
 			ptr_free, second_pass[k]
 		endfor
 
+		if keyword_set(save_name) then begin
+			img = tvrd(/true)
+			write_png, save_name, img
+		endif
+		wdelete, wid
 
 
-	;\\ Draw overplot temperatures for Mark
+	;\\ Draw all temp time series together on one plot, for red and green wavelengths
 
 		if current_day_ut_range[1] lt current_day_ut_range[0] then goto, MONITOR_TSERIES_END
 
-		;\\ Set draw geometry
-			base_geom = widget_info(global.tab_id[2], /geometry)
-			widget_control, draw_ysize=350, draw_xsize = 1000, global.draw_id[2]
-			widget_control, get_value = wset_id, global.draw_id[2]
-			wset, wset_id
+		;\\ Create a window
+			window, /free, xs=1000, ys=350, /pixmap
+			wid = !D.WINDOW
 			loadct, 39, /silent
 			erase, 0
 
@@ -335,8 +303,6 @@ pro sdi_monitor_timeseries
 				time_range = current_ut_day + current_day_ut_range/24.
 			endelse
 
-			global.shared.temperature_time_axis = time_range
-
 			blank = replicate(' ', 30)
 
 			plot, time_range, [0,1], /nodata, /xstyle, /ystyle, yrange=yrange, xtick_get = xvals, xtickint = 2./24., xminor=8, $
@@ -347,8 +313,6 @@ pro sdi_monitor_timeseries
 				  xtickint = 2./24., xminor=8, chars = 1.5
 
 			loadct, 0, /silent
-			;plots, [frac_day, frac_day], yrange, line=1
-			;xyouts, frac_day, yrange[1] - .07*(yrange[1]-yrange[0]), 'Current UTC', align=-.03, /data, color=255
 			for jj = 1, n_elements(yvals) - 2 do oplot, time_range, fix([yvals[jj], yvals[jj]]), color = 80
 
 			for k = 0, n_series - 1 do begin
@@ -356,9 +320,7 @@ pro sdi_monitor_timeseries
 				if ptr_valid(data[k]) eq 0 then continue
 
 				dat = *data[k]
-
-				if dat.meta.wavelength ne '5577' and $
-				   dat.meta.wavelength ne '6300' then continue
+				if dat.meta.wavelength ne '5577' and dat.meta.wavelength ne '6300' then continue
 
 				case dat.meta.site_code of
 					'HRP':color = [39, 100]
@@ -404,25 +366,21 @@ pro sdi_monitor_timeseries
 				!p.font = -1
 			endif
 
+			img = tvrd(/true)
+			if keyword_set(save_name) then write_png, file_dirname(save_name) + '\sdi_temp_series.png', img
+			wdelete, wid
+
 		;\\ Save a copy of the temp timeseries
 			year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
 			fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Median_Temperature\'
 			date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
 			fname += 'Median_Temperature_AllStations_' + date + '_6300.png'
 			file_mkdir, file_dirname(fname)
-			write_png, fname, tvrd(/true)
+			write_png, fname, img
+
 
 MONITOR_TSERIES_END:
 
-	;\\ Restore the current color table
-		tvlct, store_red, store_green, store_blue
-
-	;\\ Clear the x tick int
-		!x.tickinterval = 0
-
 	;\\ Free the pointers
-		for k = 0, n_series - 1 do begin
-			ptr_free, data[k]
-		endfor
-
+		for k = 0, n_series - 1 do ptr_free, data[k]
 end

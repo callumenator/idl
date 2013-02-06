@@ -9,7 +9,9 @@ pro sdi_monitor_snapshots, datafile=datafile, $
 						   dimensions=dimensions, $ ;\\ two element vector, size of a single zonemap plot
 						   save_name=save_name ;\\ png image file name
 
-	if not keyword_set(datafile) then datafile = 'c:\rsi\idl\routines\sdi\monitor\persistent.idlsave'
+	whoami, dir, file
+
+ 	if not keyword_set(datafile) then datafile = dir + '\persistent.idlsave'
 	if not keyword_set(background_parameter) then background_parameter = 'Temperature'
 	if not keyword_set(oldest_snapshot) then oldest_snapshot = 5
 	if not keyword_set(dimensions) then dimensions = [600,600]
@@ -25,6 +27,7 @@ pro sdi_monitor_snapshots, datafile=datafile, $
 		endelse
 	endif
 	restore, datafile
+	catch, /cancel
 
 	if ptr_valid(persistent.snapshots) eq 0 then return
 	if ptr_valid(persistent.zonemaps) eq 0 then return

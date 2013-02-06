@@ -34,94 +34,105 @@ pro sdi_monitor_grab_allsky, maxElevation, error=error
 	endif
 end
 
-pro sdi_monitor_multistatic
+pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
+							 timeseries=timeseries, $ ;\\ time series directory
+							 save_name=save_name ;\\ save a png to this filename
 
-	common sdi_monitor_common, global, persistent
-	common sdi_monitor_multistatic_common, lastrunId, $ ;\\ to see if we have new data or not
-										   lastSaveTime0, $ ;\\ allow low freq. saving of images
-										   lastSaveTime1 ;\\ ditto
+	whoami, dir, file
 
-	if ptr_valid(persistent.zonemaps) eq 0 then return
+ 	if not keyword_set(datafile) then datafile = dir + '\persistent.idlsave'
+ 	if not keyword_set(timeseries) then timeseries = dir + '\timeseries\'
+
+ 	if file_test(datafile) eq 0 then return
+	tries = 0
+	catch, error
+	if error ne 0 then begin
+		if tries lt 3 then begin
+			wait, 2. & tries ++
+		endif else begin
+			catch, /cancel & return
+		endelse
+	endif
+	restore, datafile
+	catch, /cancel
+
 	if ptr_valid(persistent.snapshots) eq 0 then return
-	if size(lastSaveTime0, /type) eq 0 then lastSaveTime0 = systime(/sec) - 1E5
-	if size(lastSaveTime1, /type) eq 0 then lastSaveTime1 = systime(/sec) - 1E5
+	if ptr_valid(persistent.zonemaps) eq 0 then return
+	if size(*persistent.snapshots, /type) eq 0 then return
+	if size(*persistent.zonemaps, /type) eq 0 then return
+
+	snapshots = *persistent.snapshots 	;\\ array of snapshot structs
+	zonemaps = *persistent.zonemaps		;\\ array of zonemap structs
 
 	;\\ Multistatic time-series save file
-	saved_data = global.home_dir + '\timeseries\Multistatic_timeseries.idlsave'
-	have_saved_data = file_test(saved_data)
-	if (have_saved_data eq 1) then restore, saved_data
+		saved_data = dir + '\timeseries\Multistatic_timeseries.idlsave'
+		have_saved_data = file_test(saved_data)
+		if (have_saved_data eq 1) then restore, saved_data
 
-	base_geom = widget_info(global.tab_id[4], /geometry)
-	widget_control, draw_ysize=800, draw_xsize = 600, global.draw_id[4]
-	widget_control, get_value = wset_id, global.draw_id[4]
+	;\\ Options
+		show_zonemaps = 0
+		show_bistatic = 1
+		show_tristatic = 1
+		show_monostatic = 1
+		scale= 5E2
 
-	show_zonemaps = 0
-	show_bistatic = 1
-	show_tristatic = 1
-	show_monostatic = 1
-	scale= 5E2
+	;\\ Create a window
+		window, /free, xs=600, ys=800, /pixmap
+		wid = !D.WINDOW
+		loadct, 39, /silent
+		erase, 0
 
 	;\\ UT day range of interest (the current UT day for now, since obs from Alaska don't span days)
 		current_ut_day = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$')
 		ut_day_range = [current_ut_day, current_ut_day]
 
-
 	;\\ If saved data were restored, slice it so we only have the current ut day
-	if have_saved_data eq 1 then begin
-		js2ymds, bistatic_vz_times, y, m, d, s
-		daynos = ymd2dn(y, m, d)
-		slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
-		if nsliced eq 0 then begin
-			have_saved_data = 0
-		endif else begin
-			bistatic_vz = bistatic_vz[slice]
-			bistatic_vz_times = bistatic_vz_times[slice]
-		endelse
-	endif
+		if have_saved_data eq 1 then begin
+			js2ymds, bistatic_vz_times, y, m, d, s
+			daynos = ymd2dn(y, m, d)
+			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+			if nsliced eq 0 then begin
+				have_saved_data = 0
+			endif else begin
+				bistatic_vz = bistatic_vz[slice]
+				bistatic_vz_times = bistatic_vz_times[slice]
+			endelse
+		endif
 
-	tseries = file_search(global.home_dir + '\timeseries\*' + $
-						  ['HRP','PKR','TLK'] + '*6300*timeseries*', count = nseries)
+		tseries = file_search(timeseries + '*' + ['HRP','PKR','TLK'] + '*6300*timeseries*', count = nseries)
 
-	for i = 0, nseries - 1 do begin
-		restore, tseries[i]
+	;\\ Run through the series
+		for i = 0, nseries - 1 do begin
+			restore, tseries[i]
 
-		;\\ Get contiguous data inside ut_day_range
-		js2ymds, series.start_time, y, m, d, s
-		daynos = ymd2dn(y, m, d)
-		slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
-		if nsliced eq 0 then continue
-		series = series[slice]
+			;\\ Get contiguous data inside ut_day_range
+			js2ymds, series.start_time, y, m, d, s
+			daynos = ymd2dn(y, m, d)
+			slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+			if nsliced eq 0 then continue
+			series = series[slice]
 
-		find_contiguous, js2ut(series.start_time) mod 24, 3., blocks, n_blocks=nb, /abs
-		ts_0 = blocks[nb-1,0]
-		ts_1 = blocks[nb-1,1]
-		series = series[ts_0:ts_1]
+			find_contiguous, js2ut(series.start_time) mod 24, 3., blocks, n_blocks=nb, /abs
+			ts_0 = blocks[nb-1,0]
+			ts_1 = blocks[nb-1,1]
+			series = series[ts_0:ts_1]
 
-		append, ptr_new(series), allSeries
-		append, ptr_new(meta[0]), allMeta
+			append, ptr_new(series), allSeries
+			append, ptr_new(meta[0]), allMeta
+			append,{dayno:ymd2dn(y[0], m[0], d[0]), $
+					js_min:min((series.start_time + series.end_time)/2.), $
+					js_max:max((series.start_time + series.end_time)/2.) }, allTimeInfo
+		endfor
 
-		append,{dayno:ymd2dn(y[0], m[0], d[0]), $
-				js_min:min((series.start_time + series.end_time)/2.), $
-				js_max:max((series.start_time + series.end_time)/2.) }, allTimeInfo
-	endfor
+		nseries = n_elements(allMeta)
+		if nseries eq 0 then goto, END_MULTISTATIC
 
-	nseries = n_elements(allMeta)
-	if nseries eq 0 then goto, END_MULTISTATIC
 
-	if nseries gt 0 then begin
-
-		;\\ Find a recent time that all sites can be interpolated to
+	;\\ Find a recent time that all sites can be interpolated to
 		common_time = min(allTimeInfo.js_max) - 60.
 		js2ymds, common_time, cmn_y, cmn_m, cmn_d, cmn_s
 
-		;\\ Do we have new data, or can we skip this run?
-		if (size(lastrunId, /type) ne 0) then begin
-			if (lastrunId eq common_time) then goto, END_MULTISTATIC
-		endif
-		lastrunId = common_time
-
-
-		allWinds = ptrarr(nseries, /alloc)
+ 		allWinds = ptrarr(nseries, /alloc)
 		allWindErrs = ptrarr(nseries, /alloc)
 
 		for i = 0, nseries - 1 do begin
@@ -159,7 +170,7 @@ pro sdi_monitor_multistatic
 				*allWinds[i] = winds
 				*allWindErrs[i] = wind_errors
 		endfor
-	endif
+
 
 
 	altitude = 240.
@@ -231,9 +242,11 @@ pro sdi_monitor_multistatic
 	;\\ Nominal values of middle lat and lon, refined depending on available info
 	midLat = 65.
 	midLon = -147.
-	if size(*global.shared.recent_monostatic_winds, /type) ne 0 then begin
-		midLat = mean((*global.shared.recent_monostatic_winds).lat)
-		midLon = mean((*global.shared.recent_monostatic_winds).lon)
+	mono_filename = dir + 'latest_monostatic.idlsave'
+	if file_test(mono_filename) eq 1 then begin
+		restore, mono_filename
+		midLat = mean(monostatic.lat)
+		midLon = mean(monostatic.lon)
 	endif else begin
 		if size(bistaticFits, /type) ne 0 then begin
 			midLat = median(bistaticFits.lat)
@@ -241,9 +254,6 @@ pro sdi_monitor_multistatic
 		endif
 	endelse
 
-
-	wset, wset_id
-	tvlct, red, gre, blu, /get
 	erase, 0
 	plot_simple_map, midLat, midLon, 8, 1, 1, map=map, $
 					 backcolor=[0,0], continentcolor=[50,0], $
@@ -251,10 +261,10 @@ pro sdi_monitor_multistatic
 
 	;\\ Allsky image (only get if sun elevation is below -8 to avoid saturation)
 	sdi_monitor_grab_allsky, -8, error=error
-	if (error eq 1) or file_test(global.home_dir + '\latest_allsky.jpeg') eq 0 then begin
+	if (error eq 1) or file_test(dir + '\latest_allsky.jpeg') eq 0 then begin
 		allsky_image = fltarr(3,512,512)
 	endif else begin
-		read_jpeg, global.home_dir + '\latest_allsky.jpeg', allsky_image
+		read_jpeg, dir + '\latest_allsky.jpeg', allsky_image
 	endelse
 	plot_allsky_on_map, map, allsky_image, 80., 23, 240., 65.13, -147.48, [600,800], /webimage
 
@@ -284,12 +294,15 @@ pro sdi_monitor_multistatic
 
 	;\\ Show monostatic winds for context
 	if show_monostatic eq 1 then begin
-		loadct, 0, /silent
-		if size(*global.shared.recent_monostatic_winds, /type) eq 8 then begin
 
-			mono = *global.shared.recent_monostatic_winds
-			magnitude = sqrt(mono.geoZonal*mono.geoZonal + mono.geoMerid*mono.geoMerid) * scale
-			azimuth = atan(mono.geoZonal, mono.geoMerid) / !DTOR
+		loadct, 0, /silent
+		if file_test(mono_filename) eq 0 then goto, SKIP_MONO_BLEND
+
+		if abs(monostatic.time - common_time) lt 5*3600. then begin
+
+			mono = monostatic
+			magnitude = sqrt(mono.zonal*mono.zonal + mono.merid*mono.merid) * scale
+			azimuth = atan(mono.zonal, mono.merid) / !DTOR
 
 			;\\ Get an even grid of locations for blending, stay inside monostatic boundary
 			missing = -9999
@@ -308,24 +321,21 @@ pro sdi_monitor_multistatic
 
 				sigma = 1.0
 				weight = exp(-(dist*dist)/(2*sigma*sigma))
-				zonal = total(mono.geoZonal * weight)/total(weight)
-				merid = total(mono.geoMerid * weight)/total(weight)
+				zonal = total(mono.zonal * weight)/total(weight)
+				merid = total(mono.merid * weight)/total(weight)
 
 				magnitude = sqrt(zonal*zonal + merid*merid)*scale
 				azimuth = atan(zonal, merid) / !DTOR
-
 				get_mapped_vector_components, map, ilats[locIdx], ilons[locIdx], $
 										  	  magnitude, azimuth, x0, y0, xlen, ylen
-
 				arrow, x0 - .5*xlen, y0 - .5*ylen, $
 					   x0 + .5*xlen, y0 + .5*ylen, /data, color = 100, hsize = 8
-
 			endfor
 		endif
+
+		SKIP_MONO_BLEND:
 		loadct, 39, /silent
 	endif
-
-
 
 	;\\ Overlay Bistatic Winds
 	if show_bistatic eq 1 and size(bistaticFits, /type) ne 0 then begin
@@ -339,20 +349,14 @@ pro sdi_monitor_multistatic
 
 		if (nuse gt 0) then begin
 			biFits = bistaticFits[use]
-
 			for i = 0, nuse - 1 do begin
-
 				outWind = project_bistatic_fit(biFits[i], 0)
-
 				magnitude = sqrt(outWind[0]*outWind[0] + outWind[1]*outWind[1]) * scale
 				azimuth = atan(outWind[0], outWind[1]) / !DTOR
-
 				get_mapped_vector_components, map, biFits[i].lat, biFits[i].lon, $
 											  magnitude, azimuth, x0, y0, xlen, ylen
-
 				arrow, x0 - .5*xlen, y0 - .5*ylen, $
 					   x0 + .5*xlen, y0 + .5*ylen, /data, color = 255, hsize = 8
-
 			endfor
 		endif
 
@@ -428,34 +432,15 @@ pro sdi_monitor_multistatic
 		for i = 0, n_elements(lats) - 1 do begin
 			pts = where(bistatic_vz.lat eq lats[i], npts)
 			if npts gt 0 then begin
-
 				vz = bistatic_vz[pts].mcomp
 				lat = bistatic_vz[pts].lat
 				time = bi_times[pts]
 				order = sort(time)
-
 				oplot, time[order], lat[order] + vz[order]/scale, noclip=1
-				;xyouts, time[0], yrange[0] - .2, time_str_from_decimalut(time[0], /nosec), /data, align=.5
-
 			endif
 		endfor
 	endif
 
-	;\\ Save a copy of the image without tristatic
-	if 0 then begin ;\\ currently disabled, disk fills up
-		if systime(/sec) - lastSaveTime0 gt 15*60. then begin
-			datestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$0n$0d$')
-			timestamp = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='h$m$s$')
-			toplevel = global.home_dir + '\SavedImages\' + datestamp + '\Multistatic\'
-			fname = toplevel + 'Realtime_Multistatic_' + timestamp + '.png'
-			file_mkdir, toplevel
-			write_png, fname, tvrd(/true)
-			lastSaveTime0 = systime(/sec)
-		endif
-	endif
-
-
-	;\\ Overlay tristatics last, so we can take a picture with and without...
 	;\\ Overlay Tristatic Winds
 	if show_tristatic eq 1 and size(tristaticFits, /type) ne 0 then begin
 		use = where(max(tristaticFits.overlap, dim=1) gt .2 and $
@@ -466,37 +451,23 @@ pro sdi_monitor_multistatic
 
 		if (nuse gt 0) then begin
 			triFits = tristaticFits[use]
-
 			for i = 0, nuse - 1 do begin
-
 				outWind = [triFits[i].u, triFits[i].v]
-
 				magnitude = sqrt(outWind[0]*outWInd[0] + outWind[1]*outWind[1]) * scale
 				azimuth = atan(outWind[0], outWind[1]) / !DTOR
-
 				get_mapped_vector_components, map, triFits[i].lat, triFits[i].lon, $
 											  magnitude, azimuth, x0, y0, xlen, ylen
-
 				arrow, x0, y0, x0 + xlen, y0 + ylen, /data, color = 150, hsize = 8
-
 			endfor
 		endif
 	endif
 
 	!p.font = -1
 
-	;\\ Save a copy of the image with tristatic
-	if 0 then begin ;\\ currently disabled, disk fills up
-		if systime(/sec) - lastSaveTime1 gt 15*60. then begin
-			fname = toplevel + 'Realtime_Multistatic_Tri' + timestamp + '.png'
-			file_mkdir, toplevel
-			write_png, fname, tvrd(/true)
-			lastSaveTime1 = systime(/sec)
-		endif
-	endif
+	img = tvrd(/true)
+	if keyword_set(save_name) then write_png, save_name, img
+	wdelete, wid
 
-
-	tvlct, red, gre, blu
 	END_MULTISTATIC:
 	if (size(allSeries, /type) ne 0) then ptr_free, allSeries, allMeta
 end
