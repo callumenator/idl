@@ -1,4 +1,5 @@
 
+@sdi3k_read_netcdf_data
 
 pro sdi_analysis, directory, $
 				  filter = filter, $
