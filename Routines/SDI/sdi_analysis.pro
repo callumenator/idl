@@ -100,7 +100,7 @@ pro sdi_analysis, directory, $
 			setenv, 'SDI_GREEN_ZERO_VELOCITY_FILE=AUTO'
     		setenv, 'SDI_RED_ZERO_VELOCITY_FILE=AUTO'
     		setenv, 'SDI_OH_ZERO_VELOCITY_FILE=AUTO'
-			if keyword_set(winds) then sdi3k_batch_windfitz, sky_list[k]
+			if keyword_set(winds) then sdi3k_batch_windfitz, sky_list[k], /auto_flat
 
 			if keyword_set(plots) then begin
 				sdi3k_batch_plotz, sky_list[k], $
