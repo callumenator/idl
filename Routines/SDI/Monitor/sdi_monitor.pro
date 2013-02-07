@@ -229,23 +229,9 @@ pro sdi_monitor_event, event
 	;\\ Base widget resize event
 	if tag_names(event, /structure_name) eq 'WIDGET_BASE' then begin
 
-		base_geom = widget_info(global.base_id, /geom)
-		for k = 0, n_elements(global.draw_id) - 1 do begin
-			draw_geom = widget_info(global.draw_id[k], /geom)
-			new_x = draw_geom.scr_xsize + (base_geom.scr_xsize - global.base_geom.scr_xsize)
-			new_y = draw_geom.scr_ysize + (base_geom.scr_ysize - global.base_geom.scr_ysize)
-			widget_control, scr_xsize=new_x, scr_ysize=new_y, global.draw_id[k]
-		endfor
-
-		global.base_geom = base_geom
-
 	endif
 
-
-
 	if tag_names(event, /structure_name) eq 'WIDGET_TIMER' then begin
-
-		global.free_index_0 ++
 
 		;\\ Queue next timer event
 			widget_control, timer = global.timer_interval, global.base_id
@@ -371,18 +357,20 @@ pro sdi_monitor_event, event
 									  wavelength:snapshot.wavelength, $
 							  		  site_code:snapshot.site_code }
 
+					*global.latest_snapshot = snapshot_entry
+
 					if snapshot.wavelength eq 6328 then begin
 						calibration_entry = {id:site_lambda_id, $
-										  zonemap_index:have_zmap_type, $
-										  spectra:ptr_new(snapshot.spectra), $
-										  fits:ptr_new(), $
-										  start_time:snapshot.start_time, $
-									 	  end_time:snapshot.end_time, $
-										  scans:snapshot.scans, $
-										  scan_channels:snapshot.scan_channels, $
-										  nzones:snapshot.nzones, $
-										  wavelength:snapshot.wavelength, $
-								  		  site_code:snapshot.site_code }
+										  	 zonemap_index:have_zmap_type, $
+										  	 spectra:ptr_new(snapshot.spectra), $
+										  	 fits:ptr_new(), $
+										  	 start_time:snapshot.start_time, $
+									 	   	 end_time:snapshot.end_time, $
+										  	 scans:snapshot.scans, $
+										  	 scan_channels:snapshot.scan_channels, $
+										  	 nzones:snapshot.nzones, $
+										  	 wavelength:snapshot.wavelength, $
+								  		  	 site_code:snapshot.site_code }
 					endif
 
 				;\\ If we dont have site and lambda, append to the snapshots array
@@ -559,6 +547,35 @@ pro sdi_monitor_event, event
 			sdi_monitor_job_timeupdate, 'multistatic'
 		endif
 
+		;\\ Update the GUI info
+		list = ['Current UT: ' + systime(/ut)]
+		if size(*global.latest_snapshot, /type) ne 0 then begin
+			lsnap = *global.latest_snapshot
+			list = [list, 'Latest Snapshot: ' + $
+					strjoin([lsnap.site_code, $
+					   	 	 dt_tm_fromjs(lsnap.start_time, format='0d$/0n$/Y$ h$:m$:s$'), $
+					   	 	 string(lsnap.wavelength/10., f='(f0.1)') + 'nm'], ', ') ]
+		endif
+		for jidx = 0, n_elements(global.job_status) - 1 do begin
+			tdiff = string((systime(/sec) - global.job_status[jidx].last_run)/60., f='(f0.1)')
+			list = [list, strupcase(global.job_status[jidx].name) + ' last called ' + tdiff + $
+						  ' mins ago']
+			widget_control, set_value=list, global.list_id
+		endfor
+
+snapshot_entry = {id:site_lambda_id, $
+									  zonemap_index:have_zmap_type, $
+									  spectra:ptr_new(snapshot.spectra), $
+									  fits:ptr_new(), $
+									  start_time:snapshot.start_time, $
+								 	  end_time:snapshot.end_time, $
+									  scans:snapshot.scans, $
+									  scan_channels:snapshot.scan_channels, $
+									  nzones:snapshot.nzones, $
+									  wavelength:snapshot.wavelength, $
+							  		  site_code:snapshot.site_code }
+
+
 	endif ;\\ widget timer events
 
 	heap_gc
@@ -616,40 +633,14 @@ pro sdi_monitor
 		endelse
 
 
+
+
 	font = 'Ariel*Bold*15'
 	base = widget_base(col = 1, title='SDI Monitor', /TLB_SIZE_EVENTS, mbar=menu )
-	tab = widget_tab(base)
-	tab_status_base = widget_base(tab, title = 'Status', col = 1, /base_align_left)
-	tab_0_base = widget_base(tab, title = 'Snapshots', col = 1)
-	tab_1_base = widget_base(tab, title = 'Timeseries', col = 1)
-	tab_2_base = widget_base(tab, title = 'ForMark', col = 1)
-	tab_3_base = widget_base(tab, title = 'Windfields', col = 1)
-	tab_4_base = widget_base(tab, title = 'MultiStatic', col = 1)
-
-	file_menu = widget_button(menu, value = 'File')
-	file_plugin_status = widget_button(file_menu, value = 'Set Job Status ', uval={tag:'file_jobs'})
-	file_background_menu = widget_button(file_menu, value = 'Select Background Parameter', uval={tag:'file_background'})
-
-	monitor_jobs = where(job_status.active eq 1, njobs)
-	if (njobs gt 0) then begin
-		monitor_jobs_label = string(njobs, f='(i0)') + string([13b,10b]) + $
-							 strjoin('     ' + job_status[monitor_jobs].name, string([13b,10b]))
-	endif else begin
-		monitor_jobs_label = 'None'
-	endelse
-	label = widget_label(tab_status_base, value = 'Monitor Jobs Running: ' + monitor_jobs_label, font=font, uname='status_jobs_running', ysize = 15*(njobs+1), xs=500)
-
-	draw0 = widget_draw(tab_0_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
-	draw1 = widget_draw(tab_1_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
-	draw2 = widget_draw(tab_2_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
-	draw3 = widget_draw(tab_3_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
-	draw4 = widget_draw(tab_4_base, xs = 500, ys=500, x_scroll_size=500, y_scroll_size=500)
+	list = widget_list(base, font=font, xs = 50, ys=10)
 
 	widget_control, /realize, base
 	widget_control, timer = timer_interval, base
-
-	shared = {recent_monostatic_winds:ptr_new(/alloc), $
-			  temperature_time_axis:[0.0, 0.0] }
 
 	global = {persistent_file:persistent_file, $
 			  in_dir:in_dir, $
@@ -657,23 +648,19 @@ pro sdi_monitor
 			  home_dir:home_dir, $
 			  zmap_size:zmap_size, $
 			  min_file_age:min_file_age, $
-			  background_parameter:'Temperature', $
 			  max_timeseries_length:max_timeseries_length, $
 			  timeseries_chop:timeseries_chop, $
 			  timer_interval:timer_interval, $
 			  oldest_snapshot:oldest_snapshot, $
 			  base_id:base, $
-			  base_geom:widget_info(base, /geom), $
-			  draw_id:[draw0, draw1, draw2, draw3, draw4], $
-			  tab_id:[tab_0_base, tab_1_base, tab_2_base, tab_3_base, tab_4_base], $
-			  status_base:tab_status_base, $
-     		  label_id:label, $
-			  free_index_0:0L, $
+			  list_id:list, $
 			  font:font, $
+			  job_status:job_status, $
 			  email_list:email_list, $
 			  log_emailed:log_emailed, $
-     		  job_status:job_status, $
-			  shared:shared}
+			  latest_snapshot:ptr_new()}
+
+	global.latest_snapshot = ptr_new(/alloc)
 
 	xmanager, 'sdi_monitor', base, event = 'sdi_monitor_event', $
 			  cleanup = 'sdi_monitor_cleanup', /no_block
