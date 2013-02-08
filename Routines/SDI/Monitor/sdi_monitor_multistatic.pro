@@ -242,7 +242,7 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 	;\\ Nominal values of middle lat and lon, refined depending on available info
 	midLat = 65.
 	midLon = -147.
-	mono_filename = dir + 'latest_monostatic.idlsave'
+	mono_filename = dir + 'latest_monostatic_6300.idlsave'
 	if file_test(mono_filename) eq 1 then begin
 		restore, mono_filename
 		midLat = mean(monostatic.lat)

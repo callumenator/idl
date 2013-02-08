@@ -2,12 +2,14 @@
 ;\\ Plot the current windfields
 pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 							timeseries=timeseries, $ ;\\ time series directory
+							wavelength=wavelength, $ wavelength in angstrom
 							save_name=save_name
 
 	whoami, dir, file
 
  	if not keyword_set(datafile) then datafile = dir + '\persistent.idlsave'
  	if not keyword_set(timeseries) then timeseries = dir + '\timeseries\'
+ 	if not keyword_set(wavelength) then wavelength = 6300
 
  	if file_test(datafile) eq 0 then return
 	tries = 0
@@ -37,6 +39,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 
 		fitted = where(ptr_valid(snapshots.fits) eq 1, n_fitted)
+
 		if n_fitted eq 0 then return
 		snapshots = snapshots[fitted]
 
@@ -47,10 +50,11 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 	;\\ Fit the winds first, then plot
 		count_valid = 0
+		time_of_most_recent = 0 ;\\ track most recent, to reject old wind fields from plotting
 		winds = ptrarr(n_fitted)
 		for i = 0, n_fitted - 1 do begin
 
-			if snapshots[i].wavelength ne 6300 then continue
+			if snapshots[i].wavelength ne wavelength then continue
 
 			ts_name = timeseries + strupcase(snapshots[i].site_code) + $
 					  '_' + string(snapshots[i].wavelength, f='(i04)') + $
@@ -72,6 +76,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				js2ymds, series.start_time, syear, smonth, sday, ssec
 				daynos = ymd2dn(syear, smonth, sday)
 				slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+
 				if nsliced eq 0 then continue
 				series = series[slice]
 
@@ -151,6 +156,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				meridHi = max(windfit.meridional_wind, dim=1)
 				meridLo = min(windfit.meridional_wind, dim=1)
 				time = js2ut(0.5*(var.start_time + var.end_time))
+				time_of_most_recent = max(time)
 
 				cnv_series = convert_js(var.start_time)
 				taxis = cnv_series.dayno + cnv_series.sec/(24.*3600.)
@@ -169,15 +175,21 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 					zn_mlt = fltarr(nz, nt)
 					zn_mlat = fltarr(nz, nt)
+					intens = fltarr(nz, nt)
+					scale = pixels_per_zone(meta, /relative)
 					for t = 0, nt - 1 do begin
 						zn_mlat[*,t] = mlat
 						zn_mlt[*,t] = mlt[t] + zn_mlt_offset
+						intens[*,t] = reform((series.fits.area)[*,t]) / scale
 					endfor
 					append, reform(windfit.zonal_wind, nels(windfit.zonal_wind)), allZonal
 					append, reform(windfit.meridional_wind, nels(windfit.meridional_wind)), allMerid
 					append, reform(var.temperature, nels(var.temperature)), allTemps
 					append, reform(zn_mlt, nels(zn_mlt)), allMlt
 					append, reform(zn_mlat, nels(zn_mlat)), allMlat
+					append, reform(intens, nels(intens)), allIntens
+					append, nels(intens), n_intens
+					append, time, allTime
 				;\\ ------------------------- End dial plot info ---------------------
 
 				if (min(time) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(time)
@@ -185,7 +197,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 				get_zone_locations, meta, zones=zinfo, altitude = altitude
 
-				;\\ Make the latest winds available via global.shared.recent_monostatic_winds
+				;\\ Make the latest winds available via save file
 					append, geoZonalWind, allMonoZonal
 					append, geoMeridWind, allMonoMerid
 					append, zinfo.lat, allMonoLat
@@ -208,10 +220,12 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 							  taxis:taxis }
 
 				winds[i] = ptr_new(wind_struc)
+
 				count_valid ++
 		endfor
 
 	if count_valid eq 0 then goto, MONITOR_WINDFIELDS_END
+
 
 	;\\ Save the combined monostatic winds
 		monostatic = {zonal:allMonoZonal, $
@@ -219,8 +233,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 					  lat:allMonoLat, $
 					  lon:allMonoLon, $
 					  time:max(allMonoMaxTime)}
-		save, filename = dir + 'latest_monostatic.idlsave', monostatic
-
+		save, filename = dir + 'latest_monostatic_' + string(wavelength, f='(i04)') + '.idlsave', monostatic
 
 	;\\ Create a window
 		window, /free, xs=1000, ys=1000, /pixmap
@@ -234,7 +247,15 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 	;\\ Map options
 		lat = 65
 		lon = -147
-		zoom = 5.5
+		if wavelength eq 6300 then begin
+			zoom = 5.5
+			label_locs = [[60.2,-77],[70.2,-76]]
+			label_orients = [-5, -5]
+		endif else begin
+			zoom = 7.5
+			label_locs = [[60.2,-85],[70.2,-86]]
+			label_orients = [-15, -15]
+		endelse
 		winx = 1000
 		winy = 1000
 		bounds = [0,.5, .5, 1]
@@ -243,7 +264,9 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		plot_simple_map, lat, lon, zoom, 1, 1, map=map, $
 						 backcolor=[0,0], continentcolor=[50,0], $
 						 outlinecolor=[90,0], bounds = bounds
-		overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100]
+		overlay_geomag_contours, map, longitude=10, latitude=5, color=[0, 100], $
+								 label_loc=label_locs, label_names=['60','70'] + '!9%!3 MLAT', $
+								 label_color=[0,150], label_orient=label_orients
 
 		loadct, 0, /silent
 		plots, /normal, [0,1], [.5,.5], color=100
@@ -253,7 +276,8 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 			site_count = 0
 			!p.font = 0
 			device, set_font='Ariel*17*Bold'
-			xyouts, 5, winy - 15*(site_count+1), 'Vector Wind ' + dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
+			xyouts, 5, winy - 15*(site_count+1), string(wavelength/10., f='(f0.1)') + 'nm Vector Wind ' + $
+					dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
 			time = time_str_from_decimalut(total((bin_date(systime(/ut)))[[3,4,5]] * [1, 1./60., 1./3600.]))
 			xyouts, 5, winy - 15*(site_count+2), 'Current Time: ' + time + ' UT', /device, color=255
 
@@ -261,6 +285,10 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 				if ptr_valid(winds[i]) eq 0 then continue
 				wnd = *winds[i]
+
+				;\\ Reject wind fields that are more than half an hour older than
+				;\\ the most recent wind field
+				if (time_of_most_recent - max(wnd.time)) gt 0.5 then continue
 
 				case wnd.meta.site_code of
 					'PKR': begin & color = 150 & ctable = 39 & end
@@ -272,11 +300,10 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 				zonal = wnd.zonal
 				merid = wnd.merid
-				tol = 10.
-
 				magnitude = sqrt(zonal*zonal + merid*merid)*scale
 				azimuth = atan(zonal, merid)/!DTOR
 
+				tol = 10.
 				use = where(abs(magnitude - median(magnitude)) lt tol*meanabsdev(magnitude, /median), n_use)
 				if n_use eq 0 then continue
 
@@ -328,7 +355,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				time = time_str_from_decimalut(js2ut((wnd.start_time + wnd.end_time)/2.))
 				info_string = wnd.meta.site + ': ' + time + ' UT'
 				xyouts, 5, winy - 15*(site_count+3), info_string, /device, color=color
-
 				site_count ++
 			endfor
 
@@ -346,16 +372,23 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 		if size(allMlt, /type) ne 0 then begin
 
+			;\\ Normalize intensities
+			for kk = 0, n_elements(winds) - 1 do begin
+				if ptr_valid(winds[kk]) then append, (*winds[kk]).meta, intensMeta
+			endfor
+			sdi_monitor_intensity_normalize, altitude, intensMeta, allIntens, allTime, n_intens
+
 			polyfill, [.5, .5, 1, 1], [.5, 1, 1, .5], /normal, color=0
 
 			!p.font = 0
 			device, set_font='Ariel*15*Bold'
 
 			scale = 0.3
-			bin2d, allMlt, allMlat, allTemps, [.25, 1], outx, outy, aveTemps, /extrap
+			intBin_mlt = .125
+			intBin_lat = .5
+			bin2d, allMlt, allMlat, allIntens, [intBin_mlt, intBin_lat], int_outx, int_outy, aveIntens, /extrap
 			bin2d, allMlt, allMlat, allZonal, [.5, 2], outx, outy, aveZonal, /extrap
 			bin2d, allMlt, allMlat, allMerid, [.5, 2], outx, outy, aveMerid, /extrap
-
 
 			aveMlt = aveZonal*0.
 			aveMlat = aveZonal*0.
@@ -373,12 +406,58 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 			rotMerid = (aveZonal*sin(rotAngle) + aveMerid*cos(rotAngle))*scale
 
 			dialxcen = 0.5*winx + width/2. + border/2.
-			dialycen = 0.5*winy + width/2. + border/2.
+			dialycen = 0.5*winy + width/2. + border/2. - 15
+
+			;\\ Intensity background
+			aveIntens = smooth(aveIntens, 5, /edge, /nan)
+			temp = aveIntens[sort(aveIntens)]
+			nel = n_elements(temp)
+			intensColor = bytscl(aveIntens, min=temp[nel*.02], max=temp[nel*.98 - 1], top=250)
+			loadct, 4, /silent
+			tvlct, r, g, b, /get
+			tvlct, r*.7, g*.7, b*.7
+			for ixx = 0, n_elements(int_outx) - 1 do begin
+			for iyy = 0, n_elements(int_outy) - 1 do begin
+
+				i_lat = int_outy[iyy]
+				i_mlt = int_outx[ixx]
+				i_radii = (1 - (( (i_lat) - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
+				i_clock_angle = 90. * (((i_mlt) - 12) / 6.) * !DTOR
+
+				int_dx = ((intBin_mlt/1.8) / 24.)*360.*!DTOR
+				int_dy = ((intBin_lat/1.8) / float((mlat_range[1] - mlat_range[0]))) * (width/2.)
+
+				xpos0 = dialxcen - (i_radii - int_dy)*sin(i_clock_angle - int_dx)
+				ypos0 = dialycen + (i_radii - int_dy)*cos(i_clock_angle - int_dx)
+
+				xpos1 = dialxcen - (i_radii + int_dy)*sin(i_clock_angle - int_dx)
+				ypos1 = dialycen + (i_radii + int_dy)*cos(i_clock_angle - int_dx)
+
+				xpos2 = dialxcen - (i_radii + int_dy)*sin(i_clock_angle + int_dx)
+				ypos2 = dialycen + (i_radii + int_dy)*cos(i_clock_angle + int_dx)
+
+				xpos3 = dialxcen - (i_radii - int_dy)*sin(i_clock_angle + int_dx)
+				ypos3 = dialycen + (i_radii - int_dy)*cos(i_clock_angle + int_dx)
+
+				polyfill, [xpos0,xpos1,xpos2,xpos3], [ypos0,ypos1,ypos2,ypos3], /device, color=intensColor[ixx,iyy]
+			endfor
+			endfor
+
+			;\\ Intensity background scale bar and note
+			scbar = intarr(winx/(2.*3.), 15)
+			for ssi = 0, 14 do scbar[*,ssi] = congrid(indgen(256), winx/(2.*3.), /interp)
+			tv, scbar, winx - 1.05*(winx/(2.*3.)), winy - 45, /device
 			loadct, 0, /silent
+			device, set_font='Ariel*14*Bold'
+			xyouts, winx, winy - 15, $
+					'Intensity (arbitrary scale derived!Cfrom current available data)', $
+					color = 250, /device, align=1.05
+
+			device, set_font='Ariel*17*Bold'
 			plots, dialxcen + [-10,10], dialycen + [0,0], /device, thick = 2, color = 100
 			plots, dialxcen + [0,0], dialycen + [-10,10], /device, thick = 2, color = 100
 
-			circ = (30 + findgen(331))*!DTOR
+			circ = (findgen(331))*!DTOR
 			for lat_circ = mlat_range[0], mlat_range[1], 5 do begin
 				lat_circ_radius = (1 - ((lat_circ - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
 				plots, dialxcen - lat_circ_radius*sin(circ), $
@@ -386,13 +465,16 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 					   color = 100, /device
 				if lat_circ gt mlat_range[0] and lat_circ lt mlat_range[1] then begin
 					label = string(lat_circ, f='(i0)')
-					if lat_circ eq mlat_range[0] + 5 then label += ' MLAT'
-					xyouts, dialxcen, dialycen + lat_circ_radius, label, color = 100, /device, align=1.1
+					if lat_circ eq mlat_range[0] + 5 then begin
+						xyouts, dialxcen, dialycen + lat_circ_radius, label +  ' MLAT', color = 100, /device, align=-.1
+					endif else begin
+						xyouts, dialxcen, dialycen + lat_circ_radius, label, color = 100, /device, align=-.2
+					endelse
 				endif
 			endfor
 			plots, [dialxcen, dialxcen], dialycen + [0, width/2.], color = 100, /device
-			plots, dialxcen - [0, width/2.]*sin(30*!DTOR), $
-				   dialycen + [0, width/2.]*cos(30*!DTOR), $
+			plots, dialxcen - [0, width/2.]*sin(330*!DTOR), $
+				   dialycen + [0, width/2.]*cos(330*!DTOR), $
 				   color = 100, /device
 
 			lat_circ_radius = (1 - ((-3) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
@@ -402,9 +484,10 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				ypos = dialycen + lat_circ_radius*cos(mlt_label_angle) - 8
 				label = string(mlt_clock*100, f='(i04)')
 				if mlt_clock eq 12 then label += ' MLT'
+				if mlt_clock eq 12 then ypos -= 5
+				if mlt_clock eq 24 then ypos += 10
 				xyouts, xpos, ypos, /device, label, color = 100, align=.5
 			endfor
-
 
 			xpos = dialxcen - radii*sin(clock_angle)
 			ypos = dialycen + radii*cos(clock_angle)
@@ -414,19 +497,13 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				   ypos + 1*rotMerid, $
 				   hsize = 5
 
-			device, set_font='Ariel*17*Bold'
-			xyouts, winx/2. + 5, winy-15, 'Average Vector Dial Plot', color = 250, /device
+			xyouts, winx/2. + 5, winy-15, string(wavelength/10., f='(f0.1)') + 'nm Average Vector Dial Plot', color = 250, /device
 			xyouts, winx/2. + 5, winy-30, '(Magnetic Coordinates)', color = 250, /device
 			xpos = winx/2. + 5
 			ypos = winy-55
 			mag = 200
 			arrow, xpos, ypos, xpos + scale*mag, ypos, color = 250, thick=2, hsize = 10
 			xyouts, xpos, ypos + 8, '200 m/s', color = 250, /device
-
-			;tvlct, red, gre, blu, /get
-			;loadct, 39, /silent
-			;tvscl, congrid(aveTemps, winx/3., winy/6., /interp), 3*winx/4. - winx/6, winy/2 + 10
-			;tvlct, red, gre, blu
 
 			!p.font = -1
 		endif
@@ -458,16 +535,16 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		bounds = [.1, .27, .98, .46]
 		!p.font = 0
 		device, set_font='Ariel*17*Bold'
-		xyouts, 5, .485*winy, 'Median Wind Timeseries ' + $
+		xyouts, 5, .485*winy, string(wavelength/10., f='(f0.1)') + 'nm  Median Wind Timeseries ' + $
 				dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /device, color=255
 		!p.font = -1
 		if pass eq 0 then begin
 				plot, max_time_range, [0,1], /xstyle, /ystyle, yrange=yrange, /nodata, pos=bounds, /noerase, xminor=8, xtickint = 2./24., $
-				  ytitle = 'Mag. Zonal (m/s)' , xtitle = 'Time (UT)', yticklen=.003, chars=1.5, xtick_get = xvals, xtickname=blank
+				  ytitle = 'Mag. Zonal (m/s)' , yticklen=.003, chars=1.5, xtick_get = xvals, xtickname=blank
 
 			oplot, max_time_range, [0,0], line=1
    			xtickname = time_str_from_decimalut((xvals mod 1) * 24., /noseconds)
-			axis, xaxis=0, xtickname = blank, /xstyle, xrange=max_time_range, xtitle = 'Time (UT)', $
+			axis, xaxis=0, xtickname = blank, /xstyle, xrange=max_time_range, $
 				  chars = 1.5, xminor=8, xtickint = 2./24.
 		endif else begin
 			plot, max_time_range, [0,1], xstyle=5, ystyle=5, yrange=yrange, /nodata, pos=bounds, /noerase, xtickint = 2./24.
@@ -552,22 +629,23 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 	wdelete, wid
 
 	dims = size(img, /dimensions)
+	lambda = string(wavelength, f='(i04)')
 
 	;\\ Save a copy of the dial plot
 		portion = img[*,dims[1]/2:dims[1]-1, dims[2]/2:dims[2]-1]
 		year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
-		fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Wind_Dial_Plot\'
+		fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_' + lambda + '\Wind_Dial_Plot\'
 		date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
-		fname += 'Wind_Dial_Plot_AllStations_' + date + '_6300.png'
+		fname += 'Wind_Dial_Plot_AllStations_' + date + '_' + lambda + '.png'
 		file_mkdir, file_dirname(fname)
 		write_png, fname, portion
 
 	;\\ Save a copy of the wind time series
 		portion = img[*,*,0:dims[2]/2]
 		year = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$')
-		fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_6300\Wind_Summary\'
+		fname = 'c:\users\SDI\SDIPlots\' + year + '_AllStations_' + lambda + '\Wind_Summary\'
 		date = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$_DOYdoy$')
-		fname += 'Wind_Summary_Plot_AllStations_' + date + '_6300.png'
+		fname += 'Wind_Summary_Plot_AllStations_' + date + '_' + lambda + '.png'
 		file_mkdir, file_dirname(fname)
 		write_png, fname, portion
 

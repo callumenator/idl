@@ -821,7 +821,6 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 	whoami, home_dir, file
 	save_file = home_dir + 'tag.idlsave'
 
-	heap_gc
 	if not keyword_set(tag_type) then tag_type = 'cloud'
 
 	if file_test(save_file) eq 0 then begin
@@ -832,8 +831,14 @@ function sdi_tag_query, site_code, lambda, js, tag_type=tag_type
 		pts = where(tags.type eq tag_type and $
 					tags.site_code eq site_code and $
 					tags.lambda eq lambda and $
-					tags.js_end lt js, nmatch)
-		if (nmatch gt 0) then return, tags[pts] else return, 0
+					tags.js_end lt js, nmatch, comp=others, ncomp=nothers)
+		if (nmatch gt 0) then begin
+			if nothers gt 0 then heap_free, tags[others]
+			return, tags[pts]
+		endif else begin
+			heap_free, tags
+			return, 0
+		endelse
 	endelse
 
 end

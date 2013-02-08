@@ -94,9 +94,10 @@ pro sdi_monitor_timeseries, data_dir=data_dir, $
 		for p = 0, n_elements(show) - 1 do begin
 
 			if p eq 0 then noerase = 0 else noerase = 1
+
 			loadct, 0, /silent
 			yrange = show[p].range
-			plot, time_range, yrange, /nodata, /xstyle, /ystyle, $
+			plot, time_range, yrange, /nodata, xstyle=5, /ystyle, $
 				  xtickname=xtickname, title = show[p].title, noerase=noerase, xtickint = 6./24., xminor=8, $
 				  pos=bounds[p,0,*], yticklen=.003, xtitle = 'Time (UT)', ytick_get=yvals
 

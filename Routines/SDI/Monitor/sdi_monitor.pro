@@ -150,10 +150,6 @@ pro sdi_monitor_send_email, addresses, subject, body
   	endfor
 end
 
-pro sdi_monitor_run, cmd
-	spawn, 'start /MIN c:\rsi\idl62\bin\bin.x86\idlde -IDL_WDE_SPLASHSCREEN 0 -e "' + cmd + '"', /nowait, /hide
-end
-
 pro sdi_monitor_event, event
 
 	common sdi_monitor_common, global, persistent
@@ -239,6 +235,10 @@ pro sdi_monitor_event, event
 		;\\ Manage the log (check if we need to open a new one, email the current one, etc)
 			sdi_monitor_log_manage
 
+		;\\ Check for watchdog script
+			;watchdog_file = global.home_dir + '\watchdog\monitor_crash_file.tmp
+			;if file_test(watchdog_file) eq 1 then file_delete, watchdog_file, /quiet
+
 		;\\ Read snapshot files in in_dir
 			in_files = file_search(global.in_dir + '*snapshot*idlsave', count = n_in, /test_regular)
 			if n_in eq 0 then goto, MONITOR_FILE_LOOP_END
@@ -263,18 +263,10 @@ pro sdi_monitor_event, event
 					print, 'Error index: ', error_status
 					print, 'Error message: ', !ERROR_STATE.MSG
 					catch, /cancel
-					;\\ If restoring failed, log the error, and go on to the next file
-					eof_error = strpos(!ERROR_STATE.MSG, 'RESTORE: End of file encountered.') ne -1
-					if eof_error eq 1 then begin
-						openw, hnd, global.home_dir + '\Log\EOF_ErrLog.txt', /get, /append
-						printf, hnd, systime(/ut) + ' - Failed with: ' + !ERROR_STATE.MSG
-						free_lun, hnd
-						continue
-					endif
+					continue
 				endif
 
 				restore, in_files[k]
-
 				catch, /cancel
 
 				;\\ Build up unique id's for this snapshot site, wavelength, and zonemap type
@@ -433,7 +425,6 @@ pro sdi_monitor_event, event
 		if ptr_valid(persistent.snapshots) eq 0 then return
 		if ptr_valid(persistent.calibrations) eq 0 then return
 
-
 		;\\ First look for any calibrations that need fitting (why fit them?)
 		calibrations = *persistent.calibrations
 		fit_these = where(ptr_valid(calibrations.fits) eq 0 and $
@@ -511,70 +502,44 @@ pro sdi_monitor_event, event
 			endif ;\\ found insprofs
 		endfor ;\\ loop over snapshots
 
+		log_emailed = global.log_emailed
+		save, filename = global.persistent_file, persistent, log_emailed
+
 		ftp = 0
 		image_names = 0
 		draw_ids = ''
 
-		;\\ Plot the current snapshots
-		status = sdi_monitor_job_status('snapshots')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('snapshots') gt 120) then begin
-			cmd = "sdi_monitor_snapshots, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_monitor.png'"
-			sdi_monitor_run, cmd
-			sdi_monitor_job_timeupdate, 'snapshots'
-		endif
-
-		;\\ Plot the time series
-		status = sdi_monitor_job_status('timeseries')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('timeseries') gt 240) then begin
-			cmd = "sdi_monitor_timeseries, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_timeseries.png'"
-			sdi_monitor_run, cmd
-			sdi_monitor_job_timeupdate, 'timeseries'
-		endif
-
-		;\\ Plot the current windfields
-		status = sdi_monitor_job_status('windfields')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('windfields') gt 240) then begin
-			cmd = "sdi_monitor_windfields, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_windfields.png'"
-			sdi_monitor_run, cmd
-			sdi_monitor_job_timeupdate, 'windfields'
-		endif
-
-		;\\ Run multistatic analyses
-		status = sdi_monitor_job_status('multistatic')
-		if (status.active eq 1) and (sdi_monitor_job_timelapse('multistatic') gt 360) then begin
-			cmd = "sdi_monitor_multistatic, save_name='C:\RSI\idl\Routines\SDI\Monitor\Plots\sdi_multistatic.png'"
-			sdi_monitor_run, cmd
-			sdi_monitor_job_timeupdate, 'multistatic'
-		endif
-
 		;\\ Update the GUI info
 		list = ['Current UT: ' + systime(/ut)]
+		list = [list, '']
 		if size(*global.latest_snapshot, /type) ne 0 then begin
 			lsnap = *global.latest_snapshot
-			list = [list, 'Latest Snapshot: ' + $
-					strjoin([lsnap.site_code, $
-					   	 	 dt_tm_fromjs(lsnap.start_time, format='0d$/0n$/Y$ h$:m$:s$'), $
-					   	 	 string(lsnap.wavelength/10., f='(f0.1)') + 'nm'], ', ') ]
+			list = [list, 'Latest Snapshot: ']
+			list = [list, 'Site: ' + lsnap.site_code]
+			list = [list, 'Wavelength: ' + string(lsnap.wavelength/10., f='(f0.1)') + 'nm']
+			list = [list, 'Date: ' + dt_tm_fromjs(lsnap.start_time, format='0d$/0n$/Y$')]
+			list = [list, 'Start Time: ' + dt_tm_fromjs(lsnap.start_time, format='h$:m$:s$')]
+			list = [list, 'Stop Time: ' + dt_tm_fromjs(lsnap.end_time, format='h$:m$:s$')]
+			list = [list, 'Exp Time: ' + string((lsnap.end_time - lsnap.start_time)/60., f='(f0.1)') + ' mins']
+			list = [list, 'Scans: ' + string(lsnap.scans, f='(i0)')]
+			list = [list, 'Zones: ' + string(lsnap.nzones, f='(i0)')]
+			list = [list, 'SiteID: ' + lsnap.id]
+			if ptr_valid(lsnap.fits) then fitted = 'yes' else fitted = 'no'
+			list = [list, 'Fitted?: ' + fitted]
+			list = [list, '']
 		endif
-		for jidx = 0, n_elements(global.job_status) - 1 do begin
-			tdiff = string((systime(/sec) - global.job_status[jidx].last_run)/60., f='(f0.1)')
-			list = [list, strupcase(global.job_status[jidx].name) + ' last called ' + tdiff + $
-						  ' mins ago']
-			widget_control, set_value=list, global.list_id
+
+		flist = file_search(global.home_dir + '\Plots\*.png', count = nf)
+		len = string(max(strlen(file_basename(flist))), f='(i0)')
+		list = [list, 'Plot File:' + strjoin(replicate(' ', 1+len-10), '') + 'Age (minutes):']
+		for ii = 0, nf - 1 do begin
+			info = file_info(flist[ii])
+			name = file_basename(info.name)
+			list = [list, name + strjoin(replicate(' ', 1+len-strlen(name)), '') + ': ' $
+					+ string((systime(/sec) - info.mtime)/60., f='(f0.1)')]
 		endfor
 
-snapshot_entry = {id:site_lambda_id, $
-									  zonemap_index:have_zmap_type, $
-									  spectra:ptr_new(snapshot.spectra), $
-									  fits:ptr_new(), $
-									  start_time:snapshot.start_time, $
-								 	  end_time:snapshot.end_time, $
-									  scans:snapshot.scans, $
-									  scan_channels:snapshot.scan_channels, $
-									  nzones:snapshot.nzones, $
-									  wavelength:snapshot.wavelength, $
-							  		  site_code:snapshot.site_code }
-
+		widget_control, set_value=list, global.list_id
 
 	endif ;\\ widget timer events
 
@@ -632,12 +597,9 @@ pro sdi_monitor
 			log_emailed = ''
 		endelse
 
-
-
-
-	font = 'Ariel*Bold*15'
+	font = 'Consolas*18'
 	base = widget_base(col = 1, title='SDI Monitor', /TLB_SIZE_EVENTS, mbar=menu )
-	list = widget_list(base, font=font, xs = 50, ys=10)
+	list = widget_list(base, font=font, xs = 50, ys=30)
 
 	widget_control, /realize, base
 	widget_control, timer = timer_interval, base
