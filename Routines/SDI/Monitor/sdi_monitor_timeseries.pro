@@ -57,6 +57,7 @@ pro sdi_monitor_timeseries, data_dir=data_dir, $
 				if (max(temp_ut) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(temp_ut)
 			endif
 
+
 			if (size(series.fits.width, /type) ne 0) then begin
 				good = where(median(series.fits.width, dim=1) gt 80 and $
 							 median(series.fits.width, dim=1) ne 600 and $

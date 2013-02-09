@@ -48,6 +48,28 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		ut_day_range = [current_ut_day, current_ut_day]
 		current_day_ut_range = [24, 0]
 
+	;\\ This is to get the same time range as the temperature plot
+		allTs = file_search(timeseries + '\*_timeseries.idlsave', count=nts)
+		for i = 0, nts - 1 do begin
+			restore, allTs[i]
+
+			;\\ Find contiguous data within ut_day_range
+				js2ymds, series.start_time, y, m, d, s
+				curr_year =float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
+				keep = where(y eq curr_year, nkeep)
+				if nkeep gt 0 then series = series[keep] else continue
+
+				daynos = ymd2dn(y, m, d)
+				slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
+				if (nsliced ge 2) then begin
+					temp_ut = s[slice]/3600.
+					if (min(temp_ut) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(temp_ut)
+					if (max(temp_ut) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(temp_ut)
+				endif else begin
+					continue
+				endelse
+		endfor
+
 	;\\ Fit the winds first, then plot
 		count_valid = 0
 		time_of_most_recent = 0 ;\\ track most recent, to reject old wind fields from plotting
@@ -61,7 +83,18 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 					  '_timeseries.idlsave'
 
 			if file_test(ts_name) eq 0 then continue
+			tries = 0
+			catch, error
+			if error ne 0 then begin
+				if tries lt 3 then begin
+					wait, 2. & tries ++
+				endif else begin
+					catch, /cancel & return
+				endelse
+			endif
 			restore, ts_name
+			catch, /cancel
+
 			oMeta = meta ;\\ save a copy of this, for when we save fitted winds back to time series file
 
 			;\\ Deduce altitude
@@ -73,17 +106,15 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				if altitude eq -1 then continue
 
 			;\\ Find contiguous data within ut_day_range
-				js2ymds, series.start_time, syear, smonth, sday, ssec
-				daynos = ymd2dn(syear, smonth, sday)
+				js2ymds, series.start_time, y, m, d, s
+				curr_year =float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
+				keep = where(y eq curr_year, nkeep)
+				if nkeep gt 0 then series = series[keep] else continue
+
+				daynos = ymd2dn(y, m, d)
 				slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
-
-				if nsliced eq 0 then continue
+				if nsliced lt 2 then continue
 				series = series[slice]
-
-				find_contiguous, js2ut(series.start_time) mod 24, 3., blocks, n_blocks=nb, /abs
-				ts_0 = blocks[nb-1,0]
-				ts_1 = blocks[nb-1,1]
-				series = series[ts_0:ts_1]
 
 				sdi_monitor_format, {metadata:meta, series:series}, metadata=meta, spek=var, zone_centers=zcen
 				if meta.latitude lt 0 then continue
@@ -156,7 +187,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				meridHi = max(windfit.meridional_wind, dim=1)
 				meridLo = min(windfit.meridional_wind, dim=1)
 				time = js2ut(0.5*(var.start_time + var.end_time))
-				time_of_most_recent = max(time)
+				if (max(time)) gt time_of_most_recent then time_of_most_recent = max(time)
 
 				cnv_series = convert_js(var.start_time)
 				taxis = cnv_series.dayno + cnv_series.sec/(24.*3600.)
@@ -192,8 +223,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 					append, time, allTime
 				;\\ ------------------------- End dial plot info ---------------------
 
-				if (min(time) lt current_day_ut_range[0]) then current_day_ut_range[0] = min(time)
-				if (max(time) gt current_day_ut_range[1]) then current_day_ut_range[1] = max(time)
 
 				get_zone_locations, meta, zones=zinfo, altitude = altitude
 
@@ -511,7 +540,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 	;\\----------------------------- End dial plot -----------------------------
 
 
-
 	;\\----------------------------- Begin time series -----------------------------
 	yrange = [-250, 250]
 	blank = replicate(' ', 20)
@@ -529,6 +557,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 	endelse
 
 	max_time_range = time_range
+
 
 	for pass = 0, 1 do begin
 
@@ -576,7 +605,17 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				!p.font = -1
 			endif else begin
 				loadct, ctable, /silent
-				if n_elements(wnd.time) gt 1 then oplot, wnd.taxis, wnd.medZonal, color=color, psym=-6, sym=.2, thick=.5
+
+				find_contiguous, wnd.time, 30./60., blocks, n_blocks=nb, /abs
+				for bidx = 0, nb - 1 do begin
+					ts_0 = blocks[bidx,0]
+					ts_1 = blocks[bidx,1]
+					x_ut = wnd.taxis[ts_0:ts_1]
+					y_wn = wnd.medZonal[ts_0:ts_1]
+					if n_elements(x_ut) lt 2 then continue
+					oplot, x_ut, y_wn, color=color, psym=-6, sym=.2, thick=.5
+				endfor
+
 			endelse
 
 			site_count ++
@@ -614,7 +653,16 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				if n_elements(wnd.time) gt 1 then errplot, wnd.taxis, wnd.meridLo, wnd.meridHi, color=50, width=.00001, noclip=0
 			endif else begin
 				loadct, ctable, /silent
-				if n_elements(wnd.time) gt 1 then oplot, wnd.taxis, wnd.medMerid, color=color, psym=-6, sym=.2, thick=0.5
+
+				find_contiguous, wnd.time, 30./60., blocks, n_blocks=nb, /abs
+				for bidx = 0, nb - 1 do begin
+					ts_0 = blocks[bidx,0]
+					ts_1 = blocks[bidx,1]
+					x_ut = wnd.taxis[ts_0:ts_1]
+					y_wn = wnd.medMerid[ts_0:ts_1]
+					if n_elements(x_ut) lt 2 then continue
+					oplot, x_ut, y_wn, color=color, psym=-6, sym=.2, thick=.5
+				endfor
 
 			endelse
 		endfor
