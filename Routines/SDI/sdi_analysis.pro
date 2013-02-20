@@ -26,7 +26,7 @@ pro sdi_analysis, directory, $
 			sky_list = file_search(directory + '*SKY*', count = nsky)
 		endif else begin
 			las_list = file_search(directory +  '*CAL*', count = nlas)
-			sky_list = file_search(directory + filter + '*SKY*', count = nsky)
+			sky_list = file_search(directory + filter, count = nsky)
 		endelse
 	endelse
 

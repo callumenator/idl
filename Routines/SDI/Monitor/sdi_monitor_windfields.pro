@@ -1,47 +1,18 @@
 
 ;\\ Plot the current windfields
-pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
-							timeseries=timeseries, $ ;\\ time series directory
+pro sdi_monitor_windfields, timeseries=timeseries, $ ;\\ time series directory
 							wavelength=wavelength, $ wavelength in angstrom
 							save_name=save_name
 
 	whoami, dir, file
 
- 	if not keyword_set(datafile) then datafile = dir + '\persistent.idlsave'
  	if not keyword_set(timeseries) then timeseries = dir + '\timeseries\'
  	if not keyword_set(wavelength) then wavelength = 6300
-
- 	if file_test(datafile) eq 0 then return
-	tries = 0
-	catch, error
-	if error ne 0 then begin
-		if tries lt 3 then begin
-			wait, 2. & tries ++
-		endif else begin
-			catch, /cancel & return
-		endelse
-	endif
-	restore, datafile
-	catch, /cancel
-
-	if ptr_valid(persistent.snapshots) eq 0 then return
-	if ptr_valid(persistent.zonemaps) eq 0 then return
-	if size(*persistent.snapshots, /type) eq 0 then return
-	if size(*persistent.zonemaps, /type) eq 0 then return
-
-	snapshots = *persistent.snapshots 	;\\ array of snapshot structs
-	zonemaps = *persistent.zonemaps		;\\ array of zonemap structs
 
 	;\\ Color map
 		color_map = {wavelength:[5577, 6300, 6328, 7320, 8430], $
 						 ctable:[  39,   39,   39,    2,    2], $
 					 	  color:[ 150,  250,  190,  143,  207]}
-
-
-		fitted = where(ptr_valid(snapshots.fits) eq 1, n_fitted)
-
-		if n_fitted eq 0 then return
-		snapshots = snapshots[fitted]
 
 	;\\ UT day range of interest (the current UT day for now, since obs from Alaska don't span days)
 		current_ut_day = dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='doy$')
@@ -49,9 +20,25 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		current_day_ut_range = [24, 0]
 
 	;\\ This is to get the same time range as the temperature plot
-		allTs = file_search(timeseries + '\*_timeseries.idlsave', count=nts)
-		for i = 0, nts - 1 do begin
+		allTs = file_search(timeseries + '\*{HRP,PKR,TLK,KTO,MAW}*_timeseries.idlsave', count=nseries)
+
+	;\\ Fit the winds first, then plot
+		count_valid = 0
+		time_of_most_recent = 0 ;\\ track most recent, to reject old wind fields from plotting
+		winds = ptrarr(nseries)
+		for i = 0, nseries - 1 do begin
+
+			tries = 0
+			catch, error
+			if error ne 0 then begin
+				if tries lt 3 then begin
+					wait, 2. & tries ++
+				endif else begin
+					catch, /cancel & return
+				endelse
+			endif
 			restore, allTs[i]
+			catch, /cancel
 
 			;\\ Find contiguous data within ut_day_range
 				js2ymds, series.start_time, y, m, d, s
@@ -68,53 +55,18 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				endif else begin
 					continue
 				endelse
-		endfor
 
-	;\\ Fit the winds first, then plot
-		count_valid = 0
-		time_of_most_recent = 0 ;\\ track most recent, to reject old wind fields from plotting
-		winds = ptrarr(n_fitted)
-		for i = 0, n_fitted - 1 do begin
+			if meta.wavelength ne wavelength then continue
+			series = series[slice]
 
-			if snapshots[i].wavelength ne wavelength then continue
-
-			ts_name = timeseries + strupcase(snapshots[i].site_code) + $
-					  '_' + string(snapshots[i].wavelength, f='(i04)') + $
-					  '_timeseries.idlsave'
-
-			if file_test(ts_name) eq 0 then continue
-			tries = 0
-			catch, error
-			if error ne 0 then begin
-				if tries lt 3 then begin
-					wait, 2. & tries ++
-				endif else begin
-					catch, /cancel & return
-				endelse
-			endif
-			restore, ts_name
-			catch, /cancel
-
-			oMeta = meta ;\\ save a copy of this, for when we save fitted winds back to time series file
 
 			;\\ Deduce altitude
-				case snapshots[i].wavelength of
+				case meta.wavelength of
 					6300: altitude = 240.
 					5577: altitude = 120.
 					else: altitude = -1
 				endcase
 				if altitude eq -1 then continue
-
-			;\\ Find contiguous data within ut_day_range
-				js2ymds, series.start_time, y, m, d, s
-				curr_year =float( dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$'))
-				keep = where(y eq curr_year, nkeep)
-				if nkeep gt 0 then series = series[keep] else continue
-
-				daynos = ymd2dn(y, m, d)
-				slice = where(daynos ge ut_day_range[0] and daynos le ut_day_range[1], nsliced)
-				if nsliced lt 2 then continue
-				series = series[slice]
 
 				sdi_monitor_format, {metadata:meta, series:series}, metadata=meta, spek=var, zone_centers=zcen
 				if meta.latitude lt 0 then continue
@@ -168,10 +120,10 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 			   	var.velocity -= total(var(1:nobs-2).velocity(0))/n_elements(var(1:nobs-2).velocity(0))
 	    		sdi3k_fit_wind, var, meta, /dvdx_zero, windfit, wind_settings, zcen
 
-				;\\ Save data back into time series file
+				;\\ Save data back into time series file -- not done anymore
 				series.winds.zonal = windfit.zonal_wind
 				series.winds.merid = windfit.meridional_wind
-				save, ts_name, oMeta, series
+
 
 				zonalWind = reform((windfit.zonal_wind)[*,nobs-1])
 				meridWind = reform((windfit.meridional_wind)[*,nobs-1])
@@ -220,7 +172,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 					append, reform(zn_mlat, nels(zn_mlat)), allMlat
 					append, reform(intens, nels(intens)), allIntens
 					append, nels(intens), n_intens
-					append, time, allTime
 				;\\ ------------------------- End dial plot info ---------------------
 
 
@@ -235,8 +186,8 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 				wind_struc = {meta:meta, $
 							  zinfo:zinfo, $
-							  start_time:snapshots[i].start_time, $
-							  end_time:snapshots[i].end_time, $
+							  start_time:series.start_time, $
+							  end_time:series.end_time, $
 							  zonal:geoZonalWind, $
 							  merid:geoMeridWind, $
 							  medMerid:medMerid, $
@@ -249,12 +200,11 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 							  taxis:taxis }
 
 				winds[i] = ptr_new(wind_struc)
-
 				count_valid ++
 		endfor
 
 	if count_valid eq 0 then goto, MONITOR_WINDFIELDS_END
-
+	winds = winds[where(ptr_valid(winds) eq 1, n_fitted)]
 
 	;\\ Save the combined monostatic winds
 		monostatic = {zonal:allMonoZonal, $
@@ -312,7 +262,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 			for i = 0, n_fitted - 1 do begin
 
-				if ptr_valid(winds[i]) eq 0 then continue
 				wnd = *winds[i]
 
 				;\\ Reject wind fields that are more than half an hour older than
@@ -381,7 +330,7 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 				endfor
 				endfor
 
-				time = time_str_from_decimalut(js2ut((wnd.start_time + wnd.end_time)/2.))
+				time = time_str_from_decimalut(max(js2ut((wnd.start_time + wnd.end_time)/2.)))
 				info_string = wnd.meta.site + ': ' + time + ' UT'
 				xyouts, 5, winy - 15*(site_count+3), info_string, /device, color=color
 				site_count ++
@@ -402,10 +351,24 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		if size(allMlt, /type) ne 0 then begin
 
 			;\\ Normalize intensities
+			;\\ Need them in order of HRP, PKR, TLK, ...
 			for kk = 0, n_elements(winds) - 1 do begin
-				if ptr_valid(winds[kk]) then append, (*winds[kk]).meta, intensMeta
+				append, (*winds[kk]).meta, intensMeta
+				append, (*winds[kk]).time, allTime
 			endfor
-			sdi_monitor_intensity_normalize, altitude, intensMeta, allIntens, allTime, n_intens
+
+;			u = intensMeta.site_code[uniq(intensMeta.site_code[sort(intensMeta.site_code)])]
+;			base = [0, n_intens]
+;			for kk = 0, n_elements(u) - 1 do begin
+;				pt = (where(intensMeta.site_code eq u[kk]))[0]
+;				intens = allIntens[base[pt]:base[pt] + n_intens[pt]]
+;				append, intensMeta[pt], _iMeta
+;				append, intens, _iIntens
+;				append, n_intens[pt], _iN
+;				append, (*winds[pt]).time, _iTime
+;			endfor
+
+			if n_elements(winds) gt 1 then sdi_monitor_intensity_normalize, altitude, intensMeta, allIntens, allTime, n_intens
 
 			polyfill, [.5, .5, 1, 1], [.5, 1, 1, .5], /normal, color=0
 
@@ -582,7 +545,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 		site_count = 0
 		for i = 0, n_fitted - 1 do begin
 
-			if ptr_valid(winds[i]) eq 0 then continue
 			wnd = *winds[i]
 
 			case wnd.meta.site_code of
@@ -637,7 +599,6 @@ pro sdi_monitor_windfields, datafile=datafile, $ ;\\ snapshots/zonemaps file
 
 		for i = 0, n_fitted - 1 do begin
 
-			if ptr_valid(winds[i]) eq 0 then continue
 			wnd = *winds[i]
 
 			case wnd.meta.site_code of

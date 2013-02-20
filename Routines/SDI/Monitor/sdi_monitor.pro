@@ -1,36 +1,4 @@
 
-;\\ This routine is just for testing, it simulates an instrument creating a snapshot
-pro sdi_monitor_make_snapshot, index = index
-
-	dir = 'F:\SDIData\'
-	files = ['gakona\HRP_2011_029_Elvey_630nm_Red_Sky_Date_01_29.nc', $
-			 'gakona\HRP_2010_019_Elvey_Laser6328_Red_Cal_Date_01_19.nc', $
-			 'poker\PKR 2010_309_Poker_630nm_Red_Sky_Date_11_05.nc', $
-			 'poker\PKR 2010_046_Poker_558nm_Green_Sky_Date_02_15.nc', $
-			 'poker\PKR 2010_092_Poker_Laser6328_Red_Cal_Date_04_02.pf' ]
-
-	if not keyword_set(index) then index = 0
-	for j = 0, n_elements(files) - 1 do begin
-		sdi3k_read_netcdf_data, dir + files[j], spex=spex, meta=meta
-		out_dir = 'C:\RSI\IDLSource\NewAlaskaCode\Routines\SDI\Monitor\'
-		index = index < (meta.maxrec - 1)
-		snapshot = {spectra:spex[index].spectra, $
-					start_time:spex[index].start_time, $
-					end_time:spex[index].end_time, $
-					scans:spex[index].scans, $
-					scan_channels:meta.scan_channels, $
-					nzones:meta.nzones, $
-					rads:[0.0, meta.zone_radii[0:meta.rings-1]]/100., $
-					secs:meta.zone_sectors[0:meta.rings-1], $
-					oval_angle:meta.oval_angle, $
-					wavelength:meta.wavelength_nm * 10, $
-					site_code:meta.site_code}
-		save, filename = out_dir + meta.site_code + '_' + string(meta.wavelength_nm*10., f='(i04)') + $
-				'_snapshot.idlsave', snapshot, /compress
-	endfor
-end
-
-
 ;\\ Clear the calibration data for given site (force it to refresh when the
 ;\\ next calibration snapshot arrives). Clears all calibration for all zonemaps.
 pro sdi_monitor_clear_calibration, site ;\\ site code
@@ -70,7 +38,7 @@ pro sdi_monitor_clear_timeseries, site ;\\ site code
 			series = series[keep]
 			save, filename = ts_files[i], series, meta
 		endif else begin
-
+			;\\ What to do here, delete file?
 		endelse
 	endfor
 
@@ -406,10 +374,10 @@ pro sdi_monitor_event, event
 										ptr_free, (*persistent.calibrations)[idx].fits
 										(*persistent.calibrations)[idx] = calibration_entry
 									endif
-								endif
-							endelse
-						endif
-					endif
+								endif ;\\ match = 1
+							endelse ;\\ have cals
+						endif ;\\ snapshot is laser
+					endif ;\\ have zmap and lambda for site
 
 
 				;\\ Save the current persistent data
@@ -490,12 +458,25 @@ pro sdi_monitor_event, event
 								gap_mm:(*snap.fits).gap_mm}
 					endif else begin
 						series = [series, new_entry]
+
+						if size(meta, /type) eq 0 then begin
+							zmap = (*persistent.zonemaps)[snap.zonemap_index]
+							zonemap_info = {zonemap:zmap.zonemap, $
+											centers:*zmap.centers, $
+											rads:*zmap.rads, $
+											secs:*zmap.secs }
+							meta = {zonemap_info:zonemap_info, $
+									scan_channels:snap.scan_channels, $
+									wavelength:snap.wavelength, $
+									site_code:snap.site_code, $
+									gap_mm:(*snap.fits).gap_mm}
+						endif
 					endelse
 
 					if n_elements(series) gt global.max_timeseries_length then begin
 						series = series[global.timeseries_chop:*]
 					endif
-
+					print, systime(/ut), save_name
 					save, filename = save_name, series, meta
 
 				;endif ;\\ matching wavelengths for time series
