@@ -5,7 +5,14 @@ pro DCAI_SettingsWrite_Recurse, in, current=current, list=list, extra=extra
 
 	tags = strlowcase(tag_names(in))
 
+	got_editable = HasField(in, 'editable')
+
 	for i = 0, n_elements(tags) - 1 do begin
+
+		if (got_editable eq 1) then begin
+			match = where(strlowcase(in.editable) eq strlowcase(tags[i]), nm)
+			if (nm eq 0) then continue
+		endif
 
 		if keyword_set(extra) then current = extra.base + '[' + string(extra.index, f='(i0)') + ']'
 		if current eq '' then current += tags[i] else current += '|' + tags[i]

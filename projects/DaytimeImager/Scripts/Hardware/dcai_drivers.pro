@@ -23,6 +23,8 @@ pro DCAI_Drivers, command
 
 		'init': begin
 			DCAI_Drivers, {device:'comms_init'}
+			DCAI_Drivers, {device:'filter_init'}
+			DCAI_Drivers, {device:'calibration_init'}
 			DCAI_Drivers, {device:'camera_init', settings:dcai_global.info.camera_profile}
 			DCAI_Drivers, {device:'etalon_init'}
 		end
@@ -36,10 +38,13 @@ pro DCAI_Drivers, command
 			;\\ Set up the com ports
 			dll = dcai_global.settings.external_dll
 			comms_wrapper, dcai_global.settings.filter.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			dcai_global.settings.filter.open = errcode
 			DCAI_Log, 'Open Filter Source Port: ' + string(errcode, f='(i0)')
 			comms_wrapper, dcai_global.settings.mirror.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			dcai_global.settings.mirror.open = errcode
 			DCAI_Log, 'Open Mirror Port: ' + string(errcode, f='(i0)')
 			comms_wrapper, dcai_global.settings.calibration.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			dcai_global.settings.calibration.open = errcode
 			DCAI_Log, 'Open Calibration Port: ' + string(errcode, f='(i0)')
 		end
 
@@ -142,7 +147,14 @@ pro DCAI_Drivers, command
 
 
 		'filter_init':begin
+
+			if (dcai_global.settings.filter.open ne 0) then begin
+				DCAI_Log, 'Filter port not open - skip homing'
+				return
+			endif
+
 			;\\ Filter Wheel Init
+				tx = string(13B)
 				fport = dcai_global.settings.filter.port
 				dll = dcai_global.settings.external_dll
 				comms_wrapper, fport, dll, type='moxa', /write, data = 'EN' + tx
@@ -156,8 +168,130 @@ pro DCAI_Drivers, command
 		end
 
 
+		;\\ command = {device:'filter_select', filter:0 (int)}
 		'filter_select':begin
 
+			if (dcai_global.settings.filter.open ne 0) then begin
+				DCAI_Log, 'Filter port not open - skip filter select'
+				return
+			endif
+
+			if HasField(command, 'filter') ne 1 then begin
+				DCAI_Log, 'Filter_Select called without filter number'
+				return
+			endif
+
+			fport = dcai_global.settings.filter.port
+			dll = dcai_global.settings.external_dll
+			inc = 801000L
+			abs_pos = inc*(command.filter)
+			comms_wrapper, fport, dll, /write, type='moxa', data = 'LA' + string(abs_pos, f='(i0)') + string(13B)
+			comms_wrapper, fport, dll, /write, type='moxa', data = 'NP' + string(13B)
+			comms_wrapper, fport, dll, /write, type='moxa', data = 'M' + string(13B)
+			drive_motor_wait_for_position, fport, dll, 'moxa', max_wait_time=60, errcode=errcode
+		end
+
+
+		;\\ Home the calibration selector motor
+		'calibration_init':begin
+
+			if (dcai_global.settings.calibration.open ne 0) then begin
+				DCAI_Log, 'Calibration port not open - skip homing'
+				return
+			endif
+
+			info_string = 'Homing Calibration Source'
+
+			base = widget_base(col=1, group=dcai_global.gui.base, /floating)
+			info = widget_label(base, value=info_string, font='Ariel*20*Bold', xs=400)
+			widget_control, /realize, base
+
+			;\\ Set the current limits
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LCC150'  + tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LPC200'  + tx
+
+			;\\ Enable the motor
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'EN'  + tx
+			;\\ Call current position 0
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'HO'  + tx
+			;\\ Set a low speed, 5 RPM
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'SP5'  + tx
+			;\\ Drive two full revolutions, so we have to hit the stop at some point
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LA6000'  + tx
+
+			;\\ Note the current time
+				home_start_time = systime(/sec)
+			;\\ Initiate the motion
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'M'  + tx
+
+			;\\ Wait 10 seconds
+				while (systime(/sec) - home_start_time) lt 10 do begin
+					wait, 0.5
+					widget_control, set_value ='Homing Calibration Source ' + $
+							string(10 - (systime(/sec) - home_start_time), f='(f0.1)'), info
+				endwhile
+
+			;\\ Call the home position 0
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'HO'  + tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'SP50'  + tx
+			;\\ Drive a little bit away from it
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LA-10'  + tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'M'  + tx
+				wait, 2.
+
+				print, 'Cal Source Homed'
+				comms_wrapper, port, dll_name, type = 'moxa', /write, data = 'DI'+tx
+
+			;\\ Close notification window
+				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
+		end
+
+
+		;\\ command = {device:'calibration_select', source:0 (int)}
+		'calibration_select':begin
+
+			if (dcai_global.settings.filter.open ne 0) then begin
+				DCAI_Log, 'Calibration port not open - skip calibration select'
+				return
+			endif
+
+			if HasField(command, 'source') ne 1 then begin
+				DCAI_Log, 'Calibration_Select called without source number'
+				return
+			endif
+
+			case command.source of
+				0: motor_pos = -150
+				1: motor_pos = -850
+				2: motor_pos = -1650
+				3: motor_pos = -2400
+				else:
+			endcase
+
+			port = dcai_global.settings.calibration.port
+			dll = dcai_global.settings.external_dll
+			tx = string(13B)
+
+			;\\ Notification window
+				info_string = 'Driving to Calibration Source ' + string(source, f='(i01)') + $
+					 ' at Pos: ' + string(motor_pos, f='(i0)')
+
+				base = widget_base(col=1, group=dcai_global.gui.base, /floating)
+				info = widget_label(base, value=info_string, font='Ariel*20*Bold', xs=400)
+				widget_control, /realize, base
+
+			;\\ Set the current limits
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LCC150'  + tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LPC200'  + tx
+
+				comms_wrapper, port, dll_name, type = 'moxa', /write, data = 'EN'+tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LA' + string(motor_pos, f='(i0)') + tx
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'M' + tx
+				wait, 6.
+				comms_wrapper, port, dll_name, type = 'moxa', /write, data = 'DI'+tx
+
+			;\\ Close notification window
+				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
 
 		end
 

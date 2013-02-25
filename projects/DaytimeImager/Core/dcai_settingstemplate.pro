@@ -13,31 +13,53 @@ function DCAI_SettingsTemplate
 			  leg_gain:[0.0, 0.0, 0.0], $
 			  leg_voltage:[0l,0l,0l], $
 			  wedge_voltage:[0L,0L,0L], $
-			  voltage_range:[0l,1l]}
+			  voltage_range:[0l,1l], $
+			  editable:['port',$
+			  			'gap_mm',$
+			  			'refractive_index',$
+			  			'steps_per_order',$
+			  			'reference_voltage',$
+			  			'parallel_offset',$
+			  			'leg_gain',$
+			  			'wedge_voltage',$
+			  			'voltage_range']}
 
 	filter = {port:0, $
+			  open:-1, $
 			  name:['one','two','three','four','five','six'], $
-			  current:0 }
+			  current:0, $
+			  editable:['port', 'name']}
 
 	mirror = {port:0, $
+			  open:-1, $
 			  sky:0L, $
 			  cal:0L, $
-			  current:0 }
+			  current:0, $
+			  editable:['port', 'sky', 'cal']}
 
 	calibration = {port:0, $
-			  	   current:0 }
+				   open:-1, $
+			  	   current:0, $
+			  	   editable:['port']}
 
 	paths = {log:dir + '..\Logs\', $
 			 persistent:dir + '..\Persistent\', $
 			 plugin_base:dir + '..\Plugins\', $
 			 plugin_settings:dir + '..\Plugins\Plugin_Settings\', $
 			 screen_capture:dir + '..\Plugins\ScreenCaps\', $
-			 zonemaps:dir + '..\Scripts\Zonemap\'}
+			 zonemaps:dir + '..\Scripts\Zonemap\', $
+			 editable:['log', $
+			 			'persistent', $
+			 			'plugin_base', $
+			 			'plugin_settings', $
+			 			'screen_capture', $
+			 			'zonemaps']}
 
 	site = {name:'', $
 			code:'', $
 			geo_lat:0.0, $
-			geo_lon:0.0 }
+			geo_lon:0.0, $
+			editable:['name', 'code', 'geo_lat', 'geo_lon']}
 
 	settings = {etalon:[etalon, etalon], $
 				filter:filter, $
@@ -45,7 +67,7 @@ function DCAI_SettingsTemplate
 				calibration:calibration, $
 				paths:paths, $
 				site:site, $
-				external_dll:'SDI_External.dll' }
+				external_dll:'SDI_External.dll'}
 
 	return, settings
 end
