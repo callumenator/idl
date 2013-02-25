@@ -179,159 +179,6 @@ function CameraTemperature
   	return, ccd_temp
 end
 
-;\\ Select a filter. FIlter is a number here.
-pro SelectFilter, info, filter, errcode=errcode
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'g=' + string(filter, f='(i0)') + string(13B), $
-				   errcode = errcode
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'GOSUB4' + string(13B), $
-				   errcode = errcode
-
-	;\\ Wait 3 seconds.
-	wait, 2
-
-	;\\ Read back the response
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'g=-1'  + string(13B), $
-				   errcode = errcode
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $
-				   /write, $
-				   data = 'GOSUB4' + string(13B), $
-				   errcode = errcode
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $
-				   /read, $
-				   data = read_back, $
-				   errcode = errcode
-
-
-	print, read_back
-	help, read_back
-	if (read_back ne '') then begin
-	 	erc = strmid(read_back,5,1)
-	 	if size(erc, /type) eq 0 then errcode = '-1' else errcode = erc
-	endif else errcode = '-1'
-
-end
-
-
-;\\ Home the filter wheel. Docs say we shgould do this at the start of each night.
-pro HomeFilterWheel, info, errcode=errcode
-
-	errcode = ''
-	DCAI_Log, 'Homing Filter Wheel...please wait...'
-
-	;\\ Run subroutine 5
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'GOSUB5' + string(13B), $
-				   errcode = errcode
-
-	;\\ Wait for the motor to return "HOME:1"
-	wait, 5.
-	homed = 0
-  home_start = systime(/sec)
-	while homed eq 0 do begin
-
-		comms_wrapper, info.comms.filter.port, $
-					   settings.external_dll, $
-					   type = 'com', $
-					   /read, $
-					   data = read_back, $
-					   errcode = errcode
-
-
-		print, '|', strmid(read_back, 0, 6), '|'
-
-		if strmid(read_back, 0, 6)  eq 'HOME:1' then begin
-			homed = 1
-			DCAI_Log, 'Filter wheel homed'
-		endif else begin
-			print, 'Homing filter wheel... ' + read_back
-			wait, .05
-		endelse
-
-		if systime(/sec) - home_start gt 20 then begin
-		  DCAI_Log, 'Been homing too long - breaking...'
-      break
-    endif
-
-	endwhile
-
-end
-
-
-;\\ Control the shutter
-pro SetShutter, info, position, errcode=errcode
-
-	if position eq 'open' then shutter_str = 'd=1' else shutter_str = 'd=0'
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = shutter_str + string(13B), $
-				   errcode = ec
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-           type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'GOSUB1' + string(13B), $
-				   errcode = ec
-
-	;\\ Wait 3 seconds
-	wait, 3.
-
-	;\\ Read back the response
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $	;\\ Use standard windows comms
-				   /write, $
-				   data = 'd=-1'  + string(13B), $
-				   errcode = ec
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $
-				   /write, $
-				   data = 'GOSUB1' + string(13B), $
-				   errcode = ec
-
-	comms_wrapper, info.comms.filter.port, $
-				   settings.external_dll, $
-				   type = 'com', $
-				   /read, $
-				   data = read_back, $
-				   errcode = ec
-
-	print, read_back
-  	help, read_back
-	if (read_back ne '') then begin
-   		erc = strmid(read_back,5,1)
-   		if size(erc, /type) eq 0 then errcode = '-1' else errcode = erc
-  	endif else errcode = '-1'
-
-end
 
 ;\\ Set the camera exposure time
 pro SetExposureTime, info, time, errcode=errcode
@@ -359,6 +206,14 @@ pro SetAcqMode, info, mode, errcode=errcode
 	DCAI_LoadCameraSetting, settings.external_dll, $
 						   acqMode = mode, $
 						   debug_ress = errcode
+end
+
+;\\ Return 1 if a structure containes the given field
+function HasField, struc, field_name
+	stop
+	if size(struc, /type) ne 8 then return, 0
+	match = where(tag_names(struc) eq strupcase(field_name), nm)
+	return, nm ne 0
 end
 
 

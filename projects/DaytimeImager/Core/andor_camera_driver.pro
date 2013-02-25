@@ -585,6 +585,38 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			out = settings
 		end
 
+
+		;\\ Given in={settings:{}, capabilities:{}}, return a default settings struc which should work
+		strlowcase('uSetDefaults'): begin
+
+			settings = in.settings
+			settings.imagemode = {xbin:1, ybin:1, $
+								  xpixstart:1, xpixstop:in.capabilities.pixels[0], $
+								  ypixstart:1, ypixstop:in.capabilities.pixels[1] }
+			settings.acqmode = 5
+			settings.readmode = 4
+			settings.triggermode = 0
+			settings.baselineclamp = 1
+			settings.frametransfer = 1
+			settings.fanmode = 0
+			settings.cooleron = 1
+			settings.settemp = -40
+			settings.adchannel = 0
+			settings.bitdepth = 0
+			settings.outamp = 0
+			settings.preampgaini = 0
+			settings.exptime_set = 0.1
+			settings.emgain_set = 2
+			settings.emgain_mode = 0
+			settings.emadvanced = 0
+			settings.vsspeedi = in.capabilities.VSRecommended.index
+			settings.vsamplitude = 0
+			settings.hsspeedi = 1
+
+			out = settings
+		end
+
+
 		;\\ Set up the acquisition using a settings structure defined above
 		;\\ in = settings_structure
 		strlowcase('uApplySettingsStructure'): begin

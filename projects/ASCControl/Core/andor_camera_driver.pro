@@ -89,11 +89,11 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 				5: begin ;\\ RUN TILL ABORT MODE
 
 					image_buffer = lonarr(image_x, image_y)
-					firstim = 0L
-					lastim  = 0L
+					firstim = -1L
+					lastim  = -1L
 					res = get_error(call_external(dll, 'uGetNumberNewImages', firstim, lastim, value=[0b, 0b]))
 
-					if firstim eq lastim then return
+					if res eq 'DRV_NO_NEW_DATA' or firstim eq -1 or lastim eq -1 then return
 
 					if res eq 'DRV_SUCCESS' and (lastim - firstim) eq 47 then begin
 						resx = call_external(dll, 'uAbortAcquisition')
@@ -108,7 +108,7 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			        repeat begin
 		  				res = call_external(dll, 'uGetOldestImage', image_buffer, image_size)
 
-		  				if nframes eq 0 then image = 4*image_buffer else image = image + 4*image_buffer
+		  				if nframes eq 0 then image = image_buffer else image += image_buffer
 	 					nframes = nframes + 1
 
 		  				firstim = 0L
@@ -190,7 +190,7 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			result = get_error(call_external(dll, 'uSetImage', $
 						long(in[0]), long(in[1]), long(in[2]), long(in[3]), long(in[4]), long(in[5])))
 			wait, 2
-			res = call_external(dll, 'uFreeInternalMemory')			
+			res = call_external(dll, 'uFreeInternalMemory')
 		end
 
 		strlowcase('uSetHSSpeed'): begin
@@ -268,6 +268,7 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 
 		strlowcase('uSetAcquisitionMode'): begin
 			;\\ Set acquisition mode
+			status = 0
 			result = get_error(call_external(dll, 'uSetAcquisitionMode', long(in)))
 		end
 
@@ -360,6 +361,11 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 
 		strlowcase('uInitialize'): begin
 			result = get_error(call_external(dll, 'uInitialize', in))
+		end
+
+		strlowcase('uShutdown'): begin
+			;\\ Wait for an acquisition
+			result = get_error(call_external(dll, 'uShutDown'))
 		end
 
 
@@ -579,12 +585,44 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			out = settings
 		end
 
+
+		;\\ Given in={settings:{}, capabilities:{}}, return a default settings struc which should work
+		strlowcase('uSetDefaults'): begin
+
+			settings = in.settings
+			settings.imagemode = {xbin:1, ybin:1, $
+								  xpixstart:1, xpixstop:in.capabilities.pixels[0], $
+								  ypixstart:1, ypixstop:in.capabilities.pixels[1] }
+			settings.acqmode = 5
+			settings.readmode = 4
+			settings.triggermode = 0
+			settings.baselineclamp = 1
+			settings.frametransfer = 1
+			settings.fanmode = 0
+			settings.cooleron = 1
+			settings.settemp = -40
+			settings.adchannel = 0
+			settings.bitdepth = 0
+			settings.outamp = 0
+			settings.preampgaini = 0
+			settings.exptime_set = 0.1
+			settings.emgain_set = 2
+			settings.emgain_mode = 0
+			settings.emadvanced = 0
+			settings.vsspeedi = in.capabilities.VSRecommended.index
+			settings.vsamplitude = 0
+			settings.hsspeedi = 1
+
+			out = settings
+		end
+
+
 		;\\ Set up the acquisition using a settings structure defined above
 		;\\ in = settings_structure
 		strlowcase('uApplySettingsStructure'): begin
 
-      res = call_external(dll, 'uAbortAcquisition')
-      res = call_external(dll, 'uFreeInternalMemory')			
+      		res = call_external(dll, 'uAbortAcquisition')
+      		res = call_external(dll, 'uFreeInternalMemory')
 
 			Andor_Camera_Driver, dll, 'uSetReadMode', in.readMode, thisout, res
 			result = 'uSetReadMode: '+ string(in.readMode, f='(i0)') + ' - '+res
@@ -599,20 +637,20 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			out = [out, thisout]
 
 			Andor_Camera_Driver, dll, 'uSetOutputAmplifier', in.outAmp, thisout, res
-		  result = [result, 'uSetOutputAmplifier: '+ string(in.outAmp, f='(i0)') + ' - '+res]
-		  out = [out, thisout]
-		    
-		  Andor_Camera_Driver, dll, 'uSetADChannel', in.adChannel, thisout, res
-      result = [result, 'uSetADChannel: '+ string(in.adChannel, f='(i0)') + ' - '+res]
-      out = [out, thisout]
+		  	result = [result, 'uSetOutputAmplifier: '+ string(in.outAmp, f='(i0)') + ' - '+res]
+		  	out = [out, thisout]
+
+		  	Andor_Camera_Driver, dll, 'uSetADChannel', in.adChannel, thisout, res
+      		result = [result, 'uSetADChannel: '+ string(in.adChannel, f='(i0)') + ' - '+res]
+      		out = [out, thisout]
 
 			Andor_Camera_Driver, dll, 'uSetEMCCDGain', in.emGain_set, thisout, res
 			result = [result, 'uSetEMCCDGain: ' + string(in.emgain_set, f='(i0)') + ' - ' + res]
 			out = [out, thisout]
-			
+
 			Andor_Camera_Driver, dll, 'uSetHSSpeed', {index:in.hsspeedi, outamp:in.outamp}, thisout, res
-      result = [result, 'uSetHSSpeed(index): ' + string(in.hsspeedi, f='(i0)') + ' - ' + res]
-      out = [out, thisout]
+      		result = [result, 'uSetHSSpeed(index): ' + string(in.hsspeedi, f='(i0)') + ' - ' + res]
+      		out = [out, thisout]
 
 			Andor_Camera_Driver, dll, 'uSetVSSpeed', in.vsspeedi, thisout, res
 			result = [result, 'uSetVSSpeed(index): '+ string(in.vsspeedi, f='(i0)') + ' - '+res]
@@ -620,10 +658,10 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 
 			Andor_Camera_Driver, dll, 'uSetVSAmplitude', in.vsamplitude, thisout, res
 			result = [result, 'uSetVSAmplitude: '+ string(in.vsamplitude, f='(i0)') + ' - '+res]
-			out = [out, thisout]		
+			out = [out, thisout]
 
-      Andor_Camera_Driver, dll, 'uSetPreAmpGain', 1, thisout, res ;\\ This is a hack, sometimes need to toggle the preamp
-                                                                  ;\\ or camera images will be blank.
+      		Andor_Camera_Driver, dll, 'uSetPreAmpGain', 1, thisout, res ;\\ This is a hack, sometimes need to toggle the preamp
+            	                                                        ;\\ or camera images will be blank.
 			Andor_Camera_Driver, dll, 'uSetPreAmpGain', in.preAmpGaini, thisout, res
 			result = [result, 'uSetPreAmpGain(index): '+ string(in.preAmpGaini, f='(i0)') + ' - '+res]
 			out = [out, thisout]
@@ -632,26 +670,37 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 			result = [result, 'uSetTriggerMode: '+ string(in.triggerMode, f='(i0)') + ' - '+res]
 			out = [out, thisout]
 
+			Andor_Camera_Driver, dll, 'uSetFrameTransferMode', in.frameTransfer, thisout, res
+			result = [result, 'uSetFrameTransferMode: '+ string(in.frameTransfer, f='(i0)') + ' - '+res]
+			out = [out, thisout]
+
+			Andor_Camera_Driver, dll, 'uSetBaselineClamp', in.baselineClamp, thisout, res
+			result = [result, 'uSetBaselineClamp: '+ string(in.baselineClamp, f='(i0)') + ' - '+res]
+			out = [out, thisout]
+
+
 		    Andor_Camera_Driver, dll, 'uSetTemperature', in.settemp, thisout, res
 		    result = [result, 'uSetTemperature: '+ string(in.settemp, f='(i0)') + ' - '+res]
 		    out = [out, thisout]
 
 		    if in.coolerOn eq 1 then begin
-		      Andor_Camera_Driver, dll, 'uCoolerOn', 0, thisout, res
-		      result = [result, 'uCoolerOn: ' + res]
-		      out = [out, thisout]
+		      	Andor_Camera_Driver, dll, 'uCoolerOn', 0, thisout, res
+		      	result = [result, 'uCoolerOn: ' + res]
+		      	out = [out, thisout]
 		    endif else begin
-		      Andor_Camera_Driver, dll, 'uCoolerOff', 0, thisout, res
-		      result = [result, 'uCoolerOff: ' + res]
-		      out = [out, thisout]
+		      	Andor_Camera_Driver, dll, 'uCoolerOff', 0, thisout, res
+		      	result = [result, 'uCoolerOff: ' + res]
+		      	out = [out, thisout]
 		    endelse
-		    
-		  imSet = in.imageMode
-      Andor_Camera_Driver, dll, 'uSetImage', $
-          [imSet.(0),imSet.(1),imSet.(2),imSet.(3),imSet.(4),imSet.(5)], thisout, res
-      result = [result, 'uSetImage: ' + string([imSet.(0),imSet.(1),imSet.(2),$
-        imSet.(3),imSet.(4),imSet.(5)], f='(i0,",",i0,",",i0,",",i0,",",i0,",",i0)') + ': ' + res]
-      out = [out, thisout]
+
+		  	imSet = in.imageMode
+      		Andor_Camera_Driver, dll, 'uSetImage', $
+          		[imSet.(0),imSet.(1),imSet.(2),imSet.(3),imSet.(4),imSet.(5)], thisout, res
+      			result = [result, 'uSetImage: ' + string([imSet.(0),imSet.(1),imSet.(2),$
+        		imSet.(3),imSet.(4),imSet.(5)], f='(i0,",",i0,",",i0,",",i0,",",i0,",",i0)') + ': ' + res]
+      		out = [out, thisout]
+
+			res = call_external(dll, 'uStartAcquisition')
 
 		end
 

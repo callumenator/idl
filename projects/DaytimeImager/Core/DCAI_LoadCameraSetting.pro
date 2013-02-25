@@ -2,12 +2,12 @@
 ;\\ Some settings need to be read back from the camera, or strings need
 ;\\ to be looked-up. Do that here.
 pro DCAI_LoadCameraSetting_Readback, exposureTime = exposureTime, $
-									emGain = emGain, $
-									vsSpeed = vsSpeed, $
-									hsSpeed = hsSpeed, $
-									readMode = readMode, $
-									acqMode = acqMode, $
-									triggerMode = triggerMode
+									 emGain = emGain, $
+									 vsSpeed = vsSpeed, $
+									 hsSpeed = hsSpeed, $
+									 readMode = readMode, $
+									 acqMode = acqMode, $
+									 triggerMode = triggerMode
 
 	COMMON DCAI_Control, dcai_global
 
@@ -76,10 +76,10 @@ end
 
 
 ;\\ Helper function for setting individual camera settings, for example
-;\\ after camera has been initialized and DCAI_LoadCameraSettings use to
+;\\ after camera has been initialized and DCAI_LoadCameraSettings used to
 ;\\ upload a large group of settings, this function can be used to set
 ;\\ exposure time or gain without affecting other camrea settings.
-pro DCAI_LoadCameraSetting,  camera_dll, $
+pro DCAI_LoadCameraSetting, camera_dll, $
 							exposureTime = exposureTime, $
 							emgGainMode = emGainMode, $
 							emGain = emGain, $
@@ -235,8 +235,8 @@ pro DCAI_LoadCameraSetting,  camera_dll, $
 
 			;\\ Update any values that may need to be read back from the camera
 				DCAI_LoadCameraSetting_Readback, /hsSpeed, /vsSpeed, /exposureTime, $
-												/readMode, /acqMode, /triggerMode, $
-												/emGain
+												 /readMode, /acqMode, /triggerMode, $
+												 /emGain
 		endif
 
 		debug_ress = _res

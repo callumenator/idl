@@ -275,13 +275,24 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 	;PROFILER
 
 	if not keyword_set(settings_file) then begin
-		res = dialog_message('No settings file was provided. Exiting.')
-		return
+		;\\ Create a default settings file, but exit
+		res = dialog_message('No settings file was provided. I will create a default.')
+		filename = dialog_pickfile(title='Select name and location for settings file (in IDL search path!)', default_extension = '.pro')
+		if filename ne '' then begin
+			DCAI_SettingsWrite, DCAI_SettingsTemplate(), filename, success=success
+			if success eq 0 then begin
+				res = dialog_message('Unable to create settings file. Exiting.')
+				return
+			endif
+		endif else begin
+			res = dialog_message('Invalid filename entered. Exiting.')
+			return
+		endelse
 	endif
 
 	if not keyword_set(camera_settings) then begin
-		res = dialog_message('No camera settings file was provided. Exiting.')
-		return
+		res = dialog_message('No camera settings file was provided. Defaults will be used.')
+		camera_settings = ''
 	endif
 
 	if not keyword_set(external_dll) then begin

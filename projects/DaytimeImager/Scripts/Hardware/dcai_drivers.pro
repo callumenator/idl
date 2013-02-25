@@ -1,4 +1,6 @@
 
+@dcai_script_utilities
+
 ;\\ Turn a 16-bit unsigned (0-4095) integer into a 3-character HEX string
 function DCAI_Drivers_Etalon_MakeHEX, i
 
@@ -105,6 +107,70 @@ pro DCAI_Drivers, command
 
 
 		'filter_select':begin
+
+
+		end
+
+
+		'camera_init':begin
+
+			;\\ TEST TO SEE IF WE CAN TALK TO THE CAMERA
+				Andor_Camera_Driver, dcai_global.settings.external_dll, 'uGetStatus', 0, out, res
+				DCAI_Log, 'Cam Status: ' + res
+
+				if res eq 'DRV_NOT_INITIALIZED' then $
+					Andor_Camera_Driver, dcai_global.settings.external_dll, 'uInitialize', '', out, res
+
+				Andor_Camera_Driver, dcai_global.settings.external_dll, 'uAbortAcquisition', '', out, res
+				did_we_init = 0
+				if res eq 'DRV_ERROR_ACK' then begin
+					dcai_global.info.camera_settings.initialized = 0
+					DCAI_Log, 'Camera acknowledge...False - PROBLEM!'
+				endif else begin
+					dcai_global.info.camera_settings.initialized = 1
+					did_we_init = 1
+					DCAI_Log, 'Camera acknowledge...True'
+				endelse
+
+				DCAI_Log, 'Cam Init: ' + res
+
+			;\\ QUERY THE CAMERA TO FIND OUT ITS CAPABILITIES
+				Andor_Camera_Driver, dcai_global.settings.external_dll, 'uGetCapabilities', 0, caps, res, /auto_acq
+				*dcai_global.info.camera_caps = caps
+
+			;\\ LOAD THE INITIAL CAMERA SETTINGS
+				have_settings = (HasField(command, 'settings') eq 1)
+				if (have_settings eq 1) then have_settings = (command.settings ne '')
+
+				if have_settings eq 0 then begin
+					DCAI_Log, 'Camera Init: No camera settings file provided, attempting default settings'
+
+					Andor_Camera_Driver, dcai_global.settings.external_dll, 'uSetDefaults', $
+										 {settings:dcai_global.info.camera_settings, capabilities:caps}, sets, res, /auto_acq
+
+					;\\ Upload the settings to the camera
+						Andor_Camera_Driver, dcai_global.settings.external_dll, 'uApplySettingsStructure', sets, outs, result, /auto_acq
+						dcai_global.info.camera_settings = sets
+
+					;\\ Update any values that may need to be read back from the camera
+						DCAI_LoadCameraSetting_Readback, /hsSpeed, /vsSpeed, /exposureTime, $
+														 /readMode, /acqMode, /triggerMode, $
+														 /emGain
+				endif else begin
+					if command.settings ne '' then begin
+						DCAI_LoadCameraSetting, dcai_global.settings.external_dll, $
+												settings_script = dcai_global.info.camera_profile, $
+											    debug_ress = dbg_results
+			      		dcai_global.info.camera_settings.initialized = did_we_init
+						for i = 0, n_elements(dbg_results) - 1 do DCAI_Log, dbg_results[i]
+					endif
+				endelse
+
+			;\\ WE ALSO NEED TO GRAB A DUMMY CAMERA IMAGE, SO THAT WE KNOW WHAT THE IMAGE DIMENSIONS ARE
+				imageMode = dcai_global.info.camera_settings.imageMode
+				Andor_Camera_Driver, dcai_global.settings.external_dll, 'uGrabFrame', {mode:-1, imageMode:imageMode}, out, res
+				*dcai_global.info.image = out.image
+				*dcai_global.info.raw_image = out.image
 
 
 		end

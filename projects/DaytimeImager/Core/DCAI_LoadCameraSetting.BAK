@@ -2,12 +2,12 @@
 ;\\ Some settings need to be read back from the camera, or strings need
 ;\\ to be looked-up. Do that here.
 pro DCAI_LoadCameraSetting_Readback, exposureTime = exposureTime, $
-									emGain = emGain, $
-									vsSpeed = vsSpeed, $
-									hsSpeed = hsSpeed, $
-									readMode = readMode, $
-									acqMode = acqMode, $
-									triggerMode = triggerMode
+									 emGain = emGain, $
+									 vsSpeed = vsSpeed, $
+									 hsSpeed = hsSpeed, $
+									 readMode = readMode, $
+									 acqMode = acqMode, $
+									 triggerMode = triggerMode
 
 	COMMON DCAI_Control, dcai_global
 
@@ -58,7 +58,7 @@ pro DCAI_LoadCameraSetting_Readback, exposureTime = exposureTime, $
 	if keyword_set(vsSpeed) then begin
 		vsspeedi = dcai_global.info.camera_settings.vsspeedi < (n_elements((*dcai_global.info.camera_caps).vsspeeds) - 1)
 		vsspeedi = vsspeedi > 0
-		vshift = (*dcai_global.info.camera_caps).vsspeeds[dcai_global.info.camera_settings.vsspeedi]
+		vshift = (*dcai_global.info.camera_caps).vsspeeds[vsspeedi]
 		dcai_global.info.camera_settings.vsspeed = vshift
 	endif
 
@@ -76,10 +76,10 @@ end
 
 
 ;\\ Helper function for setting individual camera settings, for example
-;\\ after camera has been initialized and DCAI_LoadCameraSettings use to
+;\\ after camera has been initialized and DCAI_LoadCameraSettings used to
 ;\\ upload a large group of settings, this function can be used to set
 ;\\ exposure time or gain without affecting other camrea settings.
-pro DCAI_LoadCameraSetting,  camera_dll, $
+pro DCAI_LoadCameraSetting, camera_dll, $
 							exposureTime = exposureTime, $
 							emgGainMode = emGainMode, $
 							emGain = emGain, $

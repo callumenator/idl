@@ -37,9 +37,7 @@ function DCAI_SettingsTemplate
 				site:site, $
 				external_dll:'SDI_External.dll' }
 
-
 	return, settings
-
 end
 
 

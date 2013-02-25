@@ -103,7 +103,8 @@ end
 
 pro DCAI_SettingsWrite, settings, filename, $
 						no_write = no_write, $ 	;\\ Set if we do not want to actually write the file
-						out_text = out_text 	;\\ The array of strings that were generated for output
+						out_text = out_text, $ 	;\\ The array of strings that were generated for output
+						success = success ;\\ 1 if succeeded, otherwise 0
 
 	;\\ GENERATE THE LIST OF STRINGS
 	list = ['']
@@ -136,18 +137,25 @@ pro DCAI_SettingsWrite, settings, filename, $
 		close, f
 		free_lun, f
 
-		;\\ COMPILE IT
-		catch, err
-		if err ne 0 then begin
+		;\\ COMPILE IT (THIS IS A ROUNDABOUT WAY OF DOING IT, BUT SEEMS TO BE REQUIRED)
+		catch, errA
+		if errA ne 0 then begin
 			catch, /cancel
-			resolve_routine, pro_name, /compile_full
+			catch, errB
+			if errB ne 0 then begin
+				catch, /cancel
+				resolve_routine, pro_name, /compile_full ;\\ THIS WILL MAKE SURE OF COMPILE
+			endif else begin
+				res = dialog_message("Unable to compile new settings file - make sure it is in IDL's search path")
+				success = 0
+			endelse
 		endif else begin
-			call_procedure, file_dirname(filename) + '\' + pro_name
+			call_procedure, file_dirname(filename) + '\' + pro_name ;\\ THIS WILL COMPILE BUT FAIL TO CALL
 		endelse
-
 
 	endif
 
 	out_text = list
+	success = 1
 
 end

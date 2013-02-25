@@ -208,6 +208,13 @@ pro SetAcqMode, info, mode, errcode=errcode
 						   debug_ress = errcode
 end
 
+;\\ Return 1 if a structure containes the given field
+function HasField, struc, field_name
+	if size(struc, /type) ne 8 then return, 0
+	match = where(tag_names(struc) eq strupcase(field_name), nm)
+	return, nm ne 0
+end
+
 
 
 

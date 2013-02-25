@@ -9,9 +9,8 @@
 ;\\
 
 
-DCAI_Control_Main, settings_file = 'dcai_settings', $
+DCAI_Control_Main, camera_settings = 'DCAI_Cameraprofile', $
 				   external_dll = 'SDI_External.dll', $
-				   camera_settings = 'DCAI_CameraProfile', $
 				   drivers = 'DCAI_Drivers', $
 				   schedule = '', $
 				   /simulate

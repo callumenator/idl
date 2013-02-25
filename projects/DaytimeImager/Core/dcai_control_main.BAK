@@ -270,14 +270,37 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 					   schedule_script=schedule_script, $
 					   simulate_frames=simulate_frames
 
-
 	COMMON DCAI_Control, dcai_global
-
-	if not keyword_set(settings_file) then settings_file = 'dcai_settings.pro'
 
 	;PROFILER
 
-	if not keyword_set(drivers) then drivers = 'DCAI_NullDrivers'
+	if not keyword_set(settings_file) then begin
+		;\\ Create a default settings file, but exit
+		res = dialog_message('No settings file was provided. I will create a default.')
+		filename = dialog_pickfile(title='Select name and location for settings file (in IDL search path!)', default_extension = '.pro')
+		if filename ne '' then begin
+			DCAI_SettingsWrite, DCAI_SettingsTemplate(), filename
+		endif else begin
+			res = dialog_message('Invalid filename entered. Exiting.')
+			return
+		endelse
+	endif
+
+	if not keyword_set(camera_settings) then begin
+		res = dialog_message('No camera settings file was provided. Defaults will be used.')
+		camera_settings = ''
+	endif
+
+	if not keyword_set(external_dll) then begin
+		res = dialog_message('No external DLL was provided. Exiting.')
+		return
+	endif
+
+	if not keyword_set(drivers) then begin
+		drivers = 'DCAI_NullDrivers'
+		print, 'No hardware drivers provided, a null-driver will be used (no hardware)'
+	endif
+
 	if not keyword_set(schedule_script) then schedule_script = ''
 
 
@@ -288,7 +311,7 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 		info = { drivers:drivers, $					;\\ Hardware driver code
 				 schedule_script:schedule_script, $ ;\\ Current schedule script
 				 settings_file:settings_file, $ 	;\\ Name of the current settings file
-				 camera_profile:camera_profile, $ 	;\\ The camera settings to use on startup
+				 camera_profile:camera_settings, $ 	;\\ The camera settings to use on startup
 				 camera_caps:ptr_new(/alloc), $ 	;\\ Structure of camera capabilities, returned by the driver
 				 camera_settings:cam_settings, $ 	;\\ Structure of camera settings, returned by the driver
 
