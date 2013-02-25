@@ -273,21 +273,23 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 	COMMON DCAI_Control, dcai_global
 
 	;PROFILER
+	whoami, dir, file
 
 	if not keyword_set(settings_file) then begin
-		;\\ Create a default settings file, but exit
-		res = dialog_message('No settings file was provided. I will create a default.')
-		filename = dialog_pickfile(title='Select name and location for settings file (in IDL search path!)', default_extension = '.pro')
-		if filename ne '' then begin
-			DCAI_SettingsWrite, DCAI_SettingsTemplate(), filename, success=success
-			if success eq 0 then begin
-				res = dialog_message('Unable to create settings file. Exiting.')
-				return
-			endif
-		endif else begin
-			res = dialog_message('Invalid filename entered. Exiting.')
+		;\\ Create a default settings file
+		split = strsplit(dir, '\', /extract)
+		dir = strjoin(split[0:n_elements(split)-2], '\') + '\'
+		filename = dir + 'default_settings.pro'
+		pro_name = file_dirname(filename) + '\' + (strsplit(file_basename(filename), '.', /extract))[0] + '.pro'
+		DCAI_SettingsWrite, DCAI_SettingsTemplate(), pro_name, success=success
+		if success eq 0 then begin
+			res = dialog_message('Unable to create settings file. Exiting.')
 			return
+		endif else begin
+			res = dialog_message('No settings file was provided. A default was created at: ' + filename + $
+								 ' please edit it and re-load, or specify a settings file next time.')
 		endelse
+		settings_file = (strsplit(file_basename(pro_name), '.', /extract))[0]
 	endif
 
 	if not keyword_set(camera_settings) then begin
@@ -400,7 +402,6 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 	;\\ CREATE A LOG FILENAME BASED ON THE CURRENT UT DAY, AND OPEN IT
   		DCAI_Control_LogCreate
 
-
 	;\\ FIND THE PLUGINS AND CREATE MENU ENTRIES FOR THEM
 		list = file_search(dcai_global.settings.paths.plugin_base + '*__define.pro', count = n_plugins)
 		plugin_menu = widget_button(dcai_global.gui.menu, value = 'Plugins')
@@ -419,7 +420,7 @@ pro DCAI_Control_Main, settings_file=settings_file, $		;\\ required
 				  /no_block
 
 	;\\ INITIALIZE THE HARDWARE
-		DCAI_Hardware, /init
+		call_procedure, dcai_global.info.drivers, {device:'init'}
 
 	;\\ RESTORE PERSISTENT DATA HERE (BY NOW WE KNOW THE CAMERA IMAGE DIMENSIONS)
 		DCAI_Control_Persistent, /load

@@ -70,7 +70,7 @@ pro DCAI_Control_Cleanup, id, object=object
 			dcai_global.info.run = 0
 
 		;\\ PERFORM HARDWARE SHUTDOWN
-			DCAI_Hardware, /deinit
+			call_procedure, dcai_global.info.drivers, {device:'finish'}
 
 		;\\ CLOSE THE LOG FILE
 			close, dcai_global.log.file_handle

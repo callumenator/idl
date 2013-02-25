@@ -11,6 +11,9 @@ pro DCAI_Hardware, init = init, $
 	;\\ INITIALIZATION
 	if keyword_set(init) then begin
 
+		;\\ INIT SERIAL COMMS
+			call_procedure, dcai_global.info.drivers, {device:'comms_init'}
+
 		;\\ INIT THE CAMERA
 			call_procedure, dcai_global.info.drivers, {device:'camera_init', settings:dcai_global.info.camera_profile}
 
@@ -24,8 +27,8 @@ pro DCAI_Hardware, init = init, $
 	;\\ SHUTDOWN
 	if keyword_set(deinit) then begin
 
-		;\\ CLOSE THE COMM PORTS
-		;\\ #### IMPLEMENT FILTER WHEEL, MOTOR DRIVE, ETALON, ETC #####
+		;\\ CLOSE SERIAL COMMS
+			call_procedure, dcai_global.info.drivers, {device:'comms_finish'}
 
 		return
 	endif

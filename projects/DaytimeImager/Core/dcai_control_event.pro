@@ -368,7 +368,7 @@ pro DCAI_Control_Event, event
 				fname = dialog_pickfile(title='Save Settings To...', $
 							file = file_basename(dcai_global.info.settings_file), $
 							path = file_dirname(dcai_global.info.settings_file))
-				if fname ne '' then DCAI_Control_SaveSettings, fname
+				if fname ne '' then DCAI_Control_SaveSettings, filename=fname
 	      	end
 
 			;\\ SHOW SETTINGS

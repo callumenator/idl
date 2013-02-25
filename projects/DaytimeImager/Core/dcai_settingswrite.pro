@@ -144,11 +144,11 @@ pro DCAI_SettingsWrite, settings, filename, $
 			catch, errB
 			if errB ne 0 then begin
 				catch, /cancel
-				resolve_routine, pro_name, /compile_full ;\\ THIS WILL MAKE SURE OF COMPILE
-			endif else begin
 				res = dialog_message("Unable to compile new settings file - make sure it is in IDL's search path")
 				success = 0
 				return
+			endif else begin
+				resolve_routine, pro_name, /compile_full ;\\ THIS WILL MAKE SURE OF COMPILE
 			endelse
 		endif else begin
 			call_procedure, file_dirname(filename) + '\' + pro_name ;\\ THIS WILL COMPILE BUT FAIL TO CALL

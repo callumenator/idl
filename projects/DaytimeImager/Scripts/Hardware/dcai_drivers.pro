@@ -21,6 +21,41 @@ pro DCAI_Drivers, command
 
 	case command.device of
 
+		'init': begin
+			DCAI_Drivers, {device:'comms_init'}
+			DCAI_Drivers, {device:'camera_init', settings:dcai_global.info.camera_profile}
+			DCAI_Drivers, {device:'etalon_init'}
+		end
+
+		'finish': begin
+			DCAI_Drivers, {device:'comms_finish'}
+		end
+
+		'comms_init':begin
+
+			;\\ Set up the com ports
+			dll = dcai_global.settings.external_dll
+			comms_wrapper, dcai_global.settings.filter.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			DCAI_Log, 'Open Filter Source Port: ' + string(errcode, f='(i0)')
+			comms_wrapper, dcai_global.settings.mirror.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			DCAI_Log, 'Open Mirror Port: ' + string(errcode, f='(i0)')
+			comms_wrapper, dcai_global.settings.calibration.port, dll, type = 'moxa', /open, errcode=errcode, moxa_setbaud=12
+			DCAI_Log, 'Open Calibration Port: ' + string(errcode, f='(i0)')
+		end
+
+		'comms_finish':begin
+
+			;\\ Set up the com ports
+			dll = dcai_global.settings.external_dll
+			comms_wrapper, dcai_global.settings.filter.port, dll, type = 'moxa', /close, errcode=errcode
+			DCAI_Log, 'Close Filter Source Port: ' + string(errcode, f='(i0)')
+			comms_wrapper, dcai_global.settings.mirror.port, dll, type = 'moxa', /close, errcode=errcode
+			DCAI_Log, 'Close Mirror Port: ' + string(errcode, f='(i0)')
+			comms_wrapper, dcai_global.settings.calibration.port, dll, type = 'moxa', /close, errcode=errcode
+			DCAI_Log, 'CLose Calibration Port: ' + string(errcode, f='(i0)')
+		end
+
+
 		'etalon_setlegs':begin
 
 			tx = string(13B)
@@ -103,6 +138,21 @@ pro DCAI_Drivers, command
 				dcai_log, cmds[i] + ': ' + read_in
 			endfor
 
+		end
+
+
+		'filter_init':begin
+			;\\ Filter Wheel Init
+				fport = dcai_global.settings.filter.port
+				dll = dcai_global.settings.external_dll
+				comms_wrapper, fport, dll, type='moxa', /write, data = 'EN' + tx
+				comms_wrapper, fport, dll, type='moxa', /write, data = 'LPC1000' + tx
+				comms_wrapper, fport, dll, type='moxa', /write, data = 'LCC1500' + tx
+				comms_wrapper, fport, dll, type='moxa', /write, data = 'SP15000' + tx
+				comms_wrapper, fport, dll, type='moxa', /write, data = 'HOSP-10000' + tx
+
+			;\\ Home to the limit switch
+				res = drive_motor(fport, dll, /goix, timeout=30)
 		end
 
 

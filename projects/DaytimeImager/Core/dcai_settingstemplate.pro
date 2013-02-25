@@ -13,11 +13,19 @@ function DCAI_SettingsTemplate
 			  leg_gain:[0.0, 0.0, 0.0], $
 			  leg_voltage:[0l,0l,0l], $
 			  wedge_voltage:[0L,0L,0L], $
-			  voltage_range:[0l,0l]}
+			  voltage_range:[0l,1l]}
 
 	filter = {port:0, $
 			  name:['one','two','three','four','five','six'], $
 			  current:0 }
+
+	mirror = {port:0, $
+			  sky:0L, $
+			  cal:0L, $
+			  current:0 }
+
+	calibration = {port:0, $
+			  	   current:0 }
 
 	paths = {log:dir + '..\Logs\', $
 			 persistent:dir + '..\Persistent\', $
@@ -33,6 +41,8 @@ function DCAI_SettingsTemplate
 
 	settings = {etalon:[etalon, etalon], $
 				filter:filter, $
+				mirror:mirror, $
+				calibration:calibration, $
 				paths:paths, $
 				site:site, $
 				external_dll:'SDI_External.dll' }

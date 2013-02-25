@@ -1,17 +1,17 @@
+;\\ Code formatted by DocGen
 
 
-;\\ This will allow serial communication over standard serial comms,
-;\\ MOXA serial expander (using the MOXA library routines), and
-;\\ AIOUSB - DIO
-
-pro comms_wrapper, port, $
-				   dll_name, $
-				   type=type, $	;\\ type = 'moxa', 'dio', 'com' - default if keyword not set
-
+;\D\<No Doc>
+pro comms_wrapper, port, $        ;\A\<No Doc>
+                   dll_name, $    ;\A\<No Doc>
+                   type=type, $   ;\A\<No Doc>
+                                  ;\A\<No Doc>
 				   open=open, $		;\\ These are all switches, indicating required operation. No values.
 				   close=close, $
 				   read=read, $
 				   write=write, $	;\\ Also equaivalent to dio_write8, if using DIO.
+				   flush_input=flush_input, $	;\\ Implemented for moxa only
+				   flush_output=flush_output, $	;\\ Implemented for moxa only
 
 				   moxa_setbaud=moxa_setbaud, $	;\\ Moxa-specific: baud index, 0-19. 12 = 9600 baud
 
@@ -84,6 +84,19 @@ pro comms_wrapper, port, $
 			errcode = call_external(dll_name, 'uMoxaClosePort', port)
 			return
 		endif
+
+		if keyword_set(flush_input) then begin
+			func = 0L
+			errcode = call_external(dll_name, 'uMoxaFlush', port, func)
+			return
+		endif
+
+		if keyword_set(flush_output) then begin
+			func = 1L
+			errcode = call_external(dll_name, 'uMoxaFlush', port, func)
+			return
+		endif
+
 
 	endif
 
