@@ -118,8 +118,16 @@ pro davis_real_time_analysis_ploteach, data_path, $
 			conds = get_geomag_conditions(yymmdd)
 			secs = fltarr(100)
 			for hj = 0, 99 do secs(hj) = (dat.time_range(0) + ((dat.time_range(1) - dat.time_range(0))/100.)*hj)*3600.
-			hwm = get_hwm_wind(long(y+dayno), secs, height, -68.577, 77.967, conds.mag.f107, conds.mag.f107, $
-							  [conds.mag.apmean, conds.mag.apmean], 0)
+
+			hwm_winds = hwm(year = y, $
+						  	 doy = dayno, $
+						  	 ut_secs = secs, $
+						  	 altitude = height, $
+						  	 latitude = -68.577, $
+						  	 longitude = 77.967, $
+						  	 f107 = 150, $
+						  	 ap = 10)
+
 			msis = get_msis2000_params(long(dayno), secs, height, -68.577, 77.967, conds.mag.f107, conds.mag.f107, $
 										conds.mag.apmean)
 
@@ -175,7 +183,7 @@ pro davis_real_time_analysis_ploteach, data_path, $
 						   	' nm, Filter ' + string(filter, f='(i0)') + $
 							' Zenith Angle: ' + string(keep_ang, f='(f0.1)')
 			oplot, [!x.range(0), !x.range(1)], [0,0], color = 0, thick = 2, line = 1
-			oplot, secs/3600., hwm(*,0), color = 0, thick = 2
+			oplot, secs/3600., hwm_winds(*,0), color = 0, thick = 2
 			oplot, nth_time(nth_p), nth_wind(nth_p), color = 50, thick = 1, psym = 1
 			oplot, nth_time(nth_p), nth_wind(nth_p), color = 50, thick = 1, line = 1
 			oplot, sth_time(sth_p), sth_wind(sth_p), color = 250, thick = 1, psym = 1
@@ -189,7 +197,7 @@ pro davis_real_time_analysis_ploteach, data_path, $
 			plot, est_time(est_p), est_wind(est_p), color = 0, back = 255, yrange = [-250,250], thick = 3, /nodata, xstyle=5, $
 					pos=bounds(3,*), ytitle='Zonal Wind (ms!E-1!N)', /ystyle
 			oplot, [!x.range(0), !x.range(1)], [0,0], color = 0, thick = 2, line = 1
-			oplot, secs/3600., hwm(*,1), color = 0, thick = 2
+			oplot, secs/3600., hwm_winds(*,1), color = 0, thick = 2
 			oplot, est_time(est_p), est_wind(est_p), color = 50, thick = 1, psym = 1
 			oplot, est_time(est_p), est_wind(est_p), color = 50, thick = 1, line = 1
 			if nnw gt 0 then oplot, wst_time(wst_p), wst_wind(wst_p), color = 250, thick = 1, psym = 1
