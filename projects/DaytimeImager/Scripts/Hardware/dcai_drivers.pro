@@ -21,17 +21,21 @@ pro DCAI_Drivers, command
 
 	case command.device of
 
+
 		'init': begin
 			DCAI_Drivers, {device:'comms_init'}
-			DCAI_Drivers, {device:'filter_init'}
-			DCAI_Drivers, {device:'calibration_init'}
+			;DCAI_Drivers, {device:'filter_init'}
+			;DCAI_Drivers, {device:'mirror_init'}
+			;DCAI_Drivers, {device:'calibration_init'}
 			DCAI_Drivers, {device:'camera_init', settings:dcai_global.info.camera_profile}
 			DCAI_Drivers, {device:'etalon_init'}
 		end
 
+
 		'finish': begin
 			DCAI_Drivers, {device:'comms_finish'}
 		end
+
 
 		'comms_init':begin
 
@@ -47,6 +51,7 @@ pro DCAI_Drivers, command
 			dcai_global.settings.calibration.open = errcode
 			DCAI_Log, 'Open Calibration Port: ' + string(errcode, f='(i0)')
 		end
+
 
 		'comms_finish':begin
 
@@ -206,6 +211,9 @@ pro DCAI_Drivers, command
 			info = widget_label(base, value=info_string, font='Ariel*20*Bold', xs=400)
 			widget_control, /realize, base
 
+			port = dcai_global.settings.calibration.port
+			dll_name = dcai_global.settings.external_dll
+
 			;\\ Set the current limits
 				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LCC150'  + tx
 				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LPC200'  + tx
@@ -244,6 +252,9 @@ pro DCAI_Drivers, command
 
 			;\\ Close notification window
 				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
+
+			dcai_global.settings.calibration.current = -1
+
 		end
 
 
@@ -269,7 +280,7 @@ pro DCAI_Drivers, command
 			endcase
 
 			port = dcai_global.settings.calibration.port
-			dll = dcai_global.settings.external_dll
+			dll_name = dcai_global.settings.external_dll
 			tx = string(13B)
 
 			;\\ Notification window
@@ -292,6 +303,104 @@ pro DCAI_Drivers, command
 
 			;\\ Close notification window
 				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
+
+			dcai_global.settings.calibration.current = command.source
+
+		end
+
+
+		'mirror_init':begin
+
+			if (dcai_global.settings.mirror.open ne 0) then begin
+				DCAI_Log, 'Mirror port not open - skip init'
+				return
+			endif
+
+			DCAI_Drivers, {device:'mirror_home', to:'sky'}
+			DCAI_Drivers, {device:'mirror_home', to:'cal'}
+
+		end
+
+
+		;\\ command = {device:'mirror_home', to:'sky'/'cal' (string)}
+		'mirror_home':begin
+
+			if (dcai_global.settings.mirror.open ne 0) then begin
+				DCAI_Log, 'Mirror port not open - skip homing'
+				return
+			endif
+
+			;\\ Misc stuff
+				port = dcai_global.settings.mirror.port
+				dll_name = dcai_global.settings.external_dll
+				tx = string(13B)
+
+			;\\ Set current limits
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LCC800'  + tx ;\\ set these here to be safe...
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LPC1200' + tx
+
+			;\\ Notify that we are homing the mirror
+				base = widget_base(col=1, group=dcai_global.gui.base, /floating)
+				info = widget_label(base, value='Homing Mirror to ' + home_motor, font='Ariel*20*Bold')
+				widget_control, /realize, base
+
+		    if strlowcase(command.to) eq 'sky' then direction = 'forwards'
+		    if strlowcase(command.to) eq 'cal' then direction = 'backwards'
+
+			ntries = 0
+			GO_HOME_MOTOR_START:
+
+				pos1 = drive_motor(port, dll_name, /readpos)
+				res  = drive_motor(port, dll_name, direction = direction, speed = 1000., home_max_spin_time = 3.)
+				pos2 = drive_motor(port, dll_name, /readpos)
+				ntries = ntries + 1
+
+			if abs(pos2 - pos1)/1000. gt .3 or ntries lt 2 then goto, GO_HOME_MOTOR_START
+			read_pos = drive_motor(port, dll_name, /readpos)
+
+			if strlowcase(home_motor) eq 'cal' then	begin
+				res = drive_motor(port, dll_name, control = 'setpos0')
+				res = drive_motor(port, dll_name, drive_to = 6000, timeout=5, speed = 1000)
+			endif else begin
+				res = drive_motor(port, dll_name, drive_to = read_pos - 8000, timeout=5, speed = 1000)
+			endelse
+
+			;\\ Close notification window
+				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
+
+			dcai_global.settings.mirror.current = drive_motor(port, dll_name, /readpos)
+
+		end
+
+
+		;\\ command = {device:'mirror_drive', to:0 (long)}
+		'mirror_drive':begin
+
+			if (dcai_global.settings.mirror.open ne 0) then begin
+				DCAI_Log, 'Mirror port not open - skip mirror drive'
+				return
+			endif
+
+			;\\ Misc stuff
+				port = dcai_global.settings.mirror.port
+				dll_name = dcai_global.settings.external_dll
+				tx = string(13B)
+
+			;\\ Set current limits
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LCC800'  + tx ;\\ set these here to be safe...
+				comms_wrapper, port, dll_name, type='moxa', /write, data = 'LPC1200' + tx
+
+			;\\ Notify that we are changing the mirror position
+				base = widget_base(col=1, group=dcai_global.gui.base, /floating)
+				info = widget_label(base, value='Driving Mirror to ' + string(drive_to_pos, f='(i0)'), font='Ariel*20*Bold')
+				widget_control, /realize, base
+
+				res = drive_motor(port, dll_name, drive_to = in.to, speed = 1000)
+
+			;\\ Close notification window
+				if widget_info(base, /valid) eq 1 then widget_control, base, /destroy
+
+			dcai_global.settings.mirror.current = drive_motor(port, dll_name, /readpos)
 
 		end
 

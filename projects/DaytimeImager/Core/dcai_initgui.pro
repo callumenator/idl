@@ -32,22 +32,41 @@ pro DCAI_InitGui, running = running
 									 tooltip = 'Save the current settings')
 			DCAI_btn = widget_button(sets_base, value = 'Show Settings', font = btn_font, uval = {tag:'show_settings_button'}, xs=bs, ys=ys, $
 									 tooltip = 'Display the current settings')
+
+			init_base = widget_base(b0_top_1, col = 4)
+			DCAI_btn = widget_button(init_base, value = '(Re)Init Etalon(s)', font = btn_font, uval = {tag:'etalon_init'}, xs=bs, ys=ys, $
+									 tooltip = 'Reinitialize etalons')
+			DCAI_btn = widget_button(init_base, value = 'Home Filter Wheel', font = btn_font, uval = {tag:'filter_init'}, xs=bs, ys=ys, $
+									 tooltip = 'Home Filter Wheel')
+			DCAI_btn = widget_button(init_base, value = 'Home Mirror', font = btn_font, uval = {tag:'mirror_init'}, xs=bs, ys=ys, $
+									 tooltip = 'Home Mirror Motor')
+			DCAI_btn = widget_button(init_base, value = 'Home Calibration', font = btn_font, uval = {tag:'calibration_init'}, xs=bs, ys=ys, $
+									 tooltip = 'Home Calibration Motor')
+
 			cam_base = widget_base(b0_top_1, col = 3)
 			DCAI_btn = widget_button(cam_base, value = 'Camera Driver', font = btn_font, uval = {tag:'start_camera_driver'}, xs=bs, ys=ys, $
 									 tooltip = 'Launch an interface to the camera')
-			init_base = widget_base(b0_top_1, col = 1)
-			DCAI_btn = widget_button(init_base, value = 'Re-Init', font = btn_font, uval = {tag:'reinit'}, xs=bs, ys=ys, $
-									 tooltip = 'Reinitialize etalons')
+
+
 
 		b0_top_2 = widget_base(b0_top, row = 5)
 
+			tags = tag_names(dcai_global.settings) ;// used below
+
 			;\\ IF A FILTTER WHEEL IS PRESENT, ADD A DROPLIST TO SELECT FILTERS
-			tags = tag_names(dcai_global.settings)
 			match = where(tags eq 'FILTER', filter_yn)
 			if filter_yn eq 1 then begin
 				drop1 = widget_base(b0_top_2, col=2, /base_align_left)
 					DCAI_filt_lab = widget_label(drop1, value = 'Filter', font=font, xs = 50)
 	  				DCAI_filt_list = widget_droplist(drop1, value = dcai_global.settings.filter.name, font=font, uval = {tag:'command_filter'})
+			endif
+
+			;\\ IF A MIRROR MOTOR IS PRESENT, ADD A DROPLIST TO SELECT VIEW
+			match = where(tags eq 'MIRROR', filter_yn)
+			if filter_yn eq 1 then begin
+				drop1 = widget_base(b0_top_2, col=2, /base_align_left)
+					DCAI_filt_lab = widget_label(drop1, value = 'Mirror', font=font, xs = 50)
+	  				DCAI_filt_list = widget_droplist(drop1, value = ['sky','cal'], font=font, uval = {tag:'command_mirror'})
 			endif
 
 		  	drop2 = widget_base(b0_top_2, col=2, /base_align_left)

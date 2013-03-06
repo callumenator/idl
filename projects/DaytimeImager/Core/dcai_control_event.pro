@@ -391,7 +391,16 @@ pro DCAI_Control_Event, event
 			;\\ SELECT A FILTER
 			'command_filter': begin
 				new_filt = event.index
-				DCAI_Command, 'filter, ' + string(new_filt, f='(i0)')
+				call_procedure, dcai_global.info.drivers, {device:'filter_select', filter:new_filt}
+			end
+
+			;\\ DRIVE MIRROR MOTOR
+			'command_mirror': begin
+				pos = ['sky','cal']
+				new_pos = pos[event.index]
+				if new_pos eq 'sky' then real_pos = dcai_global.settings.mirror.sky
+				if new_pos eq 'cal' then real_pos = dcai_global.settings.mirror.cal
+				call_procedure, dcai_global.info.drivers, {device:'mirror_drive', to:real_pos}
 			end
 
 			;\\ LAUNCH A NEW PLUGIN
@@ -406,14 +415,20 @@ pro DCAI_Control_Event, event
 			end
 
 			;\\ REINIT ETALON
-			'reinit': call_procedure, dcai_global.info.drivers, {device:'etalon_init'}
+			'etalon_init': call_procedure, dcai_global.info.drivers, {device:'etalon_init'}
+
+			;\\ HOME MOTORS
+			'filter_init': call_procedure, dcai_global.info.drivers, {device:'filter_init'}
+			'mirror_init': call_procedure, dcai_global.info.drivers, {device:'mirror_init'}
+			'calibration_init': call_procedure, dcai_global.info.drivers, {device:'calibration_init'}
+
 
 			;\\ RE-ROUTE AN EVENT GENERATED WITHIN A PLUGIN
 			'plugin_event': begin
 				call_method, uval.method, uval.object, event
 			end
 
-			else:
+			else: print, 'Tag not recognized: ' + uval.tag
 		endcase
 	endif
 	;\\ END WIDGET EVENTS ----------------------------------------------------------------------------------------------
