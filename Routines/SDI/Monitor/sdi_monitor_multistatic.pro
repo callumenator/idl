@@ -4,8 +4,6 @@
 ;\\ Grab the latest allsky camera image
 pro sdi_monitor_grab_allsky, maxElevation, error=error
 
-	common sdi_monitor_common, global, persistent
-
 	error = 0
 	time = bin_date(systime(/ut))
 	jd = js2jd(dt_tm_tojs(systime()))
@@ -30,7 +28,7 @@ pro sdi_monitor_grab_allsky, maxElevation, error=error
 
 		;\\ Copy the allsky image from the URL to a local file
 		dummy = webget('http://optics.gi.alaska.edu/realtime/latest/pkr_latest_rgb.jpg', $
-						copyfile = global.home_dir + 'latest_allsky.jpeg')
+						copyfile = 'c:\rsi\idl\routines\sdi\monitor\latest_allsky.jpeg')
 	endif
 end
 
@@ -261,6 +259,7 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 
 	;\\ Allsky image (only get if sun elevation is below -8 to avoid saturation)
 	sdi_monitor_grab_allsky, -8, error=error
+	print, 'MULTISTATIC ALLSKY ERROR: ', error
 	if (error eq 1) or file_test(dir + '\latest_allsky.jpeg') eq 0 then begin
 		allsky_image = fltarr(3,512,512)
 	endif else begin

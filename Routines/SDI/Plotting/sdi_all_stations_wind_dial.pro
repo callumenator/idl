@@ -105,6 +105,9 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 		back_color = 255
 		chars = .6
 
+		;\\ Normalize intensities
+			sdi_monitor_intensity_normalize, altitude, allMeta, allIntens, allTime, n_intens
+
 		if plot_type eq 'png' then begin
 			window, 0, xs=winx, ys=winy
 			!p.font = 0
@@ -122,9 +125,6 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 
 		plot, /nodata, [0, winx], [0, winy], pos = [0,0,1,1], xstyle=5, ystyle=5, $
 			  color=0, back=back_color
-
-		;\\ Normalize intensities
-			sdi_monitor_intensity_normalize, altitude, allMeta, allIntens, allTime, n_intens
 
 		scale = 0.3
 		intBin_mlt = .125

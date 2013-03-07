@@ -56,6 +56,7 @@ pro davis_real_time_analysis_ploteach, data_path, $
 		nnz = dat.directions(zenith).ndata
 
 		if nnn lt 5 or nns lt 5 or nne lt 5 or nnz lt 5 then begin
+			if (nnz gt 5) then
 			print, 'Num < 5'
 			goto, SKIP_DRTA_PLOTEACH
 		endif

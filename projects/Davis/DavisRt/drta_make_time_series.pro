@@ -90,9 +90,8 @@ function drta_make_time_series, data_path, year, $
 			lelDQ = extract_lel_data(year, dayno, '"DQ"', goodValues = [800,1500])
 			lelTemp = extract_lel_data(year, dayno, '"EC7"', goodValues = [-100,100])
 			if size(lelDQ, /type) ne 8 or size(lelDQ, /type) ne 8 then begin
-				;\\ No lel data, use laser drift
-					sky_pkpos = sky_pkpos - las_drift
-					drift = las_drift
+				;\\ No lel data, use data  drift
+					datadrift = 1
 			endif else begin
 				;\\ Lel data found, use lel model
 					p = double(interpol(lelDQ.data, lelDQ.ut, sky.ut)) * 100.
@@ -108,7 +107,7 @@ function drta_make_time_series, data_path, year, $
 					sky_pkpos = sky_pkpos - lel_drift
 					drift = lel_drift
 			endelse
-			goto, END_DRIFT
+
 		endif
 
 		if keyword_set(datadrift) then begin
@@ -120,12 +119,13 @@ function drta_make_time_series, data_path, year, $
             sky_pkpos = sky_pkpos - drift_curve
             drift = drift_curve
             ;stop
-            goto, END_DRIFT
 		endif
 
 		;\\ Else do normal drift correct
-		sky_pkpos = sky_pkpos - las_drift
-		drift = las_drift
+		if size(drift, /type) eq 0 then begin
+			sky_pkpos = sky_pkpos - las_drift
+			drift = las_drift
+		endif
 
 	END_DRIFT:
 

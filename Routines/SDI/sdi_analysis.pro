@@ -60,6 +60,8 @@ pro sdi_analysis, directory, $
 	endif
 
 
+
+
 	;\\ Else fit the lasers when we fit the corresponding skies
 	for k = 0, nsky - 1 do begin
 
@@ -84,9 +86,11 @@ pro sdi_analysis, directory, $
 					match[j] += cmp_split[n] eq split[n] ;\\ names must have same number of fields
 				endfor
 				if cmp_split[0] ne split[0] then match[j] = 0
+				if cmp_split[1] ne split[1] then match[j] = 0 ;\\ different year
+				if cmp_split[4] ne split[4] then match[j] = 0 ;\\ different month
 			endfor
 			best_match = where(match eq max(match), n_best)
-			if n_best gt 1 then stop	;\\ HMMM?
+			if n_best gt 1 then continue
 
 			use_laser = las_list[best_match[0]]
 
