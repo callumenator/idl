@@ -1,6 +1,7 @@
 
 pro sdi_all_stations_wind_dial, ydn=ydn, $
 								lambda=lambda, $ ;\\ wavelength filter string, ie '630'
+								use_data=use_data, $ ;\\ supply a data structure instead of calling meta_loader
 								data_paths=data_paths, $
 								time_range=time_range, $ ;\\ [min, max] limit data to a certain ut time range
 								resolution=resolution, $ ;\\ array [mlt res, lat res]
@@ -13,9 +14,13 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 	if not keyword_set(resolution) then resolution = [.5, 2] ;\\ mlt, latitude
 	if not keyword_set(lambda) then lambda = '630'
 
-	meta_loader, data, ydn=ydn, raw_paths=data_paths, filter=['*'+lambda+'*']
+	if keyword_set(use_data) then begin
+		data = use_data
+	endif else begin
+		meta_loader, data, ydn=ydn, raw_paths=data_paths, filter=['*'+lambda+'*']
+	endelse
 
-	look_for_sites = ['PKR', 'HRP', 'TLK', 'KTO', 'MAW']
+	look_for_sites = ['PKR', 'HRP', 'TLK', 'KTO']
 	tags = tag_names(data)
 	for i = 0, n_elements(look_for_sites) - 1 do begin
 		match = where(tags eq look_for_sites[i], m_yn)
