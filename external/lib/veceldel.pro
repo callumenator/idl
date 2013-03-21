@@ -1,9 +1,11 @@
 ;===================================================================
-; This pocedure removes an element, identified by selidx, from a 
+; This pocedure removes an element, identified by selidx, from a
 ; vector (invec):
-pro veceldel, invec, selidx
+pro veceldel, invec, selidx, last=last
     nel = n_elements(invec)
-    if nel lt 2 then return
+    if nel lt 2 and ~keyword_set(last) then return
+    if nel eq 1        then undefine, invec
+    if nel eq 1        then return
     if selidx lt 0     then return
     if selidx ge nel   then return
     if selidx eq 0     then invec = invec(1:*)
