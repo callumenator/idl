@@ -1,6 +1,6 @@
 
 ;\\ Given a starting lat, lon, distance (in km) and azimuth (degrees east of north)
-;\\ computes the end lat and lon of the path, for southern hemisphere
+;\\ computes the end lat and lon of the path.
 ;\\ Azimuth and distance can be arrays
 
 function get_end_lat_lon, start_lat, start_lon, distance, azimuth
@@ -27,9 +27,22 @@ function get_end_lat_lon, start_lat, start_lon, distance, azimuth
 	C = asin( (sin(sc) * sin(A)) / sin(sa) )
 
 	end_lon = fltarr(n_elements(azimuth))
-	for hh = 0L, n_elements(azimuth) - 1 do if azimuth(hh) le 180 then $
-		end_lon(hh) = start_lon(hh) + (C(hh) / !dtor) $
-			else end_lon(hh) = start_lon(hh) - (C(hh) / !dtor)
+	for hh = 0L, n_elements(azimuth) - 1 do begin
+		if azimuth(hh) le 180 then begin
+			end_lon(hh) = start_lon(hh) + (C(hh) / !dtor)
+		endif else begin
+			end_lon(hh) = start_lon(hh) - (C(hh) / !dtor)
+		endelse
+
+		;\\ THIS IS A HACK FOR POINTS NEAR THE POLE
+		dist = map_2points(start_lon[hh], start_lat[hh], end_lon[hh], end_lat[hh])
+		if n_elements(sc) gt 1 then begin
+			if abs(dist[0]*!dtor - sc[hh]) gt 1E-5 then end_lon[hh] += 180
+		endif else begin
+			if abs(dist[0]*!dtor - sc) gt 1E-5 then end_lon[hh] += 180
+		endelse
+
+	endfor
 
 	return, [[end_lat],[end_lon]]
 

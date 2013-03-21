@@ -14,7 +14,8 @@ pro meta_loader, out, $
 				 no_lasers = no_lasers, $
 				 get_allsky_ims = get_allsky_ims, $
 				 auto_flat = auto_flat, $	;\\ Apply flat-field correction
-				 drift_type = drift_type 	;\\ 'none', 'data', 'laser', 'both'
+				 drift_type = drift_type, $ 	;\\ 'none', 'data', 'laser', 'both'
+				 save_data = save_data ;\\ path and filename to save data to
 
     if not keyword_set(drift_type) then drift_type = 'data'
 
@@ -439,5 +440,10 @@ pro meta_loader, out, $
 	endfor
 
 	res = execute(exec_str)
+
+	if keyword_set(save_data) then begin
+		data = out
+		save, filename = save_data, data, /compress
+	endif
 
 end

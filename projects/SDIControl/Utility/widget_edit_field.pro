@@ -3,6 +3,8 @@ pro widget_edit_field, base, $
 					   label = label, $
 					   font = font, $
 					   ids = ids, $
+					   edit_xsize = edit_xsize, $
+					   lab_xsize = lab_xsize, $
 					   start_value = start_value, $
 					   edit_uval = uval, $
 					   column=column
@@ -17,7 +19,7 @@ pro widget_edit_field, base, $
 		edit_base = widget_base(base, row = 2)
 	endelse
 	label_wid = widget_label(edit_base, value = label, font = font)
-	text_wid = widget_text(edit_base, /edit, font=font, uval = uval, value = start_value)
+	text_wid = widget_text(edit_base, /edit, font=font, uval = uval, value = start_value, xs = edit_xsize, /all_events)
 	ids = {label:label_wid, text:text_wid}
 
 end

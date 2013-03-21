@@ -185,8 +185,8 @@ pro Andor_Camera_Driver, dll, command, in, out, result, unload=unload, auto_acq=
 		strlowcase('uSetImage'): begin
 			;\\ Set Image mode attributes: binning, size of image
 			res = call_external(dll, 'uAbortAcquisition')
-      res = call_external(dll, 'uFreeInternalMemory')
-      wait, 2
+      		res = call_external(dll, 'uFreeInternalMemory')
+      		wait, 2
 			result = get_error(call_external(dll, 'uSetImage', $
 						long(in[0]), long(in[1]), long(in[2]), long(in[3]), long(in[4]), long(in[5])))
 			wait, 2

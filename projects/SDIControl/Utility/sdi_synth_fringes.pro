@@ -113,5 +113,5 @@ pro sdi_synth_fringemap, fringes, $      ;\A\<Arg0>
     fringes = sin(pmap)
     fringes = 1./(1 + (4*php.R/(1. - php.r)^2)*fringes*fringes)
     fringes = fringes - min(fringes)
-    fringes = fringes/max(fringes)
+    if max(fringes) ne 0 then fringes = fringes / max(fringes)
 end
