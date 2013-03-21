@@ -68,7 +68,7 @@ pro bin2d, x, y, z, widths, outx, outy, outz, $
 	;\\ Not really extrapolation, but needed a name
 	if keyword_set(extrap) then begin
 		pts = where(outz eq -999, npts)
-		for k = 0, npts - 1 do begin
+		for k = 0L, npts - 1 do begin
 			idx = array_indices(outz, pts[k])
 			dst = (x-outx[idx[0]])^2 + (y-outy[idx[1]])^2
 			cl = (where(dst eq min(dst)))[0]
