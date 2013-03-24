@@ -5,7 +5,12 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 								data_paths=data_paths, $
 								time_range=time_range, $ ;\\ [min, max] limit data to a certain ut time range
 								resolution=resolution, $ ;\\ array [mlt res, lat res]
+								intens_factor=intens_factor, $ ;\\ Manually scale the (normalized) intensities by this number
+								intens_scale=intens_scale, $ ;\\ Use this intensity range as a scale bar
+								color_table=color_table, $ ;\\ Intensity color table
+								color_top = color_top, $ ;\\ Use this top of the color table
 								plot_type=plot_type, $ ;\\ 'png' or 'eps'
+        						wind_scale=wind_scale, $ ;\\ [m/s, length of m/s]
 								output_path=output_path ;\\ root directory for output, a date subdir will be created
 
 	if not keyword_set(plot_type) then plot_type = 'png'
@@ -13,6 +18,10 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 
 	if not keyword_set(resolution) then resolution = [.5, 2] ;\\ mlt, latitude
 	if not keyword_set(lambda) then lambda = '630'
+	if not keyword_set(color_table) then color_table = 20
+	if not keyword_set(color_top) then color_top = 250
+	if not keyword_set(wind_scale) then wind_scale = [200., 60.] else wind_scale= float(wind_scale)
+
 
 	if keyword_set(use_data) then begin
 		data = use_data
@@ -131,7 +140,6 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 		plot, /nodata, [0, winx], [0, winy], pos = [0,0,1,1], xstyle=5, ystyle=5, $
 			  color=0, back=back_color
 
-		scale = 0.3
 		intBin_mlt = .125
 		intBin_lat = .5
 		bin2d, allMlt, allMlat, allIntens, [intBin_mlt, intBin_lat], int_outx, int_outy, aveIntens, /extrap
@@ -150,18 +158,31 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 		clock_angle = 90. * ((aveMlt - 12) / 6.) * !DTOR
 
 		rotAngle = -1*(!PI - clock_angle)
-		rotZonal = (aveZonal*cos(rotAngle) - aveMerid*sin(rotAngle))*scale
-		rotMerid = (aveZonal*sin(rotAngle) + aveMerid*cos(rotAngle))*scale
+		rotZonal = ((aveZonal*cos(rotAngle) - aveMerid*sin(rotAngle))/wind_scale[0])*wind_scale[1]
+		rotMerid = ((aveZonal*sin(rotAngle) + aveMerid*cos(rotAngle))/wind_scale[0])*wind_scale[1]
 
 		dialxcen = 0.5*winx
 		dialycen = 0.5*winy
 
 		;\\ Intensity background
-			aveIntens = smooth(aveIntens, 5, /edge, /nan)
 			temp = aveIntens[sort(aveIntens)]
 			nel = n_elements(temp)
-			intensColor = bytscl(aveIntens, min=temp[nel*.02], max=temp[nel*.98 - 1], top=250)
-			loadct, 20, /silent
+			if keyword_set(intens_factor) then begin
+				aveIntens /= temp[nel*.98 - 1]
+				aveIntens *= intens_factor
+			endif
+			if keyword_set(intens_scale) then begin
+				intensColor = bytscl(aveIntens, min=intens_scale[0], max=intens_scale[1], top=color_top)
+			endif else begin
+				intensColor = bytscl(aveIntens, min=temp[nel*.02], max=temp[nel*.98 - 1], top=color_top)
+			endelse
+			intensColor = smooth(intensColor, 5, /edge, /nan)
+
+			if size(color_table, /type) eq 7 then begin
+				load_color_table, color_table, /full
+			endif else begin
+				loadct, color_table, /silent
+			endelse
 			for ixx = 0, n_elements(int_outx) - 1 do begin
 			for iyy = 0, n_elements(int_outy) - 1 do begin
 
@@ -191,7 +212,7 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 
 		;\\ Intensity background scale bar and note
 			scbar = intarr(winx/(2.*3.), 15)
-			for ssi = 0, 14 do scbar[*,ssi] = congrid(indgen(256), winx/(2.*3.), /interp)
+			for ssi = 0, 14 do scbar[*,ssi] = congrid(indgen(color_top), winx/(2.*3.), /interp)
 			if plot_type eq 'png' then begin
 				scbar = congrid(scbar, winx/3.3, 20)
 				tv, scbar, (winx - (winx/3.3)) - 10, winy - 50, /data
@@ -207,7 +228,7 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 		plots, dialxcen + [0,0], dialycen + [-10,10], /data, thick = 2, color = line_color
 
 		circ = (findgen(331))*!DTOR
-		for lat_circ = mlat_range[0], mlat_range[1], 5 do begin
+			for lat_circ = mlat_range[0], mlat_range[1], 5 do begin
 				lat_circ_radius = (1 - ((lat_circ - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
 				plots, dialxcen - lat_circ_radius*sin(circ), $
 					   dialycen + lat_circ_radius*cos(circ), $
@@ -227,6 +248,16 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 			plots, dialxcen - [0, width/2.]*sin(330*!DTOR), $
 				   dialycen + [0, width/2.]*cos(330*!DTOR), $
 				   color = 100, /data
+
+			ticks = findgen(23)*15 + 30
+			for tck = 0, n_elements(ticks) - 1 do begin
+				lcr = (1 - ((mlat_range[0] - mlat_range[0]) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
+				x0 = dialxcen + lcr*sin(ticks[tck]*!dtor)
+				y0 = dialycen + lcr*cos(ticks[tck]*!dtor)
+				x1 = dialxcen + 1.03*lcr*sin(ticks[tck]*!dtor)
+				y1 = dialycen + 1.03*lcr*cos(ticks[tck]*!dtor)
+				plots, [x0,x1], [y0,y1], /data
+			endfor
 
 		lat_circ_radius = (1 - ((-3) / float((mlat_range[1] - mlat_range[0])))) * (width/2.)
 		for mlt_clock = 6, 24, 6 do begin
@@ -257,18 +288,18 @@ pro sdi_all_stations_wind_dial, ydn=ydn, $
 			xpos = 5
 			ypos = winy-65
 			mag = 200
-			arrow, xpos, ypos, xpos + scale*mag, ypos, color = arrow_color, $
+			arrow, xpos, ypos, xpos + wind_scale[1]*mag/wind_scale[0], ypos, color = arrow_color, $
 				   thick=2, hsize = arrow_head_size, /data
-			xyouts, xpos, ypos + 8, '200 m/s', color = text_color, /data, chart=2
+			xyouts, xpos, ypos + 8, string(wind_scale[0], f='(i0)') + ' m/s', color = text_color, /data, chart=2
 		endif else begin
 			xyouts, 10, winy-20, 'Average Vector Dial Plot', color = text_color, /data, chars=1.2*chars, chart=2
 			xyouts, 10, winy-45, '(Magnetic Coordinates)', color = text_color, /data, chars=1.2*chars, chart=2
 			xpos = 10
 			ypos = winy-85
 			mag = 200
-			arrow, xpos, ypos, xpos + scale*mag, ypos, color = arrow_color, $
+			arrow, xpos, ypos, xpos + wind_scale[1]*mag/wind_scale[0], ypos, color = arrow_color, $
 				   thick=2, hsize = arrow_head_size, /data
-			xyouts, xpos, ypos + 12, '200 m/s', color = text_color, /data, chars=1.2*chars, chart=2
+			xyouts, xpos, ypos + 12, string(wind_scale[0], f='(i0)') + ' m/s', color = text_color, /data, chars=1.2*chars, chart=2
 		endelse
 
 		if plot_type eq 'png' then begin

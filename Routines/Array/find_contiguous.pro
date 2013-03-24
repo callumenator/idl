@@ -18,8 +18,8 @@ pro find_contiguous, in_array, gap_threshold, out_indices, n_blocks = n_blocks, 
 		endelse
 
 		idx = 0
-		indices = intarr(n_pts + 1, 2)
-		for j = 0, n_pts do begin
+		indices = lonarr(n_pts + 1, 2)
+		for j = 0L, n_pts do begin
 			indices[j,0] = idx
 			indices[j,1] = pts[j]-1
 			idx = pts[j]

@@ -10,6 +10,7 @@
 ;\\								  bistatic=bistatic, $ ;\\ make bistatic plots
 ;\\								  tristatic=tristatic, $ ;\\ make tristatic plots
 ;\\								  gradients=gradients, $ ;\\ calculate gradient profiles
+;\\								  monoblend=monoblend, $ ;\\ return monoblend fields
 ;\\								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 ;\\								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 ;\\								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -556,8 +557,8 @@ function sdi_all_stations_wind_fields_blend_bistatic, bistaticFits, $
 	bi = bistaticFits[use]
 	missing = -9999
 	triangulate, bi.lon, bi.lat, tr, b
-	grid_lat = trigrid(bi.lon, bi.lat, bi.lat, tr, missing=missing, nx = 20, ny=20)
-	grid_lon = trigrid(bi.lon, bi.lat, bi.lon, tr, missing=missing, nx = 20, ny=20)
+	grid_lat = trigrid(bi.lon, bi.lat, bi.lat, tr, missing=missing, nx = 15, ny=15)
+	grid_lon = trigrid(bi.lon, bi.lat, bi.lon, tr, missing=missing, nx = 15, ny=15)
 	use = where(grid_lon ne missing and grid_lat ne missing, nuse)
 
 	ilats = grid_lat[use]
@@ -716,6 +717,7 @@ pro sdi_all_stations_wind_fields_plotallsky, map, $
 	endif
 
 	read_jpeg, list[match], allsky_image
+	catch, /cancel
 	plot_allsky_on_map, map, allsky_image, 80., 23, 240., 65.13, -147.48, [map_opts.winx,map_opts.winy]
 	SKIP_JPEG:
 end
@@ -836,6 +838,7 @@ end
 ;\\ MAIN ENTRY POINT
 pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  lambda=lambda, $
+								  use_data=use_data, $ ;\\ use this data struct instead of calling meta_loader
 								  options=options, $ ;\\ struct of plot options, see code
 								  data_paths=data_paths, $
 								  time_range=time_range, $ ;\\ [min,max] decimal ut hours
@@ -844,6 +847,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  bistatic=bistatic, $ ;\\ make bistatic plots
 								  tristatic=tristatic, $ ;\\ make bistatic plots
 								  gradients=gradients, $ ;\\ calculate gradient profiles, return in this variable
+								  monoblend=monoblend, $ ;\\ return monoblend fields
 								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -858,7 +862,11 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 	if not keyword_set(lambda) then lambda = '630'
 
 	;\\ GET SDI DATA
-	meta_loader, data, ydn=ydn, raw_paths=data_paths, filter=['*'+lambda+'*']
+	if not keyword_set(use_data) then begin
+		meta_loader, data, ydn=ydn, raw_paths=data_paths, filter=['*'+lambda+'*']
+	endif else begin
+		data = use_data
+	endelse
 
 	look_for_sites = ['PKR', 'HRP', 'TLK', 'KTO']
 	tags = tag_names(data)
@@ -950,6 +958,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								 {site_code:'KTO', color:[190,39]}  ]}
 	endif else begin
 		map_opts = options
+		map_opts.output_path = output_path
+		map_opts.output_subdir = output_subdir
 		if options.lat eq 0 then map_opts.lat = mean_lat
 		if options.lon eq 0 then map_opts.lon = mean_lon
 	endelse
@@ -984,11 +994,13 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 					 		 + '.' + plot_type
 
 		;\\ PLOTTING
-		if keyword_set(monostatic) then $
+		if keyword_set(monostatic) then begin
 			sdi_all_stations_wind_fields_pageset, plot_type, background=background, map_opts=map_opts
 
-		if keyword_set(allsky_image_path) then $
+			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
+		endif
+
 
 		loadct, 0, /silent
 		for i = 0, nsites - 1 do begin
@@ -1013,7 +1025,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			zonal = zonalWind*cos(angle) - meridWind*sin(angle)
 			merid = zonalWind*sin(angle) + meridWind*cos(angle)
 
-			if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) then begin
+			if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) or arg_present(monoblend) then begin
 				append, zonal, allMonoZonal
 				append, merid, allMonoMerid
 				append, zinfo.lat, allMonoLat
@@ -1049,7 +1061,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endfor ;\\ loop over sites
 
 		;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
-		if size(pfisr_convection_data, /type) ne 0 then $
+		if keyword_set(monostatic) and size(pfisr_convection_data, /type) ne 0 then $
 				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
 
 		;\\ FINALIZE THE MONOSTATIC PLOT
@@ -1059,8 +1071,14 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 		endif
 
 		;\\ IF DOING MULTISTATIC, BLEND THE MONOSTATICS WINDS
-		if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) then begin
+		if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) or arg_present(monoblend) then begin
 			mono_blend = sdi_all_stations_wind_fields_blend_monostatic(allMonoZonal, allMonoMerid, allMonoLat, allMonoLon)
+
+			if time_index eq 0 then begin
+				monoblend = [create_struct('ut', this_time, mono_blend)]
+			endif else begin
+				monoblend = [monoblend, create_struct('ut', this_time, mono_blend)]
+			endelse
 
 			if arg_present(gradients) then begin
 				mono_grads = sdi_all_stations_wind_fields_sample_gradients(mono_blend, altitude, [50,50])
@@ -1078,6 +1096,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits, sigma=1.5)
 		endif
 
+
 		;\\ PLOT BISTATIC WINDS IF REQUESTED
 		if keyword_set(bistatic) then begin
 			map_opts.output_name = '\Bistatic\All_Stations_Bistatic' + $
@@ -1088,11 +1107,14 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
+			if size(pfisr_convection_data, /type) ne 0 then $
+				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+
 			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
-			;sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
+			sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
 			polyFits.lon += .3
-			sdi_all_stations_wind_fields_plot_blend, map, map_opts, polyFits, color=[130, 8]
-			sdi_all_stations_wind_fields_plotbistatic, map, map_opts, bistaticFits
+			;sdi_all_stations_wind_fields_plot_blend, map, map_opts, polyFits, color=[130, 8]
+			;sdi_all_stations_wind_fields_plotbistatic, map, map_opts, bistaticFits
 
 			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
