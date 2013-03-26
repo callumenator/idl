@@ -38,8 +38,8 @@ function station_info, site_code, info
 
 			'tlk':begin
 				name = 'Toolik Lake'
-				glat = 68.3
-				glon = -149.5
+				glat = 68.63
+				glon = -149.6
 				mlat = 68.731
 				mlon = -101.223
 				oval_angle = 25.23

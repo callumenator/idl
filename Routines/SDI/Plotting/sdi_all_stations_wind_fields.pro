@@ -11,6 +11,8 @@
 ;\\								  tristatic=tristatic, $ ;\\ make tristatic plots
 ;\\								  gradients=gradients, $ ;\\ calculate gradient profiles
 ;\\								  monoblend=monoblend, $ ;\\ return monoblend fields
+;\\								  tempblend=tempblend, $ ;\\ return blended temperature
+;\\								  vertical=vertical, $   ;\\ return bistatic vz
 ;\\								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 ;\\								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 ;\\								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -200,27 +202,49 @@ end
 pro sdi_all_stations_wind_fields_annotate, plot_type, $
 										   map, $
 										   map_opts, $
-										   this_time
+										   this_time, $
+										   showMlt=showMlt ;\\ set equal to amount to add for MLT
 
 	;\\ ANNOTATIONS
 	if plot_type eq 'png' then begin
-		xyouts, 5, map_opts.winy - 20, time_str_from_decimalut(this_time) + ' UT', /device, color=map_opts.text_color
-		xyouts, 5, map_opts.winy - 38, '200 m/s', /device, color=map_opts.text_color
-		pos = convert_coord(5, map_opts.winy - 45, /device, /to_normal)
+		ypos = map_opts.winy - 20
+		xyouts, 5, ypos, time_str_from_decimalut(this_time) + ' UT', /device, color=map_opts.text_color
+		ypos -= 18
+		if keyword_set(showMlt) then begin
+			xyouts, 5, ypos, time_str_from_decimalut(this_time + showMlt) + ' MLT', /device, color=map_opts.text_color
+			ypos -= 18
+		endif
+		xyouts, 5, ypos, '200 m/s', /device, color=map_opts.text_color
+		ypos -= 7
+		pos = convert_coord(5, ypos, /device, /to_normal)
 		plot_vector_scale_on_map, [pos[0,0], pos[1,0]], map, 200, map_opts.scale, $
 								  90, headsize=map_opts.arrow_head_size, $
 								  headthick=2, thick=2, color=[0,map_opts.text_color]
 	endif else begin
-		pos = convert_coord(100, map_opts.winy*15.3, /device, /to_normal)
+		if keyword_set(showMlt) then begin
+			pos = convert_coord(100, map_opts.winy*14.7, /device, /to_normal)
+		endif else begin
+			pos = convert_coord(100, map_opts.winy*15.3, /device, /to_normal)
+		endelse
 		plot_vector_scale_on_map, [pos[0,0], pos[1,0]], map, 200, map_opts.scale, $
 								  90, headsize=map_opts.arrow_head_size, $
 								  headthick=2, thick=2, color=[0,map_opts.text_color]
 
 		plot, /noerase, /nodata, [0,map_opts.winx], [0,map_opts.winy], pos=[0,0,1,1], xstyle=5, ystyle=5
-		xyouts, 5, map_opts.winy - 20, time_str_from_decimalut(this_time) + ' UT', /data, $
+		ypos = map_opts.winy - 20
+		xyouts, 5, ypos, time_str_from_decimalut(this_time) + ' UT', /data, $
 				color=map_opts.text_color, chars=map_opts.chars, chart=2
-		xyouts, 5, map_opts.winy - 40, '200 m/s', /data, $
+		ypos -= 20
+		if keyword_set(showMlt) then begin
+			xyouts, 5, ypos, time_str_from_decimalut(this_time + showMlt) + ' MLT', /data, $
+					color=map_opts.text_color, chars=map_opts.chars, chart=2
+			ypos -= 20
+		endif
+		xyouts, 5, ypos, '200 m/s', /data, $
 				color=map_opts.text_color, chars=map_opts.chars, chart=2
+
+		;\\ DRAW A BORDER
+			plots, [0,0,.999,.999,0], [0,.999,.999,0,0], thick=2, color = 0, /normal
 	endelse
 end
 ;\\ --------------------------------------------------------------------------------------------------
@@ -271,7 +295,7 @@ pro sdi_all_stations_wind_fields_plotmonostatic, map, $
 			   iy0[x,y] - 0.5*iylen[x,y], $
 			   ix0[x,y] + 0.5*ixlen[x,y], $
 			   iy0[x,y] + 0.5*iylen[x,y], $
-			   /data, color=color, hsize=map_opts.arrow_head_size
+			   /data, color=color, hsize=map_opts.arrow_head_size, thick=map_opts.arrow_thick
 
 	endfor
 	endfor
@@ -309,6 +333,36 @@ function sdi_all_stations_wind_fields_blend_monostatic, geoZonal, $
 	endfor
 	return, {lat:ilats, lon:ilons, zonal:zonal, merid:merid}
 
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+;\\ BLEND THE TEMPERATURES
+function sdi_all_stations_wind_fields_blend_temperature, temperature, $
+											       		lat, $
+											       		lon, $
+											       		sigma=sigma
+
+	;\\ Get an even grid of locations for blending, stay inside monostatic boundary
+	if not keyword_set(sigma) then sigma = 0.8
+	missing = -9999
+	triangulate, lon, lat, tr, b
+	grid_lat = trigrid(lon, lat, lat, tr, missing=missing, nx = 20, ny=20)
+	grid_lon = trigrid(lon, lat, lon, tr, missing=missing, nx = 20, ny=20)
+	use = where(grid_lon ne missing and grid_lat ne missing, nuse)
+
+	ilats = grid_lat[use]
+	ilons = grid_lon[use]
+	itemp = ilats
+
+	for locIdx = 0, nuse - 1 do begin
+		latDist = (lat - ilats[locIdx])
+		lonDist = (lon - ilons[locIdx])
+		dist = sqrt(lonDist*lonDist + latDist*latDist)
+		weight = exp(-(dist*dist)/(2*sigma*sigma))
+		itemp[locIdx] = total(temperature * weight)/total(weight)
+
+	endfor
+	return, {lat:ilats, lon:ilons, temperature:itemp}
 end
 ;\\ --------------------------------------------------------------------------------------------------
 
@@ -365,7 +419,8 @@ pro sdi_all_stations_wind_fields_plot_blend, map, $
 		arrow, x0 - .5*xlen, y0 - .5*ylen, $
 			   x0 + .5*xlen, y0 + .5*ylen, /data, $
 			   color = color[0], $
-			   hsize = map_opts.arrow_head_size
+			   hsize = map_opts.arrow_head_size, $
+			   thick = map_opts.arrow_thick
 	endfor
 
 end
@@ -541,7 +596,8 @@ end
 
 ;\\ BLEND THE BISTATIC WINDS
 function sdi_all_stations_wind_fields_blend_bistatic, bistaticFits, $
-											       	  sigma=sigma
+											       	  sigma=sigma, $
+											       	  maxDist=maxDist
 
 	;\\ Get an even grid of locations for blending, stay inside bistatic boundary
 	use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
@@ -579,10 +635,22 @@ function sdi_all_stations_wind_fields_blend_bistatic, bistaticFits, $
 		lonDist = (bi.lon - ilons[locIdx])
 		dist = sqrt(lonDist*lonDist + latDist*latDist)
 		weight = exp(-(dist*dist)/(2*sigma*sigma))
-		zonal[locIdx] = total(allZonal * weight)/total(weight)
-		merid[locIdx] = total(allMerid * weight)/total(weight)
+		if keyword_set(maxDist) then begin
+			if (min(dist) gt maxDist) then useIt = 0 else useIt = 1
+		endif else begin
+			useIt = 1
+		endelse
+		if (useIt eq 1) then begin
+			zonal[locIdx] = total(allZonal * weight)/total(weight)
+			merid[locIdx] = total(allMerid * weight)/total(weight)
+		endif else begin
+			zonal[locIdx] = -999
+			merid[locIdx] = -999
+		endelse
 	endfor
-	return, {lat:ilats, lon:ilons, zonal:zonal, merid:merid}
+
+	keep = where(zonal ne -999, nkeep)
+	return, {lat:ilats[keep], lon:ilons[keep], zonal:zonal[keep], merid:merid[keep]}
 
 end
 ;\\ --------------------------------------------------------------------------------------------------
@@ -618,6 +686,7 @@ pro sdi_all_stations_wind_fields_plotbistatic, map, $
 			   x0 + .5*xlen, y0 + .5*ylen, $
 			   color = map_opts.bistatic_color[0], $
 			   hsize = map_opts.arrow_head_size, $
+			   thick=map_opts.arrow_thick, $
 			   /data
 	endfor
 
@@ -848,6 +917,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 								  tristatic=tristatic, $ ;\\ make bistatic plots
 								  gradients=gradients, $ ;\\ calculate gradient profiles, return in this variable
 								  monoblend=monoblend, $ ;\\ return monoblend fields
+								  tempblend=tempblend, $ ;\\ return blended temperature
+								  vertical=vertical, $   ;\\ return bistatic vz
 								  allsky_image_path=allsky_image_path, $ ;\\ location of allsky images for this day
 								  pfisr_convection=pfisr_convection, $ ;\\ filename of pfisr convection data for this day
 								  plot_type=plot_type, $ ;\\ 'png' or 'eps'
@@ -890,7 +961,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 	if keyword_set(bistatic) or $
 	   keyword_set(tristatic) or $
-	   arg_present(gradients) then begin
+	   arg_present(gradients) or $
+	   arg_present(vertical) then begin
 		allMeta = ptrarr(nsites, /alloc)
 		allWinds = ptrarr(nsites, /alloc)
 		allWindErrs = ptrarr(nsites, /alloc)
@@ -952,6 +1024,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 					mono_blend_color:[100, 0], $
 					bi_blend_color:[130, 8], $
 					pfisr_color:[190, 39], $
+					arrow_thick:1, $
 					site_colors:[{site_code:'PKR', color:[150,39]}, $
 								 {site_code:'TLK', color:[230,39]}, $
 								 {site_code:'HRP', color:[100,39]}, $
@@ -1010,6 +1083,7 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			meta = data.(idx).meta
 			winds = data.(idx).winds
 			speks = data.(idx).speks_dc
+			temps = speks.temperature
 
 			case meta.wavelength_nm of
 				630.0: altitude = 240.
@@ -1020,14 +1094,18 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			get_zone_locations, meta, zones=zinfo, altitude=altitude
 			sdi_time_interpol, winds.zonal_wind, time, this_time, zonalWind
 			sdi_time_interpol, winds.meridional_wind, time, this_time, meridWind
+			sdi_time_interpol, temps, time, this_time, sdiTemp
 
 			angle = (-1.0)*meta.oval_angle*!DTOR
 			zonal = zonalWind*cos(angle) - meridWind*sin(angle)
 			merid = zonalWind*sin(angle) + meridWind*cos(angle)
 
-			if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) or arg_present(monoblend) then begin
+			if keyword_set(bistatic) or keyword_set(tristatic) or $
+			   arg_present(gradients) or arg_present(monoblend) or $
+			   arg_present(tempblend) or arg_present(vertical) then begin
 				append, zonal, allMonoZonal
 				append, merid, allMonoMerid
+				append, sdiTemp, allMonoTemps
 				append, zinfo.lat, allMonoLat
 				append, zinfo.lon, allMonoLon
 			endif
@@ -1050,7 +1128,8 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			;\\ STORE MULTISTATIC INFO
 			if keyword_set(bistatic) or $
 			   keyword_set(tristatic) or $
-			   arg_present(gradients) then begin
+			   arg_present(gradients) or $
+			   arg_present(vertical) then begin
 				sdi_time_interpol, speks.velocity*meta.channels_to_velocity, time, this_time, _winds
 				sdi_time_interpol, speks.sigma_velocity*meta.channels_to_velocity, time, this_time, _wind_errors
 				*allMeta[i] = meta
@@ -1066,12 +1145,13 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 
 		;\\ FINALIZE THE MONOSTATIC PLOT
 		if keyword_set(monostatic) then begin
-			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
+			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time, showMlt=12.8
 			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
 		endif
 
 		;\\ IF DOING MULTISTATIC, BLEND THE MONOSTATICS WINDS
-		if keyword_set(bistatic) or keyword_set(tristatic) or arg_present(gradients) or arg_present(monoblend) then begin
+		if keyword_set(bistatic) or keyword_set(tristatic) or $
+		   arg_present(gradients) or arg_present(monoblend) then begin
 			mono_blend = sdi_all_stations_wind_fields_blend_monostatic(allMonoZonal, allMonoMerid, allMonoLat, allMonoLon)
 
 			if time_index eq 0 then begin
@@ -1089,11 +1169,33 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			endif
 		endif
 
+		;\\ BLEND THE TEMPERATURES IF REQUESTED
+		if arg_present(tempblend) then begin
+			temp_blend = sdi_all_stations_wind_fields_blend_temperature(allMonoTemps, allMonoLat, allMonoLon)
+			if time_index eq 0 then begin
+				tempblend = [create_struct('ut', this_time, temp_blend)]
+			endif else begin
+				tempblend = [tempblend, create_struct('ut', this_time, temp_blend)]
+			endelse
+		endif
 
-		if keyword_set(bistatic) or arg_present(gradients) then begin
+
+		if keyword_set(bistatic) or arg_present(gradients) or arg_present(vertical) then begin
 			bistaticFits = sdi_all_stations_wind_fields_fitbistatic(altitude, allMeta, allWinds, AllWindErrs)
 			polyFits = sdi_all_stations_wind_fields_polyfitbistatic(altitude, allMeta, allWinds, AllWindErrs)
-			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits, sigma=1.5)
+			bi_blend = sdi_all_stations_wind_fields_blend_bistatic(bistaticFits, sigma=.5, maxDist=.5)
+
+			if arg_present(vertical) then begin
+				use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
+							bistaticFits.obsdot lt .8 and $
+							bistaticFits.mangle lt 4, npts)
+
+				if time_index eq 0 then begin
+					vertical = [{ut:this_time, vz:bistaticFits[use].mcomp, lat:bistaticFits[use].lat, lon:bistaticFits[use].lon}]
+				endif else begin
+					vertical = [vertical, {ut:this_time, vz:bistaticFits[use].mcomp, lat:bistaticFits[use].lat, lon:bistaticFits[use].lon}]
+				endelse
+			endif
 		endif
 
 
@@ -1107,21 +1209,17 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			if keyword_set(allsky_image_path) then $
 				sdi_all_stations_wind_fields_plotallsky, map, map_opts, allsky_image_path, this_time
 
-			if size(pfisr_convection_data, /type) ne 0 then $
-				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
-
 			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
 			sdi_all_stations_wind_fields_plot_blend, map, map_opts, bi_blend, color=map_opts.bi_blend_color
 			polyFits.lon += .3
 			;sdi_all_stations_wind_fields_plot_blend, map, map_opts, polyFits, color=[130, 8]
 			;sdi_all_stations_wind_fields_plotbistatic, map, map_opts, bistaticFits
 
-			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
-			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
-
-			;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
 			if size(pfisr_convection_data, /type) ne 0 then $
 				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+
+			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time, showMlt=12.8
+			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
 		endif
 
 		if arg_present(gradients) then begin
@@ -1153,17 +1251,18 @@ pro sdi_all_stations_wind_fields, ydn=ydn, $
 			sdi_all_stations_wind_fields_plot_blend, map, map_opts, mono_blend, color=map_opts.mono_blend_color
 			sdi_all_stations_wind_fields_plottristatic, map, map_opts, fits
 
-			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time
-			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
-
 			;\\ OVER-PLOT PFISR CONVECTION IF REQUESTED
 			if size(pfisr_convection_data, /type) ne 0 then $
 				sdi_all_stations_wind_fields_plotpfisr, map, map_opts, pfisr_convection_data, this_time, data.dayno
+
+			sdi_all_stations_wind_fields_annotate, plot_type, map, map_opts, this_time, showMlt=12.8
+			sdi_all_stations_wind_fields_pageset, plot_type, map_opts=map_opts, /done
 		endif
 
 		;\\ CLEAR SOME APPENDER ARRAYS
 		allMonoZonal = ''
 		allMonoMerid = ''
+		allMonoTemps = ''
 		allMonoLon = ''
 		allMonoLat = ''
 

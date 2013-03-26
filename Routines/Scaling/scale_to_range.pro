@@ -8,21 +8,18 @@ pro scale_to_range, inArr, inScaleMin, inScaleMax, outScaledArr, $
 					scaleMiddle = scaleMiddle, scaleTo = scaleTo, $
 					missing=missing
 
-	if keyword_set(scaleMiddle) then scaleCenter = scaleMiddle else $
+	if n_elements(scaleMiddle) ne 0 then scaleCenter = scaleMiddle else $
 		scaleCenter = mean([inScaleMin, inScaleMax])
 
 	if not keyword_set(scaleTo) then scaleTo = [0.,255.]
 
 	outScaledArr = inArr
 
-	ptsl = where(inArr le inScaleMin, nl)
-	ptsg = where(inArr ge inScaleMax, ng)
-	if nl gt 0 then outScaledArr[ptsl] = inScaleMin
-	if ng gt 0 then outScaledArr[ptsg] = inScaleMax
-
 	scaleToRange = scaleTo[1] - scaleTo[0]
 
 	if inScaleMin lt 0 then begin
+
+
 
 		ptsl = where(outScaledArr lt scaleCenter, nl)
 		ptsg = where(outScaledArr ge scaleCenter, ng)
@@ -36,6 +33,11 @@ pro scale_to_range, inArr, inScaleMin, inScaleMax, outScaledArr, $
 		outScaledArr = (outScaledArr/255.)*scaleToRange + scaleTo[0]
 
 	endelse
+
+	ptsl = where(outScaledArr le scaleTo[0], nl)
+	ptsg = where(outScaledArr ge scaleTo[1], ng)
+	if nl gt 0 then outScaledArr[ptsl] = scaleTo[0]
+	if ng gt 0 then outScaledArr[ptsg] = scaleTo[1]
 
 	if n_elements(missing) eq 2 then begin
 		ptsMissing = where(inArr eq missing[0], nmissing)
