@@ -32,6 +32,71 @@ pro sdi_monitor_grab_allsky, maxElevation, error=error
 	endif
 end
 
+
+;\\ BLEND THE BISTATIC WINDS
+function sdi_monitor_blend, bistaticFits, $
+				       	  	sigma=sigma, $
+							maxDist=maxDist
+
+	;\\ Get an even grid of locations for blending, stay inside bistatic boundary
+	use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
+				bistaticFits.obsdot lt .8 and $
+				bistaticFits.mangle gt 25 and $
+				abs(bistaticFits.mcomp) lt 500 and $
+				abs(bistaticFits.lcomp) lt 500 and $
+				bistaticFits.merr/bistaticFits.mcomp lt .3 and $
+				bistaticFits.lerr/bistaticFits.lcomp lt .3, nbi )
+	if nbi lt 5 then return, 0
+
+	if not keyword_set(sigma) then sigma = 0.8
+	bi = bistaticFits[use]
+	missing = -9999
+
+	;triangulate, bi.lon, bi.lat, tr, b
+	;grid_lat = trigrid(bi.lon, bi.lat, bi.lat, tr, missing=missing, nx = 15, ny=15)
+	;grid_lon = trigrid(bi.lon, bi.lat, bi.lon, tr, missing=missing, nx = 15, ny=15)
+	;use = where(grid_lon ne missing and grid_lat ne missing, nuse)
+
+	ilats = bi.lat
+	ilons = bi.lon
+	nuse = nbi
+	zonal = ilats
+	merid = ilats
+
+	allZonal = fltarr(nbi)
+	allMerid = fltarr(nbi)
+	for i = 0, nbi - 1 do begin
+		outWind = project_bistatic_fit(bi[i], 0)
+		allZonal[i] = outWind[0]
+		allMerid[i] = outWind[1]
+	endfor
+	for locIdx = 0, nuse - 1 do begin
+		latDist = (bi.lat - ilats[locIdx])
+		lonDist = (bi.lon - ilons[locIdx])
+		dist = sqrt(lonDist*lonDist + latDist*latDist)
+		weight = exp(-(dist*dist)/(2*sigma*sigma))
+		if keyword_set(maxDist) then begin
+			if (min(dist) gt maxDist) then useIt = 0 else useIt = 1
+		endif else begin
+			useIt = 1
+		endelse
+		if (useIt eq 1) then begin
+			zonal[locIdx] = total(allZonal * weight)/total(weight)
+			merid[locIdx] = total(allMerid * weight)/total(weight)
+		endif else begin
+			zonal[locIdx] = -999
+			merid[locIdx] = -999
+		endelse
+	endfor
+
+	keep = where(zonal ne -999, nkeep)
+	return, {lat:ilats[keep], lon:ilons[keep], zonal:zonal[keep], merid:merid[keep]}
+
+end
+;\\ --------------------------------------------------------------------------------------------------
+
+
+
 pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 							 timeseries=timeseries, $ ;\\ time series directory
 							 save_name=save_name ;\\ save a png to this filename
@@ -194,8 +259,8 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 
 		;\\ Append the vertical wind data to the multistatic timeseries
 		bivz = where(max(bistaticFits.overlap, dim=1) gt .1 and $
-					 bistaticFits.obsdot lt .6 and $
-					 bistaticFits.mangle lt 3, nbivz)
+					 	 bistaticFits.obsdot lt .6 and $
+					 	 bistaticFits.mangle lt 4, nbivz)
 
 		if nbivz gt 0 then begin
 			save_this_one = 0
@@ -338,26 +403,18 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 
 	;\\ Overlay Bistatic Winds
 	if show_bistatic eq 1 and size(bistaticFits, /type) ne 0 then begin
-		use = where(max(bistaticFits.overlap, dim=1) gt .1 and $
-					bistaticFits.obsdot lt .8 and $
-					bistaticFits.mangle gt 25 and $
-					abs(bistaticFits.mcomp) lt 500 and $
-					abs(bistaticFits.lcomp) lt 500 and $
-					bistaticFits.merr/bistaticFits.mcomp lt .3 and $
-					bistaticFits.lerr/bistaticFits.lcomp lt .3, nuse )
 
-		if (nuse gt 0) then begin
-			biFits = bistaticFits[use]
-			for i = 0, nuse - 1 do begin
-				outWind = project_bistatic_fit(biFits[i], 0)
-				magnitude = sqrt(outWind[0]*outWind[0] + outWind[1]*outWind[1]) * scale
-				azimuth = atan(outWind[0], outWind[1]) / !DTOR
-				get_mapped_vector_components, map, biFits[i].lat, biFits[i].lon, $
-											  magnitude, azimuth, x0, y0, xlen, ylen
+		biBlend = sdi_monitor_blend(bistaticFits, sigma=.3, maxDist=.5)
+
+		magnitude = sqrt(biBlend.zonal*biBlend.zonal + biBlend.merid*biBlend.merid)*scale
+		azimuth = atan(biBlend.zonal, biBlend.merid) / !DTOR
+
+		for i = 0, n_elements(magnitude) - 1 do begin
+				get_mapped_vector_components, map, biBlend.lat[i], biBlend.lon[i], $
+											  magnitude[i], azimuth[i], x0, y0, xlen, ylen
 				arrow, x0 - .5*xlen, y0 - .5*ylen, $
 					   x0 + .5*xlen, y0 + .5*ylen, /data, color = 255, hsize = 8
-			endfor
-		endif
+		endfor
 
 		;\\ Show bistatic vz locations
 		if nbivz gt 0 then begin
@@ -385,60 +442,48 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 
 	;\\ Testing vz timeseries
 	loadct, 0, /silent
+	polyfill, [0,0,1,1], [0,.25,.25,0], color = 0, /normal
+
 	bi_times = js2ut(bistatic_vz_times)
 	times = get_unique(bi_times)
 	lats = get_unique(bistatic_vz.lat)
 
-	yrange = [min(bistatic_vz.lat)-.5, max(bistatic_vz.lat)+.5]
-	trange = [min(times)-2, max(times)+1]
-	if (trange[1] - trange[0]) lt 10 then trange[1] = trange[0] + 10
-	scale = 50.
-
-	polyfill, [0,0,1,1], [0,.25,.25,0], color = 0, /normal
-
-	!p.font = -1
-	plot, trange, yrange, /nodata, xstyle=9, ystyle=9, ytitle = 'Latitude', xtitle = 'UT TIme', $
-		  pos = [.08, .05, .98, .2], /noerase
-	!p.font = 0
-
-	;\\ Plot the vertical (base-)lines at each time
-	for i = 0, n_elements(lats) - 1 do begin
-		oplot, trange, [lats[i],lats[i]], col = 50
+	for ii = 0, n_elements(lats) - 1 do begin
+		pts = where(bistatic_vz.lat eq lats[ii], npts)
+		append, bistatic_vz[pts].mcomp - median(bistatic_vz[pts].mcomp), bvz
+		append, bi_times[pts], btm
+		append, bistatic_vz[pts].lat, blt
 	endfor
 
-	device, set_font='Ariel*17*Bold'
-	xyouts, .01, .23, 'Bistatic Vertical Wind Timeseries ' + $
-				dt_tm_fromjs(dt_tm_tojs(systime(/ut)), format='Y$/doy$'), /normal
+	bin2d, btm, blt, bvz, [8./60., .8], outx, outy, outz, /extrap
 
-	;\\ Plot the vz scale
-	device, set_font='Ariel*15*Bold'
-	plots, /data, trange[0] + .2 + [1,1], yrange[0] + 2 + [0, 50/scale]
-	plots, /data, trange[0] + .2 + [.9,1.1], yrange[0] + 2
-	plots, /data, trange[0] + .2 + [.9,1.1], yrange[0] + 2 + [50/scale, 50/scale]
-	xyouts, /data, trange[0] + .2 + 1, yrange[0] + 2.2 + 50/scale, '50 m/s', align=.5
+	!p.font = -1
+	timeRange = [min(outx),max(outx)]
+	plotTimeRange = [timeRange[0], timeRange[1]]
+	if (plotTimeRange[1]-plotTimeRange[0]) lt 5 then plotTimeRange[1] += 5 - (plotTimeRange[1]-plotTimeRange[0])
+	latRange = [min(outy),max(outy)]
+	vzPos =  [.08, .05, .9, .2]
+	vzScale = [-100,100]
+	plot, plotTimeRange, latRange, /nodata, /xstyle, /ystyle, pos=vzPos, /noerase
 
-	;\\ Indicate location latitudes from the main map
-	loadct, 39, /silent
-	if show_bistatic eq 1 and size(bistaticFits, /type) ne 0 then begin
-		lat = bistaticFits[bivz].lat
-		order = sort(lat)
-		xyouts, trange[0] + .3 + .15*(indgen(n_elements(order)) mod 2), lat[order], $
-				string(indgen(n_elements(order)) + 1, f='(i0)'), /data, color= 90, align=.5
+	scale_to_range, outz, vzScale[0], vzScale[1], oz, scaleMiddle=0
+ 	crds = convert_coord(timeRange, latRange, /data, /to_device)
+	outImage = congrid(oz, crds[0,1]-crds[0,0], crds[1,1]-crds[1,0], interp=-.8)
+	load_color_table, 'pertct2.ctable'
+	tv, outImage, timeRange[0], latRange[0], /data
 
+	;\\ Scale bar
+		cbar = intarr(15, 256)
+		for cc = 0, 14 do cbar[cc,*] = indgen(256)
+		tv, congrid(cbar, 15, 100, /interp), .93, .065, /normal
+		loadct, 39, /silent
+		xyouts, .94, .04, string(vzScale[0],f='(i0)'), color=255, /normal, align=.5
+		xyouts, .94, .2, string(vzScale[1],f='(i0)'), color=255, /normal, align=.5
+		xyouts, .97, .13, 'Vz (m/s)', color=255, /normal, align=.5, orientation=-90
 
-		device, set_font='Ariel*12*Bold'
+	plot, plotTimeRange, latRange, /nodata, /xstyle, /ystyle, title='Bistatic Vertical Wind', $
+		  ytitle = 'Latitude', xtitle = 'UT TIme', pos=vzPos, /noerase
 
-		for i = 0, n_elements(lats) - 1 do begin
-			pts = where(bistatic_vz.lat eq lats[i], npts)
-			if npts gt 0 then begin
-				vz = bistatic_vz[pts].mcomp
-				lat = bistatic_vz[pts].lat
-				time = bi_times[pts]
-				order = sort(time)
-				oplot, time[order], lat[order] + vz[order]/scale, noclip=1
-			endif
-		endfor
-	endif
 
 	;\\ Overlay Tristatic Winds
 	if show_tristatic eq 1 and size(tristaticFits, /type) ne 0 then begin

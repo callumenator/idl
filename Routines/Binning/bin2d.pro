@@ -58,6 +58,7 @@ pro bin2d, x, y, z, widths, outx, outy, outz, $
 			endif else begin
 				outx[ix] = min(x) + (ix+.5)*widths[0]
 				outy[iy]= min(y) + (iy+.5)*widths[1]
+				if np gt 0 then outz[ix,iy] = mean(z[pts])
 			endelse
 
 		endfor
