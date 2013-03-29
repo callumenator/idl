@@ -443,6 +443,7 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 	;\\ Testing vz timeseries
 	loadct, 0, /silent
 	polyfill, [0,0,1,1], [0,.25,.25,0], color = 0, /normal
+	plots, [0,1], [.25,.25], /normal, color = 100
 
 	bi_times = js2ut(bistatic_vz_times)
 	times = get_unique(bi_times)
@@ -462,7 +463,7 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 	plotTimeRange = [timeRange[0], timeRange[1]]
 	if (plotTimeRange[1]-plotTimeRange[0]) lt 5 then plotTimeRange[1] += 5 - (plotTimeRange[1]-plotTimeRange[0])
 	latRange = [min(outy),max(outy)]
-	vzPos =  [.08, .05, .9, .2]
+	vzPos =  [.08, .05, .9, .22]
 	vzScale = [-100,100]
 	plot, plotTimeRange, latRange, /nodata, /xstyle, /ystyle, pos=vzPos, /noerase
 
@@ -475,11 +476,14 @@ pro sdi_monitor_multistatic, datafile=datafile, $ snapshot/zonemap save file
 	;\\ Scale bar
 		cbar = intarr(15, 256)
 		for cc = 0, 14 do cbar[cc,*] = indgen(256)
-		tv, congrid(cbar, 15, 100, /interp), .93, .065, /normal
+		cbar = congrid(cbar, 15, 106, /interp)
+		cbar[*,0] = 128 & cbar[*,n_elements(cbar[0,*])-1] = 128
+		cbar[0,*] = 128 & cbar[n_elements(cbar[*,0])-1,*] = 128
+		tv, cbar, .93, .07, /normal
 		loadct, 39, /silent
-		xyouts, .94, .04, string(vzScale[0],f='(i0)'), color=255, /normal, align=.5
-		xyouts, .94, .2, string(vzScale[1],f='(i0)'), color=255, /normal, align=.5
-		xyouts, .97, .13, 'Vz (m/s)', color=255, /normal, align=.5, orientation=-90
+		xyouts, .94, .05, string(vzScale[0],f='(i0)'), color=255, /normal, align=.5
+		xyouts, .94, .21, string(vzScale[1],f='(i0)'), color=255, /normal, align=.5
+		xyouts, .97, .14, 'Vz (m/s)', color=255, /normal, align=.5, orientation=-90
 
 	plot, plotTimeRange, latRange, /nodata, /xstyle, /ystyle, title='Bistatic Vertical Wind', $
 		  ytitle = 'Latitude', xtitle = 'UT TIme', pos=vzPos, /noerase
